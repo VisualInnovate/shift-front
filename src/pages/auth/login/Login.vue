@@ -2,7 +2,7 @@
 
   <form @submit.prevent="" class="space-y-10">
     <div v-if="authStore.authErrors.length" class="alert alert-danger text-red-500 mb-5">
-      {{ authStore.authErrors }}
+      {{ authStore.authErrors[0] }}
     </div>
     <div class="card flex justify-content-center ">
         <span class="p-float-label w-full ">

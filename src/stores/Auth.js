@@ -88,7 +88,7 @@ export const useAuthStore = defineStore('Auth', {
               ? Object.values(error.response.data.errors).flat()
               : ["Validation failed. Please check your inputs."]
           } else if (error.response.status === 401) {
-            this.authErrors = "Invalid email or password."
+            this.authErrors = ["Invalid email or password."]
           } else {
             this.authErrors = [error.response.data.message || "An error occurred during login."]
           }
@@ -96,9 +96,7 @@ export const useAuthStore = defineStore('Auth', {
           // The request was made but no response was received
           this.authErrors = ["Network error. Please check your connection."]
         } else {
-          // Something happened in setting up the request
-          this.router.push({ name: 'dashboard' })
-
+          this.authErrors = ["Invalid email or password."]
         }
       } finally {
         this.loading = false

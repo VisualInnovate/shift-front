@@ -396,7 +396,7 @@ const submitForm = async () => {
                     <img
                       :src="preview"
                       :alt="`${t('store.sliderOne')} ${index + 1}`"
-                      class="w-full h-32 object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
+                      class="w-full h-32 object-contain rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
                     >
                     <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
                       <button
@@ -444,7 +444,7 @@ const submitForm = async () => {
                     <img
                       :src="preview"
                       :alt="`${t('store.sliderTwo')} ${index + 1}`"
-                      class="w-full h-32 object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
+                      class="w-full h-32 object-contain rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
                     >
                     <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
                       <button
@@ -492,7 +492,7 @@ const submitForm = async () => {
                     <img
                       :src="preview"
                       :alt="`${t('store.sliderThree')} ${index + 1}`"
-                      class="w-full h-32 object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
+                      class="w-full h-32 object-contain rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
                     >
                     <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
                       <button

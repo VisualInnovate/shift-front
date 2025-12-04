@@ -50,11 +50,11 @@
             class="group flex flex-col items-center cursor-pointer transition-all duration-300 hover:-translate-y-2"
 
           >
-            <router-link  :to="linkTo(subCategory)" class="w-full h-48 overflow-hidden rounded-xl shadow-md relative">
+            <router-link  :to="linkTo(subCategory)" class="w-full overflow-hidden rounded-xl shadow-md relative">
               <img
                 :src="subCategory.media[0]?.url"
                 :alt="`${categoryName(subCategory)} image`"
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
                 loading="lazy"
               />
               <div
@@ -74,7 +74,7 @@
           <img
             :src="category.media.find(media => media.name === 'banner_one_image').url"
             :alt="`${categoryName(category)} banner one`"
-            class="w-full  sm:h-70 md:h-76 object-cover transition-transform duration-700 hover:scale-105"
+            class="w-full  sm:h-70 md:h-76 object-contain transition-transform duration-700 hover:scale-105"
             loading="lazy"
           />
           <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end justify-center p-6">
@@ -101,7 +101,7 @@
           <img
             :src="category.media.find(media => media.name === 'banner_two_image').url"
             :alt="`${categoryName(category)} banner two`"
-            class="w-full  sm:h-70 md:h-76 object-cover transition-transform duration-700 hover:scale-105"
+            class="w-full  sm:h-70 md:h-76 object-contain transition-transform duration-700 hover:scale-105"
             loading="lazy"
           />
           <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/50 flex items-center justify-center p-6">

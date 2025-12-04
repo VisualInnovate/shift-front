@@ -34,7 +34,7 @@
             <img
               :src="detail.media[0]?.url || '/placeholder.jpg'"
               :alt="locale === 'ar' ? detail.name_ar : detail.name_en"
-              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
               loading="lazy"
             />
             <div

@@ -38,7 +38,7 @@
       <!-- الصورة الكبيرة -->
       <div class="max-w-[60%] ml-4">
         <div class="w-full aspect-square shadow bg-full">
-          <img :src="curantimg" alt="Main product image" class="w-full h-full object-cover rounded-md" />
+          <img :src="curantimg" alt="Main product image" class="w-full h-full object-contain rounded-md" />
         </div>
       </div>
 
@@ -49,7 +49,7 @@
           :key="img"
           :src="img"
           alt="Thumbnail"
-          class="max-h-20 w-[20%] lg:w-auto object-cover rounded-lg cursor-pointer border hover:border-blue-500"
+          class="max-h-20 w-[20%] lg:w-auto object-contain rounded-lg cursor-pointer border hover:border-blue-500"
           @click="changeimg(img)"
         />
       </div>
@@ -103,7 +103,7 @@
     <div class="space-y-6">
       <div v-for="review in reviews" :key="review.id" class="p-4 flex flex-col gap-4" style="margin-top: 0">
         <!-- user img -->
-        <img :src="review.img" alt="Profile" class="w-9 h-9 rounded-full object-cover border border-gray-300" />
+        <img :src="review.img" alt="Profile" class="w-9 h-9 rounded-full object-contain border border-gray-300" />
 
         <!-- date and name-->
         <div class="flex-1">

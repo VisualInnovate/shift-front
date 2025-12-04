@@ -784,7 +784,7 @@ const submitForm = async () => {
                   <img
                     :src="preview"
                     alt="Additional Preview"
-                    class="w-full h-20 object-cover rounded-md shadow-sm"
+                    class="w-full h-20 object-contain rounded-md shadow-sm"
                   />
                   <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 flex items-center justify-center transition-all duration-200 rounded-md">
                     <button

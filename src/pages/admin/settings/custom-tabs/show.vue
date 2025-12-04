@@ -117,7 +117,7 @@
               <p class="text-lg"><strong>{{ $t('custom_tabs.name_ar') }}:</strong> {{ detail.name_ar }}</p>
               <div v-if="detail.media.length">
                 <strong>{{ $t('custom_tabs.media') }}:</strong>
-                <img :src="detail.media[0].url" :alt="$t('custom_tabs.detail_image')" class="w-32 h-32 object-cover mt-2 rounded-lg" />
+                <img :src="detail.media[0].url" :alt="$t('custom_tabs.detail_image')" class="w-32 h-32 object-contain mt-2 rounded-lg" />
               </div>
             </div>
             <div class="flex space-x-2">
@@ -218,7 +218,7 @@
             v-if="editDetail.media?.length"
             :src="editDetail.media[0].url"
             :alt="$t('custom_tabs.current_image')"
-            class="w-32 h-32 object-cover mt-2 rounded-lg"
+            class="w-32 h-32 object-contain mt-2 rounded-lg"
           />
         </div>
       </div>

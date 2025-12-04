@@ -48,7 +48,7 @@
             <img
               :src="pro.img"
               :alt="pro.name"
-              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
               loading="lazy"
             />
             <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity"></div>

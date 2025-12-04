@@ -85,7 +85,7 @@
         <div v-else class="flex flex-col items-center gap-4 mb-8">
           <div :class="{ 'flex-row-reverse': $i18n.locale === 'ar', 'flex-row': $i18n.locale !== 'ar' }" class="flex items-center gap-4">
             <img
-              class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+              class="w-20 h-20 rounded-full object-contain border-4 border-white shadow-lg"
               :src="profileImage || 'https://placehold.co/80x80/606c38/FFF'"
               :alt="t('profile.profileImageAlt')"
             />

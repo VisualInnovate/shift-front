@@ -98,7 +98,7 @@
                   <img
                     :src="profileImage"
                     :alt="t('profile.profileImageAlt')"
-                    class="w-20 h-20 rounded-full object-cover"
+                    class="w-20 h-20 rounded-full object-contain"
                   />
                   <div class="flex flex-col items-start">
                     <p class="font-bold text-gray-800 text-xl">{{ username || t('profile.notAvailable') }}</p>

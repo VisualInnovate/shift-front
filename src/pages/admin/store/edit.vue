@@ -481,7 +481,7 @@ onMounted(() => {
                   <img
                     :src="mainBannerPreview"
                     alt="Main Banner Preview"
-                    class="object-cover w-full h-full transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
+                    class="object-contain w-full h-full transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                   >
                   <div class="absolute inset-0 flex items-center justify-center transition-all duration-300 bg-black bg-opacity-0 rounded-lg group-hover:bg-opacity-30">
                     <button
@@ -526,7 +526,7 @@ onMounted(() => {
                   <img
                     :src="subBannerPreview"
                     alt="Sub Banner Preview"
-                    class="object-cover w-full h-full transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
+                    class="object-contain w-full h-full transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                   >
                   <div class="absolute inset-0 flex items-center justify-center transition-all duration-300 bg-black bg-opacity-0 rounded-lg group-hover:bg-opacity-30">
                     <button
@@ -575,7 +575,7 @@ onMounted(() => {
                     <img
                       :src="preview"
                       :alt="`Existing Slider One Image ${index + 1}`"
-                      class="object-cover w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
+                      class="object-contain w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                     >
                     <div class="absolute inset-0 flex items-center justify-center transition-all duration-300 bg-black bg-opacity-0 rounded-lg group-hover:bg-opacity-30">
                       <button
@@ -593,7 +593,7 @@ onMounted(() => {
                     <img
                       :src="preview"
                       :alt="`New Slider One Image ${index + 1}`"
-                      class="object-cover w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
+                      class="object-contain w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                     >
                     <div class="absolute inset-0 flex items-center justify-center transition-all duration-300 bg-black bg-opacity-0 rounded-lg group-hover:bg-opacity-30">
                       <button
@@ -646,7 +646,7 @@ onMounted(() => {
                     <img
                       :src="preview"
                       :alt="`Existing Slider Two Image ${index + 1}`"
-                      class="object-cover w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
+                      class="object-contain w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                     >
                     <div class="absolute inset-0 flex items-center justify-center transition-all duration-300 bg-black bg-opacity-0 rounded-lg group-hover:bg-opacity-30">
                       <button
@@ -664,7 +664,7 @@ onMounted(() => {
                     <img
                       :src="preview"
                       :alt="`New Slider Two Image ${index + 1}`"
-                      class="object-cover w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
+                      class="object-contain w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                     >
                     <div class="absolute inset-0 flex items-center justify-center transition-all duration-300 bg-black bg-opacity-0 rounded-lg group-hover:bg-opacity-30">
                       <button
@@ -717,7 +717,7 @@ onMounted(() => {
                     <img
                       :src="preview"
                       :alt="`Existing Slider Three Image ${index + 1}`"
-                      class="object-cover w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
+                      class="object-contain w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                     >
                     <div class="absolute inset-0 flex items-center justify-center transition-all duration-300 bg-black bg-opacity-0 rounded-lg group-hover:bg-opacity-30">
                       <button
@@ -735,7 +735,7 @@ onMounted(() => {
                     <img
                       :src="preview"
                       :alt="`New Slider Three Image ${index + 1}`"
-                      class="object-cover w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
+                      class="object-contain w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                     >
                     <div class="absolute inset-0 flex items-center justify-center transition-all duration-300 bg-black bg-opacity-0 rounded-lg group-hover:bg-opacity-30">
                       <button

@@ -81,7 +81,7 @@
                   <div v-for="(item, index) in order.order_items.slice(0, 3)" :key="index"
                        class="w-16 h-16 rounded-lg border-2 border-white overflow-hidden bg-gray-200">
                     <img :src="getProductImage(item.product)" :alt="getProductName(item.product)"
-                         class="w-full h-full object-cover" />
+                         class="w-full h-full object-contain" />
                   </div>
                   <div v-if="order.order_items.length > 3"
                        class="w-16 h-16 mx-1 rounded-lg bg-yellow-500 text-white flex items-center justify-center text-sm font-bold border-2 border-white">
@@ -126,7 +126,7 @@
                   <div v-for="item in order.order_items" :key="item.id"
                        class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                     <img :src="getProductImage(item.product)" :alt="getProductName(item.product)"
-                         class="w-20 h-20 rounded-lg object-cover border" />
+                         class="w-20 h-20 rounded-lg object-contain border" />
 
                     <div class="flex-1">
                       <p class="font-medium text-gray-800">{{ getProductName(item.product) }}</p>

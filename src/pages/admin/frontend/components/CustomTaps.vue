@@ -51,7 +51,7 @@
         <img
           :src="detail.media[0]?.url || '/placeholder.jpg'"
           :alt="locale === 'ar' ? detail.name_ar : detail.name_en"
-          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
         />
         <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
       </div>

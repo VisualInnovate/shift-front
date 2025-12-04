@@ -88,7 +88,7 @@
               <img
                 :src="product.img || '/images/placeholder-product.png'"
                 :alt="product.name"
-                class="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                class="w-24 h-24 object-contain rounded-lg border border-gray-200"
                 loading="lazy"
               />
 

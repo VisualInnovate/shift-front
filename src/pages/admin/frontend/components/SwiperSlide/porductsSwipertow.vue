@@ -25,7 +25,7 @@
     <img
       :src="pro.img"
       alt=""
-      class="w-full object-cover aspect-[3/4] sm:aspect-[4/5] lg:aspect-[1/1] rounded-t-lg"
+      class="w-full object-contain aspect-[3/4] sm:aspect-[4/5] lg:aspect-[1/1] rounded-t-lg"
     />
     <p
       class="text-[var(--main-text-color)] font-bold text-center text-xs sm:text-sm md:text-base lg:text-lg px-3 py-2"

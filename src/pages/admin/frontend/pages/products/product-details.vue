@@ -17,7 +17,7 @@
             :key="img.url"
             :src="img.url"
             :alt="t('product.thumbnailAlt')"
-            class="h-20 w-20 object-cover rounded-lg cursor-pointer border-2 transition-all duration-200 hover:border-blue-500"
+            class="h-20 w-20 object-contain rounded-lg cursor-pointer border-2 transition-all duration-200 hover:border-blue-500"
             :class="{ 'border-blue-500 opacity-100': currentImg === img.url, 'border-gray-300 opacity-70': currentImg !== img.url }"
             @click="changeImg(img.url)"
           />
@@ -45,7 +45,7 @@
             <img
               :src="currentImg || pro.key_default_image"
               :alt="locale === 'en' ? pro.name_en : pro.name_ar"
-              class="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+              class="w-full h-full object-contain transition-transform duration-700 hover:scale-105"
               loading="lazy"
             />
           </div>

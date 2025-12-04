@@ -52,7 +52,7 @@
               <img
                 :src="market.media.find(m => m.name === 'category_image')?.url || defaultMarketImage"
                 :alt="`${market.title} category image`"
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
                 loading="lazy"
                 :aria-label="`${market.title} category image`"
               />
@@ -83,7 +83,7 @@
             <img
               :src="image.url"
               :alt="`Slider Image ${index + 1}`"
-              class="w-full h-full object-cover rounded-xl transform hover:scale-105 transition-transform duration-500"
+              class="w-full h-full object-contain rounded-xl transform hover:scale-105 transition-transform duration-500"
               loading="lazy"
               :aria-label="`Promotional banner ${index + 1}`"
             />
@@ -107,7 +107,7 @@
                 <img
                   :src="image.url"
                   :alt="`Slider Two Image ${index + 1}`"
-                  class="w-full h-64 object-cover rounded-xl transform hover:scale-105 transition-transform duration-500"
+                  class="w-full h-64 object-contain rounded-xl transform hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                   :aria-label="`Secondary banner ${index + 1}`"
                 />
@@ -130,7 +130,7 @@
                 <img
                   :src="image.url"
                   :alt="`Slider Three Image ${index + 1}`"
-                  class="w-full h-full object-cover rounded-xl transform hover:scale-105 transition-transform duration-500"
+                  class="w-full h-full object-contain rounded-xl transform hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                   :aria-label="`Tertiary banner ${index + 1}`"
                 />
@@ -164,7 +164,7 @@
               <img
                 :src="category.media?.[0]?.url || defaultCategoryImage"
                 :alt="`${categoryName(category)} image`"
-                class="w-full h-full max-h-36 object-cover rounded-xl"
+                class="w-full h-full max-h-36 object-contain rounded-xl"
                 loading="lazy"
                 :aria-label="`${categoryName(category)} category image`"
               />

@@ -19,23 +19,23 @@
           <img
             :src="image.url"
             :alt="`Slider Image ${index + 1}`"
-            class="w-full h-full object-cover rounded-xl transform hover:scale-105 transition-transform duration-500"
+            class="w-full  h-full object-contain rounded-xl transform hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
         </div>
       </SwiperSlide>
     </Swiper>
 
-    <div class="gap-6  max-w-7xl mx-auto">
+    <div class="gap-6 grid grid-cols-2 max-w-7xl mx-auto">
       <div class="rounded-xl my-4  overflow-hidden">
         <Swiper
           v-if="sliderImagesTwo.length"
           :modules="[Autoplay]"
            :breakpoints="{
-            320: { slidesPerView: 2 },
-            640: { slidesPerView: 2 },
-            768: { slidesPerView: 2 },
-            1024: { slidesPerView: 2 }
+            320: { slidesPerView: 1 },
+            640: { slidesPerView: 1 },
+            768: { slidesPerView: 1 },
+            1024: { slidesPerView: 1 }
           }"
           :slides-per-view="1"
           :space-between="10"
@@ -50,7 +50,7 @@
               <img
                 :src="image.url"
                 :alt="`Slider Two Image ${index + 1}`"
-                class="w-full  object-cover rounded-xl transform hover:scale-105 transition-transform duration-500"
+                class="w-full  object-contain rounded-xl transform hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               />
             </div>
@@ -58,7 +58,36 @@
         </Swiper>
       </div>
 
-
+  <div class="rounded-xl my-4  overflow-hidden">
+        <Swiper
+          v-if="sliderImagesTwo.length"
+          :modules="[Autoplay]"
+           :breakpoints="{
+            320: { slidesPerView: 1 },
+            640: { slidesPerView: 1 },
+            768: { slidesPerView: 1 },
+            1024: { slidesPerView: 1}
+          }"
+          :slides-per-view="1"
+          :space-between="10"
+          :autoplay="{ delay: 2500, disableOnInteraction: false }"
+          class="w-full h-full"
+        >
+          <SwiperSlide v-for="(image, index) in sliderImagesThree" :key="'two-' + index">
+            <div
+              @click="handleMediaClick(image)"
+              class="flex w-full  items-center justify-center  rounded-xl overflow-hidden cursor-pointer"
+            >
+              <img
+                :src="image.url"
+                :alt="`Slider Two Image ${index + 1}`"
+                class="w-full  object-contain rounded-xl transform hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+            </div>
+          </SwiperSlide>
+        </Swiper>
+      </div>
     </div>
 
     <div v-if="categories.length > 1" class="py-2 rounded-sm px-2 bg-[#1F3A932B] mx-auto max-w-7xl">
@@ -84,7 +113,7 @@
               v-if="category?.media"
               :src="category?.media[0]?.url"
               :alt="category.name_en || 'Category Image'"
-              class="w-full h-full object-cover rounded-xl"
+              class="w-full  object-contain  rounded-xl"
               loading="lazy"
             />
             <div class="p-3 w-full text-center rounded-xl">
@@ -102,7 +131,7 @@
       >
         <img
           :src="subBannerImage.url"
-          class="w-full h-64 sm:h-40 md:h-46 object-cover transition-transform duration-700 hover:scale-105"
+          class="w-full h-64 sm:h-40 md:h-46 object-contain transition-transform duration-700 hover:scale-105"
           loading="lazy"
         />
         <div class="absolute inset-0 bg-gradient-to-b from-transparent flex items-center justify-center p-6"></div>

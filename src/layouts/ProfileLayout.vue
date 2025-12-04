@@ -8,7 +8,7 @@
       <div class="flex flex-col items-center gap-4 mb-8">
         <div class="flex items-center gap-4 flex-row-reverse">
           <img
-            class="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
+            class="w-20 h-20 rounded-full object-contain border-4 border-white shadow-lg"
             :src="profilePicture"
             alt="صورة الملف الشخصي"
           />

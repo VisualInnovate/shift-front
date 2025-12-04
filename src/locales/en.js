@@ -80,14 +80,19 @@ export default {
     addresses: 'Addresses',
   },
   user: {
-    managementTitle: "users Management",
+    managementTitle: "Users Management",
     users: 'Users',
+    logout: 'Logout',
     new: 'New',
     search: 'Search...',
     export: 'Export',
     name: 'Name',
     email: 'Email',
+    noData: 'No data',
     phone: 'Phone',
+    deleteSuccess: 'User deleted successfully',
+    deleteConfirmTitle: 'Confirm Deletion',
+    deleteConfirmMessage: 'Are you sure you want to delete this user?',
     image: 'Image',
     role: 'Role',
     password: 'Password',
@@ -370,6 +375,7 @@ export default {
   "role": {
     "role_Permissions_Manager": "Role Permissions Manager",
     "role_Name": "Role Name",
+    updateWithPermissions: "Update Roles",
     "enter_role_name": "Enter role name",
     "loading_permissions": "Loading permissions...",
     "create_Role_with_Selected_Permissions": "Create Role with Selected Permissions",
@@ -713,6 +719,10 @@ export default {
     "search": "Search addresses...",
     "export": "Export to CSV",
     "new": "New Address",
+    long : "Longitude",
+    lat : "Latitude",
+    distance : "Distance",
+    meters : "meters",
     "line1": "Address Line 1",
     "line2": "Address Line 2",
     "city": "City",
@@ -755,9 +765,6 @@ export default {
     "geocoding_failed": "Failed to geocode location",
     "createFirst": "Create First Address",
     "invalid_id": "Invalid address ID"
-  },
-  "user": {
-    "name": "User"
   },
   "error": "Error",
   "success": "Success",
@@ -1014,6 +1021,7 @@ export default {
   to: 'to',
   from: 'of',
   "product": {
+    "Price after discount" : "Price after discount",
     "Free_Delivery": " Free Delivery",
     "freeShipping": "Free Shipping",
     "freeShippingEnabled": "Free shipping enabled",

@@ -26,8 +26,8 @@
       </SwiperSlide>
     </Swiper>
 
-    <div class="gap-6 grid grid-cols-2 max-w-7xl mx-auto">
-      <div class="rounded-xl my-4  overflow-hidden">
+    <div class="gap-4 m-2 grid grid-cols-2 max-w-7xl ">
+      <div class="rounded-xl  overflow-hidden">
         <Swiper
           v-if="sliderImagesTwo.length"
           :modules="[Autoplay]"
@@ -58,7 +58,7 @@
         </Swiper>
       </div>
 
-  <div class="rounded-xl m-4  overflow-hidden">
+  <div class="rounded-xl   overflow-hidden">
         <Swiper
           v-if="sliderImagesTwo.length"
           :modules="[Autoplay]"

@@ -58,7 +58,7 @@
         </Swiper>
       </div>
 
-  <div class="rounded-xl my-4  overflow-hidden">
+  <div class="rounded-xl m-4  overflow-hidden">
         <Swiper
           v-if="sliderImagesTwo.length"
           :modules="[Autoplay]"

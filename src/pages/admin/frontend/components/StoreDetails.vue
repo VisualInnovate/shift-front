@@ -26,7 +26,7 @@
       </SwiperSlide>
     </Swiper>
 
-    <div class="gap-4 m-2 grid grid-cols-2 max-w-7xl ">
+    <div class="gap-4 m-2 mx-auto grid grid-cols-2 max-w-7xl ">
       <div class="rounded-xl  overflow-hidden">
         <Swiper
           v-if="sliderImagesTwo.length"

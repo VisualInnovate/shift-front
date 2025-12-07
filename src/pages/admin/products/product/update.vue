@@ -5,6 +5,7 @@ import { useToast } from 'primevue/usetoast';
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import Dropdown from 'primevue/dropdown';
+import MultiSelect from 'primevue/multiselect';
 import InputText from 'primevue/inputtext';
 import InputNumber from 'primevue/inputnumber';
 import Textarea from 'primevue/textarea';
@@ -114,13 +115,13 @@ const fetchProduct = async () => {
         id: variant.id,
         sku: variant.sku || '',
         price: variant.price,
-        attribute_value_ids: variant.attribute_values.map(av => av.id), // Array of IDs
+        attribute_value_id: variant.attribute_values.length > 0 ? variant.attribute_values[0].id : null,
         variant_image: null,
         variant_image_preview: variant.media?.[0]?.url || null
       })) || []
     };
 
-    hasVariants.value = data.has_variants === 1;
+    hasVariants.value = !!data.has_variants;
 
     // Main image
     if (data.media && data.media.length > 0) {
@@ -322,7 +323,7 @@ const addVariant = () => {
     id: null,
     sku: '',
     price: '',
-    attribute_value_ids: [],
+    attribute_value_id: null,
     variant_image: null,
     variant_image_preview: null
   });
@@ -352,7 +353,7 @@ const submitForm = async () => {
 
   // Validate variants: price & attributes required, SKU optional
   if (hasVariants.value) {
-    if (productData.value.variants.some(v => !v.price || v.attribute_value_ids.length === 0)) {
+    if (productData.value.variants.some(v => !v.price || !v.attribute_value_id)) {
       toast.add({ severity: 'error', summary: t('error'), detail: t('validation.variantRequiredFields'), life: 3000 });
       return;
     }
@@ -397,9 +398,9 @@ const submitForm = async () => {
       if (variant.id) formData.append(`variants[${index}][id]`, variant.id);
       if (variant.sku) formData.append(`variants[${index}][sku]`, variant.sku);
       formData.append(`variants[${index}][price]`, variant.price);
-      variant.attribute_value_ids.forEach((id, i) => {
-        formData.append(`variants[${index}][attribute_value_ids][${i}]`, id);
-      });
+      if (variant.attribute_value_id) {
+        formData.append(`variants[${index}][attribute_value_id]`, variant.attribute_value_id);
+      }
       if (variant.variant_image) {
         formData.append(`variants[${index}][variant_image]`, variant.variant_image);
       }
@@ -676,17 +677,15 @@ const submitForm = async () => {
                 </label>
                 <Dropdown
                   :id="'attributes_' + index"
-                  v-model="variant.attribute_value_ids"
+                  v-model="variant.attribute_value_id"
                   :options="formattedAttributes"
                   optionGroupLabel="label"
                   optionGroupChildren="items"
                   :optionLabel="labelField"
                   optionValue="attribute_value_id"
                   class="w-full"
-                  :class="{ 'p-invalid': variant.attribute_value_ids.length === 0 }"
-                  display="chip"
+                  :class="{ 'p-invalid': !variant.attribute_value_id }"
                   :filter="true"
-                  :showToggleAll="false"
                 />
               </div>
 
@@ -868,7 +867,7 @@ const submitForm = async () => {
                   <img
                     :src="preview"
                     alt="Additional Preview"
-                    class="w-full h-32 object-contain rounded-lg shadow-md"
+                    class="w-full h-32 object-cover rounded-lg shadow-md"
                   />
                   <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
                     <button

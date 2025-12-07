@@ -33,6 +33,7 @@
           :autoplay="{ delay: 3000, disableOnInteraction: false }"
           :speed="1000"
           :grab-cursor="true"
+           :center-insufficient-slides="true"
           :navigation="false"
           class="mt-6 pb-12"
           :breakpoints="{

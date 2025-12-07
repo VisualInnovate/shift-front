@@ -1,8 +1,13 @@
 <template>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <h2 class="font-bold font-sans text-gray-800 text-2xl md:text-3xl lg:text-4xl mb-6">
+   <div class="flex justify-between ">
+     <h2 class="font-bold font-sans text-gray-800 text-2xl md:text-3xl lg:text-4xl mb-6">
       {{ products.title }}
     </h2>
+     <h3 @click="ShowExclusive"  v-if="products.title == $t('category.exclusive') " href="" class="cursor-pointer text-[#0b3baa] font-bold font-sans  text-2xl ">
+      {{ $t('category.see_all') }}
+    </h3>
+   </div>
 
     <swiper
       :modules="[Autoplay]"
@@ -11,6 +16,7 @@
       :autoplay="{ delay: 3000, disableOnInteraction: false }"
       :speed="4000"
       :grab-cursor="true"
+
       :touch-ratio="1.5"
       class="product-swiper"
       :breakpoints="{
@@ -145,7 +151,14 @@ import 'swiper/css';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../../../../../stores/WebAuth';
+import { ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+const route = useRoute()
+const router = useRouter();
 
+const stor_id = ref(localStorage.getItem('defaultStoreId'))
+
+const id =ref(route.params.id)
 const { t } = useI18n();
 const authStore = useAuthStore();
 
@@ -179,7 +192,15 @@ const addToCart = async (product) => {
     alert(t('cart.error') || 'Failed to add to cart.');
   }
 };
+const ShowExclusive = () => {
 
+  if (id.value)
+
+router.push({ name: 'products-exclusive', params: { id:stor_id.value } });
+  else{
+  router.push({ name: 'products-exclusive', params: { id:stor_id.value } });
+  }
+};
 const toggleFavorite = async (product) => {
   if (!authStore.authenticatedweb) {
     alert(t('auth.required') || 'Please log in to manage wishlist.');

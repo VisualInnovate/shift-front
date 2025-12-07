@@ -636,6 +636,7 @@ export default {
     createError: 'Failed to create model',
   },
   category: {
+     see_all:" See All",
     storeNameEn: 'store Name (En)',
     storeNameAr: 'store Name (ar)',
     storeNameAr: ' المتجر (عربي)',

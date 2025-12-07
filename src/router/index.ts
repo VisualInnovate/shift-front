@@ -46,6 +46,11 @@ const routes: Array<RouteRecordRaw> = [
         path: '/products-brand/:id',
         component: () => import('../pages/admin/frontend/pages/products/brand-products.vue'),
       },
+       {
+        name: 'products-exclusive',
+        path: '/products-exclusive/:id',
+        component: () => import('../pages/admin/frontend/pages/products/products-exclusive.vue'),
+      },
 
       {
         name: 'media-products',

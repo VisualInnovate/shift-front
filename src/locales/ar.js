@@ -777,6 +777,7 @@ export default {
     createError: 'فشل إنشاء الموديل',
   },
   category: {
+    see_all:"عرض الكل",
     subCategories: "الفئات",
     linkedToMarket: "داخل سوق ",
     import: "استيراد",
@@ -1213,6 +1214,12 @@ export default {
     "missingParams": "معرف المتجر مفقود."
   },
   "product": {
+    "bestSeller": "الأكثر مبيعًا",
+  "isBestSeller": "مميز كمنتج رائج",
+  "notBestSeller": "غير مميز كمنتج رائج",
+  "bestSellerEnabled": "تم تحديد المنتج كـ\"الأكثر مبيعًا\"",
+  "bestSellerDisabled": "تم إزالة المنتج من قائمة \"الأكثر مبيعًا\"",
+  "bestSellerUpdateError": "فشل تحديث حالة الأكثر مبيعًا",
     "freeShipping": "شحن مجاني",
     "freeShippingEnabled": "تم تفعيل الشحن المجاني",
     "freeShippingDisabled": "تم إلغاء الشحن المجاني",

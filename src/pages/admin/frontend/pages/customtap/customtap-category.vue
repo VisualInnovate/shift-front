@@ -181,11 +181,11 @@ const fetchCustomTabs = async (id, page = 1) => {
 const navigateToDetail = (hasSubcategories, id, name) => {
   let routeName
   if (hasSubcategories) {
-    routeName = 'customtap-category'
+    routeName = 'subcategory'
   } else {
-    routeName = 'customtap-products'
+    routeName = 'produts_category'
   }
-  router.push({ name: routeName, params: { id }, query: { title: name } })
+  router.push({ name: routeName, params: { id },  })
 }
 
 // --- Pagination ---

@@ -272,6 +272,7 @@ export default {
   },
 
   "custom_tabs": {
+
     "add_new_detail": "إضافة عنصر تفصيلي جديد",
     "details": "تفاصيل التبويب",
     "no_details": "لم تتم إضافة أي تفاصيل بعد. ابدأ بإضافة العنصر الأول!",
@@ -972,33 +973,7 @@ export default {
   "yes": "نعم",
   "cancel": "إلغاء",
   "update": "تحديث",
-  customTabs: {
-    managementTitle: 'إدارة علامات التبويب المخصصة',
-    search: 'البحث في علامات التبويب المخصصة',
-    export: 'تصدير',
-    new: 'علامة تبويب مخصصة جديدة',
-    nameEn: 'الاسم (بالإنجليزية)',
-    nameAr: 'الاسم (بالعربية)',
-    modelType: 'نوع النموذج',
-    typeDescription: 'وصف النوع',
-    details: 'التفاصيل',
-    noData: 'لم يتم العثور على علامات تبويب مخصصة',
-    deleteConfirmTitle: 'تأكيد الحذف',
-    deleteConfirmMessage: 'هل أنت متأكد من رغبتك في حذف علامة التبويب المخصصة هذه؟',
-    loadError: 'فشل في تحميل علامات التبويب المخصصة',
-    deleteSuccess: 'تم حذف علامة التبويب المخصصة بنجاح',
-    deleteError: 'فشل في حذف علامة التبويب المخصصة',
-    updateTitle: 'تحديث علامة التبويب المخصصة',
-    belongsTo: 'ينتمي إلى',
-    type: 'النوع',
-    modelId: 'النموذج',
-    rowType: 'نوع الصف',
-    nameEn: 'الاسم (إنجليزي)',
-    nameAr: 'الاسم (عربي)',
-    updateButton: 'تحديث',
-    cancelButton: 'إلغاء',
-    updateSuccess: 'تم تحديث علامة التبويب المخصصة بنجاح'
-  },
+
   error: {
     storeLoad: 'فشل في تحميل المتاجر',
     categoryLoad: 'فشل في تحميل الفئات',

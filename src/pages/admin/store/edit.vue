@@ -22,11 +22,12 @@ const storeData = ref({
   slider_images_one: [],
   slider_images_two: [],
   slider_images_three: [],
+  // existing_images now stores the URL AND the media ID for deletion tracking
   existing_images: {
-    store_image: null,
-    main_banner_image: null,
-    sub_banner_image: null,
-    slider_images_one: [],
+    store_image: { url: null, id: null },
+    main_banner_image: { url: null, id: null },
+    sub_banner_image: { url: null, id: null },
+    slider_images_one: [], // Array of { url, id }
     slider_images_two: [],
     slider_images_three: []
   }
@@ -61,7 +62,43 @@ const validateForm = () => {
   return true;
 };
 
-// Handle image uploads
+/**
+ * 💣 API Call to Delete Media Item
+ * @param {number} mediaId - The ID of the media item to delete.
+ */
+const deleteMedia = async (mediaId) => {
+  if (!mediaId) return true; // Treat as successful if no ID is present
+
+
+
+  loading.value = true;
+  try {
+    // Assuming the API uses DELETE method to the specified endpoint
+    await axios.delete(`/api/dashboard/media/${mediaId}`);
+    toast.add({
+      severity: 'warn',
+      summary: 'Image Deleted',
+      detail: 'Existing image permanently removed from the server.',
+      life: 3000
+    });
+    return true;
+  } catch (error) {
+    console.error("Error deleting media:", error);
+    toast.add({
+      severity: 'error',
+      summary: "Deletion Error",
+      detail: 'Failed to delete the existing image. Please try again.',
+      life: 3000
+    });
+    // Return false to prevent local state update if deletion fails
+    return false;
+  } finally {
+    loading.value = false;
+  }
+};
+
+
+// Handle image uploads (logic remains the same)
 const handleImageUpload = (file, type) => {
   if (file.size > 2 * 1024 * 1024) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Image size should be less than 2MB', life: 3000 });
@@ -75,16 +112,20 @@ const handleImageUpload = (file, type) => {
         storeData.value.store_image = file;
         storeImagePreview.value = e.target.result;
         isDraggingStoreImage.value = false;
+        // Reset existing data if a new file is uploaded
+        storeData.value.existing_images.store_image = { url: null, id: null };
         break;
       case 'main_banner':
         storeData.value.main_banner_image = file;
         mainBannerPreview.value = e.target.result;
         isDraggingMainBanner.value = false;
+        storeData.value.existing_images.main_banner_image = { url: null, id: null };
         break;
       case 'sub_banner':
         storeData.value.sub_banner_image = file;
         subBannerPreview.value = e.target.result;
         isDraggingSubBanner.value = false;
+        storeData.value.existing_images.sub_banner_image = { url: null, id: null };
         break;
     }
   };
@@ -95,13 +136,20 @@ const handleSliderUpload = (files, type) => {
   const newPreviews = [];
   const newFiles = [];
 
-  const currentCount = type === 'slider_one'
-    ? storeData.value.slider_images_one.length + storeData.value.existing_images.slider_images_one.length
+  const existingCount = type === 'slider_one'
+    ? storeData.value.existing_images.slider_images_one.length
     : type === 'slider_two'
-      ? storeData.value.slider_images_two.length + storeData.value.existing_images.slider_images_two.length
-      : storeData.value.slider_images_three.length + storeData.value.existing_images.slider_images_three.length;
+      ? storeData.value.existing_images.slider_images_two.length
+      : storeData.value.existing_images.slider_images_three.length;
 
-  if (currentCount + files.length > 10) {
+  const currentCount = type === 'slider_one'
+    ? storeData.value.slider_images_one.length
+    : type === 'slider_two'
+      ? storeData.value.slider_images_two.length
+      : storeData.value.slider_images_three.length;
+
+
+  if (existingCount + currentCount + files.length > 10) {
     toast.add({
       severity: 'error',
       summary: 'Error',
@@ -157,37 +205,64 @@ const onSliderUpload = (event, type) => {
 };
 
 // Remove images
-const removeImage = (type) => {
+const removeImage = async (type) => {
+  let mediaId = null;
+  let existingMedia = null;
+
   switch (type) {
     case 'store':
+      existingMedia = storeData.value.existing_images.store_image;
+      mediaId = existingMedia.id;
+      // If it's an existing image, attempt to delete it
+      if (mediaId && await deleteMedia(mediaId) === false) return;
+
       storeData.value.store_image = null;
       storeImagePreview.value = null;
-      storeData.value.existing_images.store_image = null;
+      storeData.value.existing_images.store_image = { url: null, id: null };
       break;
     case 'main_banner':
+      existingMedia = storeData.value.existing_images.main_banner_image;
+      mediaId = existingMedia.id;
+      if (mediaId && await deleteMedia(mediaId) === false) return;
+
       storeData.value.main_banner_image = null;
       mainBannerPreview.value = null;
-      storeData.value.existing_images.main_banner_image = null;
+      storeData.value.existing_images.main_banner_image = { url: null, id: null };
       break;
     case 'sub_banner':
+      existingMedia = storeData.value.existing_images.sub_banner_image;
+      mediaId = existingMedia.id;
+      if (mediaId && await deleteMedia(mediaId) === false) return;
+
       storeData.value.sub_banner_image = null;
       subBannerPreview.value = null;
-      storeData.value.existing_images.sub_banner_image = null;
+      storeData.value.existing_images.sub_banner_image = { url: null, id: null };
       break;
   }
 };
 
-const removeSliderImage = (index, type) => {
+const removeSliderImage = async (index, type) => {
   if (type === 'slider_one') {
+    // Logic for existing image (stored in existing_images array)
     if (index < storeData.value.existing_images.slider_images_one.length) {
+      const existingMedia = storeData.value.existing_images.slider_images_one[index];
+      if (existingMedia.id) {
+        if (await deleteMedia(existingMedia.id) === false) return;
+      }
       storeData.value.existing_images.slider_images_one.splice(index, 1);
-    } else {
+    }
+    // Logic for newly uploaded image (stored in file/preview arrays)
+    else {
       const adjustedIndex = index - storeData.value.existing_images.slider_images_one.length;
       storeData.value.slider_images_one.splice(adjustedIndex, 1);
       sliderOnePreviews.value.splice(adjustedIndex, 1);
     }
   } else if (type === 'slider_two') {
     if (index < storeData.value.existing_images.slider_images_two.length) {
+      const existingMedia = storeData.value.existing_images.slider_images_two[index];
+      if (existingMedia.id) {
+        if (await deleteMedia(existingMedia.id) === false) return;
+      }
       storeData.value.existing_images.slider_images_two.splice(index, 1);
     } else {
       const adjustedIndex = index - storeData.value.existing_images.slider_images_two.length;
@@ -196,6 +271,10 @@ const removeSliderImage = (index, type) => {
     }
   } else if (type === 'slider_three') {
     if (index < storeData.value.existing_images.slider_images_three.length) {
+      const existingMedia = storeData.value.existing_images.slider_images_three[index];
+      if (existingMedia.id) {
+        if (await deleteMedia(existingMedia.id) === false) return;
+      }
       storeData.value.existing_images.slider_images_three.splice(index, 1);
     } else {
       const adjustedIndex = index - storeData.value.existing_images.slider_images_three.length;
@@ -217,29 +296,30 @@ const fetchStore = async () => {
     storeData.value.is_default = data.is_default === 1;
     storeData.value.has_market = data.has_market === 1;
 
-    // Process media
+    // Process media - Now storing { url, id }
     data.media.forEach(media => {
+      const mediaItem = { url: media.url, id: media.id };
       switch (media.name) {
         case 'store_image':
-          storeData.value.existing_images.store_image = media.url;
+          storeData.value.existing_images.store_image = mediaItem;
           storeImagePreview.value = media.url;
           break;
         case 'main_banner_image':
-          storeData.value.existing_images.main_banner_image = media.url;
+          storeData.value.existing_images.main_banner_image = mediaItem;
           mainBannerPreview.value = media.url;
           break;
         case 'sub_banner_image':
-          storeData.value.existing_images.sub_banner_image = media.url;
+          storeData.value.existing_images.sub_banner_image = mediaItem;
           subBannerPreview.value = media.url;
           break;
         case 'slider_images_one':
-          storeData.value.existing_images.slider_images_one.push(media.url);
+          storeData.value.existing_images.slider_images_one.push(mediaItem);
           break;
         case 'slider_images_two':
-          storeData.value.existing_images.slider_images_two.push(media.url);
+          storeData.value.existing_images.slider_images_two.push(mediaItem);
           break;
         case 'slider_images_three':
-          storeData.value.existing_images.slider_images_three.push(media.url);
+          storeData.value.existing_images.slider_images_three.push(mediaItem);
           break;
       }
     });
@@ -272,61 +352,47 @@ const submitForm = async () => {
   formData.append('has_market', storeData.value.has_market ? '1' : '0');
 
   // Handle image updates
+  // Note: We no longer need to check for null on existing_images here,
+  // because existing images are deleted immediately in removeImage().
+  // If the user replaces an image, existing_images is reset to {url: null, id: null}
+  // in handleImageUpload, and the old image's ID is NOT sent to the backend.
+
+  // New image files are appended
   if (storeData.value.store_image) {
     formData.append('store_image', storeData.value.store_image);
-  } else if (storeData.value.existing_images.store_image === null) {
-    formData.append('store_image', '');
   }
-
   if (storeData.value.main_banner_image) {
     formData.append('main_banner_image', storeData.value.main_banner_image);
-  } else if (storeData.value.existing_images.main_banner_image === null) {
-    formData.append('main_banner_image', '');
   }
-
   if (storeData.value.sub_banner_image) {
     formData.append('sub_banner_image', storeData.value.sub_banner_image);
-  } else if (storeData.value.existing_images.sub_banner_image === null) {
-    formData.append('sub_banner_image', '');
   }
 
-  // Handle slider images
-  if (storeData.value.slider_images_one.length > 0) {
-    storeData.value.slider_images_one.forEach((file, index) => {
-      formData.append(`slider_images_one[${index}]`, file);
-    });
-  } else {
-    formData.append('slider_images_one', '');
-  }
-
-  if (storeData.value.slider_images_two.length > 0) {
-    storeData.value.slider_images_two.forEach((file, index) => {
-      formData.append(`slider_images_two[${index}]`, file);
-    });
-  } else {
-    formData.append('slider_images_two', '');
-  }
-
-  if (storeData.value.slider_images_three.length > 0) {
-    storeData.value.slider_images_three.forEach((file, index) => {
-      formData.append(`slider_images_three[${index}]`, file);
-    });
-  } else {
-    formData.append('slider_images_three', '');
-  }
-
-  // Add existing slider images to keep
-  storeData.value.existing_images.slider_images_one.forEach((url, index) => {
-    formData.append(`keep_slider_one[${index}]`, url);
+  // Handle new slider images
+  storeData.value.slider_images_one.forEach((file, index) => {
+    formData.append(`slider_images_one[${index}]`, file);
+  });
+  storeData.value.slider_images_two.forEach((file, index) => {
+    formData.append(`slider_images_two[${index}]`, file);
+  });
+  storeData.value.slider_images_three.forEach((file, index) => {
+    formData.append(`slider_images_three[${index}]`, file);
   });
 
-  storeData.value.existing_images.slider_images_two.forEach((url, index) => {
-    formData.append(`keep_slider_two[${index}]`, url);
+  // Add remaining existing slider images to keep (by their ID)
+  // This is crucial: we send the IDs of the images we want to KEEP.
+  storeData.value.existing_images.slider_images_one.forEach((item, index) => {
+    formData.append(`keep_slider_one[${index}]`, item.id);
   });
 
-  storeData.value.existing_images.slider_images_three.forEach((url, index) => {
-    formData.append(`keep_slider_three[${index}]`, url);
+  storeData.value.existing_images.slider_images_two.forEach((item, index) => {
+    formData.append(`keep_slider_two[${index}]`, item.id);
   });
+
+  storeData.value.existing_images.slider_images_three.forEach((item, index) => {
+    formData.append(`keep_slider_three[${index}]`, item.id);
+  });
+
 
   try {
     const response = await axios.post(`/api/store/${storeId.value}`, formData, {
@@ -370,7 +436,6 @@ onMounted(() => {
 
     <form ref="form" @submit.prevent="submitForm" class="space-y-6">
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <!-- English Name -->
         <div class="space-y-2">
           <label for="name_en" class="block text-sm font-medium text-gray-700">
             English Name <span class="text-red-500">*</span>
@@ -384,7 +449,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Arabic Name -->
         <div class="space-y-2">
           <label for="name_ar" class="block text-sm font-medium text-gray-700">
             Arabic Name <span class="text-red-500">*</span>
@@ -399,7 +463,6 @@ onMounted(() => {
           />
         </div>
 
-        <!-- Toggle Buttons -->
         <div class="space-y-4 md:col-span-2">
           <div class="flex items-center space-x-4">
             <label class="block text-sm font-medium text-gray-700">Default Store</label>
@@ -414,7 +477,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Store Image -->
         <div class="space-y-2">
           <label class="block text-sm font-medium text-gray-700">
             Store Logo
@@ -461,7 +523,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Main Banner Image -->
         <div class="space-y-2">
           <label class="block text-sm font-medium text-gray-700">
             Main Banner
@@ -508,7 +569,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Sub Banner Image -->
         <div class="space-y-2 md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">Sub Banner</label>
           <div class="flex justify-center">
@@ -553,7 +613,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Slider Images One -->
         <div class="space-y-2 md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">
             Slider Images One <span class="text-gray-500">(Max 10 images)</span>
@@ -570,10 +629,9 @@ onMounted(() => {
 
               <div v-if="sliderOnePreviews.length > 0 || storeData.existing_images.slider_images_one.length > 0" class="p-4">
                 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                  <!-- Existing images -->
-                  <div v-for="(preview, index) in storeData.existing_images.slider_images_one" :key="'existing-one-'+index" class="relative group">
+                  <div v-for="(item, index) in storeData.existing_images.slider_images_one" :key="'existing-one-'+index" class="relative group">
                     <img
-                      :src="preview"
+                      :src="item.url"
                       :alt="`Existing Slider One Image ${index + 1}`"
                       class="object-contain w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                     >
@@ -588,7 +646,6 @@ onMounted(() => {
                     </div>
                   </div>
 
-                  <!-- Newly uploaded images -->
                   <div v-for="(preview, index) in sliderOnePreviews" :key="'new-one-'+index" class="relative group">
                     <img
                       :src="preview"
@@ -624,7 +681,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Slider Images Two -->
         <div class="space-y-2 md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">
             Slider Images Two <span class="text-gray-500">(Max 10 images)</span>
@@ -641,10 +697,9 @@ onMounted(() => {
 
               <div v-if="sliderTwoPreviews.length > 0 || storeData.existing_images.slider_images_two.length > 0" class="p-4">
                 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                  <!-- Existing images -->
-                  <div v-for="(preview, index) in storeData.existing_images.slider_images_two" :key="'existing-two-'+index" class="relative group">
+                  <div v-for="(item, index) in storeData.existing_images.slider_images_two" :key="'existing-two-'+index" class="relative group">
                     <img
-                      :src="preview"
+                      :src="item.url"
                       :alt="`Existing Slider Two Image ${index + 1}`"
                       class="object-contain w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                     >
@@ -659,7 +714,6 @@ onMounted(() => {
                     </div>
                   </div>
 
-                  <!-- Newly uploaded images -->
                   <div v-for="(preview, index) in sliderTwoPreviews" :key="'new-two-'+index" class="relative group">
                     <img
                       :src="preview"
@@ -695,7 +749,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Slider Images Three -->
         <div class="space-y-2 md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">
             Slider Images Three <span class="text-gray-500">(Max 10 images)</span>
@@ -712,10 +765,9 @@ onMounted(() => {
 
               <div v-if="sliderThreePreviews.length > 0 || storeData.existing_images.slider_images_three.length > 0" class="p-4">
                 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-                  <!-- Existing images -->
-                  <div v-for="(preview, index) in storeData.existing_images.slider_images_three" :key="'existing-three-'+index" class="relative group">
+                  <div v-for="(item, index) in storeData.existing_images.slider_images_three" :key="'existing-three-'+index" class="relative group">
                     <img
-                      :src="preview"
+                      :src="item.url"
                       :alt="`Existing Slider Three Image ${index + 1}`"
                       class="object-contain w-full h-32 transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
                     >
@@ -730,7 +782,6 @@ onMounted(() => {
                     </div>
                   </div>
 
-                  <!-- Newly uploaded images -->
                   <div v-for="(preview, index) in sliderThreePreviews" :key="'new-three-'+index" class="relative group">
                     <img
                       :src="preview"
@@ -765,57 +816,18 @@ onMounted(() => {
             </label>
           </div>
         </div>
-      </div>
 
-      <!-- Submit Button -->
-      <div class="flex justify-center pt-4 space-x-4">
-        <button
-          type="button"
-          @click="router.go(-1)"
-          class="flex items-center justify-center px-6 py-3 mx-2 space-x-2 text-gray-700 transition-all duration-300 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 hover:shadow-lg"
-          :disabled="loading"
-        >
-          <span>Cancel</span>
-        </button>
-
-        <button
-          type="submit"
-          class="flex items-center justify-center px-8 py-3 mx-2 space-x-2 text-white transition-all duration-300 rounded-lg shadow-md bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg"
-          :disabled="loading"
-        >
-          <span v-if="!loading">Update Store</span>
-          <span v-else>Updating...</span>
-        </button>
+        <div class="pt-4 md:col-span-2">
+          <button
+            type="submit"
+            :disabled="loading"
+            class="flex items-center justify-center w-full px-6 py-3 text-lg font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <i v-if="loading" class="mr-2 pi pi-spin pi-spinner"></i>
+            {{ loading ? 'Updating...' : 'Update Store' }}
+          </button>
+        </div>
       </div>
     </form>
   </div>
 </template>
-
-<style scoped>
-/* Smooth transitions */
-.transition-all {
-  transition-property: all;
-}
-.transition-colors {
-  transition-property: background-color, border-color, color;
-}
-.duration-300 {
-  transition-duration: 300ms;
-}
-
-/* Image hover effects */
-.group:hover .group-hover\:scale-105 {
-  transform: scale(1.05);
-}
-.group:hover .group-hover\:bg-opacity-30 {
-  background-color: rgba(0, 0, 0, 0.3);
-}
-.group:hover .group-hover\:opacity-100 {
-  opacity: 1;
-}
-
-/* Button gradient animation */
-button.bg-gradient-to-r:hover {
-  background-size: 150% 100%;
-}
-</style>

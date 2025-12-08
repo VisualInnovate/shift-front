@@ -21,7 +21,6 @@ const formData = ref({
   model_id: null,
   name_en: '',
   name_ar: '',
-  type: null,
   row_type: null
 });
 
@@ -32,11 +31,7 @@ const belongsToOptions = ref([
   { label: 'Market', value: 'market' }
 ]);
 
-const typeOptions = ref([
-  { label: 'Categories', value: 1 },
-  { label: 'Products', value: 2 },
-  { label: 'Brand', value: 3 }
-]);
+
 
 const rowTypeOptions = ref([
   { label: 'Single Row', value: 1 },
@@ -153,7 +148,6 @@ const fetchCustomTab = async (id) => {
       model_id: customTab.model?.id || null,
       name_en: customTab.name_en || '',
       name_ar: customTab.name_ar || '',
-      type: customTab.type,
       row_type: customTab.row_type
     };
 
@@ -183,7 +177,6 @@ const fetchCustomTab = async (id) => {
 // Reset form fields when belongs_to changes
 const resetFormFields = () => {
   formData.value.model_id = null;
-  formData.value.type = null;
   storeSearchQuery.value = '';
   categorySearchQuery.value = '';
   marketSearchQuery.value = '';
@@ -205,7 +198,7 @@ const modelDropdownOptions = computed(() => {
 
 // Form submission for update
 const submitForm = async () => {
-  const requiredFields = ['belongs_to', 'model_id', 'name_en', 'name_ar', 'type', 'row_type'];
+  const requiredFields = ['belongs_to', 'model_id', 'name_en', 'name_ar', 'row_type'];
 
   // Validate required fields
   if (requiredFields.some(field => !formData.value[field] && formData.value[field] !== 0)) {
@@ -273,22 +266,6 @@ watch(() => route.params.id, (newId) => {
             />
           </div>
 
-          <!-- Type Selection -->
-          <div class="space-y-2">
-            <label for="type" class="block text-sm font-medium text-gray-700">
-              {{ t('customTabs.type') }} <span class="text-red-500">*</span>
-            </label>
-            <Dropdown
-              id="type"
-              v-model="formData.type"
-              :options="typeOptions"
-              optionLabel="label"
-              optionValue="value"
-              class="w-full"
-              :class="{ 'p-invalid': !formData.type && formData.type !== 0 }"
-              :disabled="loading"
-            />
-          </div>
 
           <!-- Model ID Selection -->
           <div class="space-y-2">

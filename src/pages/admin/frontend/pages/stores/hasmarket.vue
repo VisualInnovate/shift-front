@@ -180,6 +180,9 @@
       <section class="mt-16 space-y-16">
         <ProductOffers></ProductOffers>
       </section>
+            <section class="mx-auto mt-16 w-[100%] max-w-7xl">
+        <CustomTaps></CustomTaps>
+      </section>
     </div>
   </div>
 </template>
@@ -194,6 +197,8 @@ import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+  import CustomTaps from '../../components/CustomTaps.vue'
+
 import productsSwiper from '../../components/SwiperSlide/productsSwiper.vue';
 import defaultMarketImage from '../../../../../assets/loginFormImg.png';
 import defaultProductImage from '../../../../../assets/loginFormImg.png';

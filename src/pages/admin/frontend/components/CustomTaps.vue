@@ -150,7 +150,7 @@ const fetchCustomTabs = async () => {
 
 // Watch route changes (e.g., when navigating between stores/categories)
 watch(
-  () => [route.name, route.params.id],
+  () => [route.name,storeId.value, route.params.id],
   () => {
     fetchCustomTabs()
   },

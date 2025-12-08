@@ -345,7 +345,7 @@ const belongsToName = computed(() => {
 const detailTypeOptions = [
   { label: t('custom_tabs.categories'), value: 1 },
   { label: t('custom_tabs.products'), value: 2 },
-  { label: t('custom_tabs.brands'), value: 3 },
+  { label: t('brands'), value: 3 },
 ];
 
 const currentSelectLabel = (type) => {
@@ -613,6 +613,7 @@ const updateDetail = async () => {
   formData.append('name_en', editingDetail.value.name_en);
   formData.append('name_ar', editingDetail.value.name_ar);
   formData.append('type', editingDetail.value.type);
+  formData.append('custom_tab_id', newDetail.value.custom_tab_id);
 
   if (editingDetail.value.newImage) {
     formData.append('image', editingDetail.value.newImage);

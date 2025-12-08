@@ -1,166 +1,191 @@
 <template>
   <div class="mx-auto px-4 max-w-[1500px]">
     <!-- Custom Tabs -->
-    <div v-for="tab in customTabs" :key="tab.id">
+    <div v-for="tab in customTabs" :key="tab.id" class="mb-12">
       <div class="flex items-center justify-between">
         <h2
-          class="font-bold font-sans text-gray-800 lg:mt-4 xs:mt-2 xs:text-lg sm:text-xl md:text-2xl lg:text-3xl"
+          class="font-bold font-sans text-gray-800 mt-4 text-lg sm:text-xl md:text-2xl lg:text-3xl"
         >
           {{ locale === 'ar' ? tab.name_ar : tab.name_en }}
         </h2>
       </div>
 
-      <!-- Swiper for Both Row Types -->
+      <!-- Swiper -->
       <swiper
         :modules="[Autoplay, Grid]"
         :slides-per-view="tab.row_type === 1 ? 4 : 2"
-        :grid="tab.row_type === 2 ? { rows: 2, fill: 'row' } : null"
+        :grid="tab.row_type === 2 ? { rows: 2, fill: 'row' } : undefined"
         :space-between="tab.row_type === 1 ? 8 : 16"
         :loop="true"
-        :autoplay="{ delay: 0, disableOnInteraction: true }"
-        :speed="25000"
+        :autoplay="{ delay: 0, disableOnInteraction: false, pauseOnMouseEnter: true }"
+        :speed="30000"
         :grab-cursor="true"
-        class="mt-6 pb-1"
-        :breakpoints="
-          tab.row_type === 1
-            ? {
-                320: { slidesPerView: 2, spaceBetween: 8 },
-                640: { slidesPerView: 2, spaceBetween: 12 },
-                768: { slidesPerView: 3, spaceBetween: 16 },
-                1024: { slidesPerView: 5, spaceBetween: 20 }
-              }
-            : {
-                320: { slidesPerView: 2, spaceBetween: 8, grid: { rows: 2 } },
-                640: { slidesPerView: 2, spaceBetween: 12, grid: { rows: 2 } },
-                768: { slidesPerView: 3, spaceBetween: 16, grid: { rows: 2 } },
-                1024: { slidesPerView: 5, spaceBetween: 20, grid: { rows: 2 } }
-              }
-        "
+        :allow-touch-move="true"
+        class="mt-6 pb-8"
+        :breakpoints="getBreakpoints(tab.row_type)"
       >
+        <swiper-slide
+          v-for="(detail, i) in tab.details"
+          :key="detail.id || i"
+          class="group flex flex-col items-start rounded-lg shadow-lg transition-all duration-300 hover:-translate-y-2 h-auto"
+        >
+          <router-link
+            :to="linkToDetail(detail.type, detail.id, locale === 'ar' ? detail.name_ar : detail.name_en)"
+            class="block w-full"
+          >
+            <div class="w-full aspect-[3.3/4] overflow-hidden rounded-xl shadow-sm relative bg-gray-50">
+              <img
+                :src="detail.media?.[0]?.url || '/placeholder.jpg'"
+                :alt="locale === 'ar' ? detail.name_ar : detail.name_en"
+                class="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-110"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 pointer-events-none"></div>
+            </div>
 
-  <SwiperSlide
-    v-for="(detail, i) in tab.details"
-    :key="i"
-    class="group flex flex-col items-start pb-[1%] rounded-lg shadow-lg transition-all duration-300 hover:-translate-y-2"
-  >
-    <router-link
-      :to="linkToDetail(tab.type, detail.id, locale === 'ar' ? detail.name_ar : detail.name_en)"
-      class="block w-full"
-    >
-      <div class="w-full aspect-[3.3/4] overflow-hidden rounded-xl shadow-sm relative">
-        <img
-          :src="detail.media[0]?.url || '/placeholder.jpg'"
-          :alt="locale === 'ar' ? detail.name_ar : detail.name_en"
-          class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
-        />
-        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
-      </div>
-
-      <p class="font-sans mt-4 mb-1 text-center mx-3 text-gray-800 font-medium xs:text-sm sm:text-base md:text-lg">
-        {{ locale === 'ar' ? detail.name_ar : detail.name_en }}
-      </p>
-    </router-link>
-  </SwiperSlide>
+            <p class="font-sans mt-4 mb-2 text-center mx-3 text-gray-800 font-medium text-sm sm:text-base md:text-lg line-clamp-2">
+              {{ locale === 'ar' ? detail.name_ar : detail.name_en }}
+            </p>
+          </router-link>
+        </swiper-slide>
       </swiper>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Autoplay, Grid } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/grid'
-import { ref, onMounted, computed, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 
 const locale = ref(localStorage.getItem('appLang') || 'ar')
-const stores = ref([])
 const customTabs = ref([])
-const storeId = ref(localStorage.getItem('defaultStoreId') || null)
 const router = useRouter()
 const route = useRoute()
+const storeId = ref(localStorage.getItem('defaultStoreId') || null)
 
-// Fetch stores
-const fetchStores = async () => {
-  try {
-    const response = await axios.get(`api/home/get-stores`)
-    stores.value = response.data.data.data
-    const defaultStore = stores.value.find(store => store.is_default === 4)
-
-  } catch (error) {
-    console.error('Error fetching stores:', error)
-  }
-}
-
-// Fetch custom tabs based on route
-const fetchCustomTabs = async () => {
-  try {
-    const type = ['home', 'stores-hasmarket'].includes(route.name) ? 'store' : 'category'
-    const id = route.params.id || storeId.value
-    if (!id) {
-      console.error('No store ID available')
-      return
+// Responsive breakpoints based on row_type
+const getBreakpoints = (rowType) => {
+  const isGrid = rowType === 2
+  return {
+    320: {
+      slidesPerView: 2,
+      spaceBetween: 8,
+      grid: isGrid ? { rows: 2 } : undefined
+    },
+    640: {
+      slidesPerView: 2,
+      spaceBetween: 12,
+      grid: isGrid ? { rows: 2 } : undefined
+    },
+    768: {
+      slidesPerView: 3,
+      spaceBetween: 16,
+      grid: isGrid ? { rows: 2 } : undefined
+    },
+    1024: {
+      slidesPerView: isGrid ? 5 : 5,
+      spaceBetween: 20,
+      grid: isGrid ? { rows: 2 } : undefined
+    },
+    1280: {
+      slidesPerView: isGrid ? 6 : 6,
+      spaceBetween: 24,
+      grid: isGrid ? { rows: 2 } : undefined
     }
-    const response = await axios.get(`/api/home/get-custom-tab/${type}/${id}`)
-    customTabs.value = response.data.data.data
-  } catch (error) {
-    console.error('Error fetching custom tabs:', error)
   }
 }
 
+// Generate correct route based on detail.type ("1", "2", "3")
 const linkToDetail = (type, id, name) => {
-  const routeName =
-    type === 1 ? 'customtap-category' :
-    type === 2 ? 'customtap-products' :
-    type === 3 ? 'customtap-brand' :
-    null
-  if (!routeName) return null
-  return { name: routeName, params: { id }, query: { title: name } }
-}
-// Add to cart placeholder
-const addToCart = (detail) => {
-  console.log('Added to cart:', detail)
+  if (!id) return '#'
+
+  const routeMap = {
+    '1': 'customtap-category',
+    '2': 'customtap-products',
+    '3': 'customtap-brand'
+  }
+
+  const routeName = routeMap[type]
+
+  if (!routeName) {
+    console.warn('Unknown detail type:', type)
+    return '#'
+  }
+
+  return {
+    name: routeName,
+    params: { id },
+    query: { title: name || 'Item' }
+  }
 }
 
-// Watch route changes
+// Fetch custom tabs
+const fetchCustomTabs = async () => {
+  const id = route.params.id || storeId.value
+  if (!id) {
+    console.error('No store/category ID available')
+    return
+  }
+
+  axios
+    .get(`/api/home/get-custom-tab/${id}`)
+    .then((response) => {
+      // API returns: response.data.data.data → array of tabs
+      const tabsData = response.data?.data?.data || []
+      customTabs.value = tabsData.map(tab => ({
+        ...tab,
+        details: tab.details || []
+      }))
+    })
+    .catch((error) => {
+      console.error('Error fetching custom tabs:', error)
+      customTabs.value = []
+    })
+}
+
+// Watch route changes (e.g., when navigating between stores/categories)
 watch(
-  () => route.name,
+  () => [route.name, route.params.id],
   () => {
-    if (storeId.value || route.params.id) {
-      fetchCustomTabs()
-    }
+    fetchCustomTabs()
   },
   { immediate: true }
 )
 
-// Initialize data on mount
+// Initial load
 onMounted(() => {
-  fetchStores()
-  if (storeId.value || route.params.id) {
-    fetchCustomTabs()
-  }
+  fetchCustomTabs()
 })
 </script>
 
 <style scoped>
-/* Custom scrollbar for swiper */
 .swiper {
-  @apply w-full pb-8;
+  @apply w-full overflow-hidden;
 }
 
 .swiper-slide {
-  @apply flex flex-col h-auto; /* Ensure slides have auto height for grid layout */
+  @apply h-auto flex flex-col;
 }
 
-/* Optional: Custom scrollbar for the container */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Custom scrollbar (optional) */
 ::-webkit-scrollbar {
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+  @apply bg-gray-100 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb {

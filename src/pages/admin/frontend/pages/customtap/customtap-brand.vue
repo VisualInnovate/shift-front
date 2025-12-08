@@ -29,7 +29,7 @@
           v-for="(detail, i) in tab.details"
           :key="i"
           class="group flex flex-col items-start cursor-pointer transition-all pb-[1%] rounded-lg shadow-lg duration-300 hover:-translate-y-2 h-auto"
-          @click="navigateToDetail(detail.has_subcategories, detail.id, locale === 'ar' ? detail.name_ar : detail.name_en)"
+          @click="navigateToDetail( detail.id)"
           :aria-label="`Maps to ${locale === 'ar' ? detail.name_ar : detail.name_en}`"
         >
           <div class="w-full overflow-hidden rounded-xl shadow-sm relative bg-gray-100 aspect-square">

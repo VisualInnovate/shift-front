@@ -1,39 +1,103 @@
 <template>
-    <footer
-        class=" xs:mt-4 md:mt-12 lg:mt-16 flex flex-col justify-center items-center gap-4 w-full p-6 bg-[var(--main-text-color)] text-white font-semibold 24 xs:text-[.5rem] sm:text-[.7rem] md:text-[1rem] lg:text-[1rem]">
-        <div class="flex justify-evenly items-center gap-4 w-3/4">
-            <p><a href="#">Shift7 Mall</a></p>
-            <p><a href="#">Shift7 Market</a></p>
-            <p><a href="#">Centro</a></p>
-            <p><a href="#">Yasser Mall</a></p>
+  <footer class="bg-[#1e3a8a] text-white py-12 px-6">
+    <div class="max-w-7xl mx-auto">
+      <!-- Main Footer Content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+        <!-- Logo Section -->
+        <div >
+          <div class="flex items-center space-x-2 mb-4">
+            <img src="../../../../assets/footer-logo.png" alt="Shift7 Logo" class=" object-contain" />
+          </div>
+
         </div>
-        <div class="flex gap-5 items-center justify-center">
-            <!-- facebook -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <g clip-path="url(#clip0_417_7718)">
-                    <path fill-rule="evenodd" clip-rule="evenodd"
-                        d="M12 2.25C6.61522 2.25 2.25 6.61522 2.25 12C2.25 17.3848 6.61522 21.75 12 21.75C17.3848 21.75 21.75 17.3848 21.75 12C21.7443 6.61758 17.3824 2.25568 12 2.25ZM12.75 20.2153V14.25H15C15.4142 14.25 15.75 13.9142 15.75 13.5C15.75 13.0858 15.4142 12.75 15 12.75H12.75V10.5C12.75 9.67157 13.4216 9 14.25 9H15.75C16.1642 9 16.5 8.66421 16.5 8.25C16.5 7.83579 16.1642 7.5 15.75 7.5H14.25C12.5931 7.5 11.25 8.84315 11.25 10.5V12.75H9C8.58579 12.75 8.25 13.0858 8.25 13.5C8.25 13.9142 8.58579 14.25 9 14.25H11.25V20.2153C6.85788 19.8144 3.55787 16.0299 3.75854 11.6241C3.95922 7.21827 7.58962 3.74947 12 3.74947C16.4104 3.74947 20.0408 7.21827 20.2415 11.6241C20.4421 16.0299 17.1421 19.8144 12.75 20.2153Z"
-                        fill="#fff" />
-                </g>
-                <defs>
-                    <clipPath id="clip0_417_7718">
-                        <rect width="24" height="24" fill="white" />
-                    </clipPath>
-                </defs>
-            </svg>
-            <!-- Twiter -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="19" viewBox="0 0 21 19" fill="none">
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                    d="M20.1928 3.46313C20.0768 3.18285 19.8033 3.00006 19.5 3H16.6472C15.8359 1.61972 14.3604 0.765791 12.7594 0.75C11.5747 0.734462 10.4339 1.19754 9.59531 2.03438C8.73219 2.88138 8.24717 4.04071 8.25 5.25V5.82094C4.47563 4.82531 1.38844 1.755 1.35563 1.72219C1.15019 1.51493 0.843182 1.44566 0.568648 1.54461C0.294115 1.64356 0.101905 1.89277 0.0759375 2.18344C-0.328125 6.66375 0.973125 9.66187 2.13844 11.3878C2.70664 12.241 3.39786 13.0055 4.18969 13.6566C2.76188 15.3 0.51375 16.1634 0.489375 16.1728C0.274975 16.2531 0.108995 16.4269 0.0386822 16.6448C-0.031631 16.8627 0.00142384 17.1008 0.128438 17.2913C0.19875 17.3962 0.48 17.7647 1.16719 18.1087C2.01656 18.5344 3.13875 18.75 4.5 18.75C11.1253 18.75 16.6612 13.6481 17.2266 7.08375L20.0306 4.28062C20.2451 4.06601 20.3091 3.74335 20.1928 3.46313ZM15.9741 6.22031C15.8455 6.34921 15.7682 6.52049 15.7566 6.70219C15.375 12.6169 10.4325 17.25 4.5 17.25C3.51 17.25 2.8125 17.1187 2.32312 16.9613C3.40219 16.3753 4.90688 15.3675 5.87438 13.9163C5.98915 13.7438 6.02746 13.5315 5.98023 13.3298C5.93299 13.128 5.80442 12.9548 5.625 12.8512C5.58094 12.8259 1.50844 10.3819 1.5 3.85125C3 5.07 5.74219 6.96094 8.87531 7.48781C9.09265 7.52446 9.3151 7.46364 9.48358 7.32154C9.65205 7.17943 9.74949 6.9704 9.75 6.75V5.25C9.7483 4.44176 10.0728 3.66702 10.65 3.10125C11.2034 2.54686 11.9574 2.23983 12.7406 2.25C13.9275 2.265 15.0366 2.98875 15.5006 4.05094C15.6202 4.32382 15.8899 4.50008 16.1878 4.5H17.6878L15.9741 6.22031Z"
-                    fill="#fff" />
-            </svg>
-            <!-- Instagram -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path fill-rule="evenodd" clip-rule="evenodd"
-                    d="M10 5.5C7.51472 5.5 5.5 7.51472 5.5 10C5.5 12.4853 7.51472 14.5 10 14.5C12.4853 14.5 14.5 12.4853 14.5 10C14.4974 7.51579 12.4842 5.50258 10 5.5ZM10 13C8.34315 13 7 11.6569 7 10C7 8.34315 8.34315 7 10 7C11.6569 7 13 8.34315 13 10C13 11.6569 11.6569 13 10 13ZM14.5 0.25H5.5C2.60179 0.2531 0.2531 2.60179 0.25 5.5V14.5C0.2531 17.3982 2.60179 19.7469 5.5 19.75H14.5C17.3982 19.7469 19.7469 17.3982 19.75 14.5V5.5C19.7469 2.60179 17.3982 0.2531 14.5 0.25ZM18.25 14.5C18.25 16.5711 16.5711 18.25 14.5 18.25H5.5C3.42893 18.25 1.75 16.5711 1.75 14.5V5.5C1.75 3.42893 3.42893 1.75 5.5 1.75H14.5C16.5711 1.75 18.25 3.42893 18.25 5.5V14.5ZM16 5.125C16 5.74632 15.4963 6.25 14.875 6.25C14.2537 6.25 13.75 5.74632 13.75 5.125C13.75 4.50368 14.2537 4 14.875 4C15.4963 4 16 4.50368 16 5.125Z"
-                    fill="#fff" />
-            </svg>
+
+        <!-- Categories -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">الأقسام</h3>
+          <ul class="space-y-2 text-gray-200">
+            <li><a href="#" class="hover:text-white transition-colors">بطاريات ولمبات</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">مستلزمات الحيوانات الأليفة</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">مكياج</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">مكتبة الكتب</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">ألعاب</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">العناية الشخصية</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">أطفال</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">أحذية</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">أدوات منزلية</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">إلكترونيات</a></li>
+          </ul>
         </div>
-        <p>&copy; 2025 Shift7</p>
-    </footer>
+
+        <!-- Stores & Markets -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">المتاجر والأسواق</h3>
+          <ul class="space-y-2 text-gray-200">
+            <li><a href="#" class="hover:text-white transition-colors">Shift7 Mall</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Shift7 mart</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Centro</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">تواصل معنا</h3>
+          <div class="space-y-3 text-gray-200">
+            <p>
+              <span class="block text-sm">رقم الهاتف:</span>
+              <a href="tel:+96279860188" class="hover:text-white transition-colors">+962 79 860 188</a>
+            </p>
+            <p>
+              <span class="block text-sm">البريد الإلكتروني:</span>
+              <a href="mailto:info@shift7store.com" class="hover:text-white transition-colors">info@shift7store.com</a>
+            </p>
+          </div>
+        </div>
+
+        <!-- Social Media -->
+        <div>
+          <h3 class="text-lg font-semibold mb-4">تابعنا</h3>
+          <div class="flex space-x-4 space-x-reverse">
+            <a href="#" class="hover:opacity-80 transition-opacity" aria-label="Facebook">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+            <a href="#" class="hover:opacity-80 transition-opacity" aria-label="Instagram">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="#" class="hover:opacity-80 transition-opacity" aria-label="Twitter">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+            </a>
+            <a href="#" class="hover:opacity-80 transition-opacity" aria-label="YouTube">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legal Links & Copyright -->
+      <div class="border-t border-blue-800 pt-8">
+        <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-300">
+          <!-- Legal Links -->
+          <div class="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6 mb-4 md:mb-0">
+            <a href="/Privacy-Policy" class="hover:text-white transition-colors">سياسة الخصوصية</a>
+            <span class="hidden md:inline text-gray-500">|</span>
+            <a href="/terms-condition" class="hover:text-white transition-colors">الشروط والأحكام</a>
+
+          </div>
+
+          <!-- Copyright -->
+          <p class="text-center md:text-right">
+            © 2025 Shift7 - جميع الحقوق محفوظة
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
 </template>
+
+<script setup>
+// لا حاجة لسكربت في الفوتر الثابت
+</script>
+
+<style scoped>
+/* أي تنسيقات إضافية إذا احتجت */
+</style>

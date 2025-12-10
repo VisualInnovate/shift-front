@@ -13,6 +13,17 @@ const routes: Array<RouteRecordRaw> = [
     path: '/:catchAll(.*)',
     redirect: { name: 'dashboard' },
   },
+
+     {
+        name: 'terms-condition',
+        path: '/terms-condition',
+        component: () => import('../pages/admin/frontend/pages/terms-condition.vue'),
+      },
+       {
+        name: 'Privacy-Policy',
+        path: '/Privacy-Policy',
+        component: () => import('../pages/admin/frontend/pages/Privacy-Policy.vue'),
+      },
   {
     name: '',
     path: '/',

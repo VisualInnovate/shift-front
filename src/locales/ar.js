@@ -194,6 +194,11 @@ export default {
 
   "settings": {
     "title": "الإعدادات",
+    "socialLinks": "روابط التواصل الاجتماعي",
+  "email": "البريد الإلكتروني للتواصل",
+  "privacyPolicy": "سياسة الخصوصية",
+  "termsConditions": "الشروط والأحكام",
+  "settingsUpdated": "تم تحديث الإعدادات بنجاح",
     "terms_conditions_en":"الشروط والاحكام انجيلزي",
     "terms_conditions_ar":"الشروط والاحكام عربي",
     "order_tax": "ضريبة الطلب",

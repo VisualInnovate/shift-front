@@ -93,11 +93,90 @@
     </div>
   </footer>
 </template>
-
 <script setup>
-// لا حاجة لسكربت في الفوتر الثابت
+import { ref, onMounted, computed } from 'vue';
+import { useToast } from 'primevue/usetoast';
+import { useI18n } from 'vue-i18n';
+import axios from 'axios';
+import ProgressSpinner from 'primevue/progressspinner';
+import Toast from 'primevue/toast';
+import DOMPurify from 'dompurify';
+
+const { t } = useI18n();
+const toast = useToast();
+
+// Get app language from localStorage
+const getAppLang = () => localStorage.getItem('appLang') || 'en';
+const appLang = ref(getAppLang());
+
+/* ------------------------------------------------------------------ */
+/* Reactive data                                                      */
+/* ------------------------------------------------------------------ */
+const settings = ref([]);     // Full array from API
+const isLoading = ref(false);
+const error = ref(null);
+
+/* ------------------------------------------------------------------ */
+/* Helper: Get setting value by key                                   */
+/* ------------------------------------------------------------------ */
+const getSettingValue = (key) => {
+  const item = settings.value.find(s => s.key === key);
+  return item?.value || '';
+};
+
+/* ------------------------------------------------------------------ */
+/* Computed: Current Privacy Policy based on language                 */
+/* ------------------------------------------------------------------ */
+const currentPrivacyPolicy = computed(() => {
+  return appLang.value === 'ar'
+    ? getSettingValue('privacy_policy_ar')
+    : getSettingValue('privacy_policy_en');
+});
+
+/* ------------------------------------------------------------------ */
+/* Sanitized HTML output                                              */
+/* ------------------------------------------------------------------ */
+const sanitizedPrivacyPolicy = computed(() => {
+  return DOMPurify.sanitize(currentPrivacyPolicy.value);
+});
+
+/* ------------------------------------------------------------------ */
+/* Load settings data                                                 */
+/* ------------------------------------------------------------------ */
+onMounted(async () => {
+  isLoading.value = true;
+  try {
+    const { data } = await axios.get('/api/setting/not-auth');
+
+    if (data.is_success && Array.isArray(data.data)) {
+      settings.value = data.data;
+
+      // Show warning if no privacy policy content
+      if (!currentPrivacyPolicy.value) {
+        toast.add({
+          severity: 'warn',
+          summary: t('privacyPolicy.warning') || t('common.warning'),
+          detail: t('privacyPolicy.noContent'),
+          life: 4000,
+        });
+      }
+    } else {
+      throw new Error('Invalid API response format');
+    }
+  } catch (e) {
+    const message = e.response?.data?.message || t('error.loadPrivacyPolicy') || 'Failed to load privacy policy';
+    error.value = message;
+
+    toast.add({
+      severity: 'error',
+      summary: t('error.title'),
+      detail: message,
+      life: 5000,
+    });
+    console.error('Privacy Policy load error:', e);
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
 
-<style scoped>
-/* أي تنسيقات إضافية إذا احتجت */
-</style>

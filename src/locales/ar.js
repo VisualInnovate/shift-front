@@ -576,6 +576,7 @@ export default {
     "fileTypes": "SVG، PNG، JPG أو GIF (الحد الأقصى 2 ميجابايت)"
   },
   cart: {
+    "selectStorePrompt":" يرجى اختيار متجر للمتابعة",
     "discountsFees": "اجمالي الخصم ",
     "checkoutThisStoreOnly": "اطلب من هذا المتجر فقط",
     "checkoutAll": "إتمام الطلب (جميع المتاجر)",

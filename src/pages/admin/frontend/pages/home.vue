@@ -152,6 +152,7 @@
   }
 
   onBeforeMount(() => {
+    localStorage.setItem('defaultStoreId',4)
     loaddata()
   })
 </script>

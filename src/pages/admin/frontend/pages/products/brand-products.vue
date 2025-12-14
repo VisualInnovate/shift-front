@@ -367,7 +367,7 @@ const onPageChange = (event) => {
 
 // Cart & Wishlist
 const addToCart = async (product) => {
-  if (!authStore.authenticatedweb) return router.push({ name: 'AuthLogin' });
+  if (!authStore.authenticatedweb) return router.push({ name: 'authlog' });
   if (product.is_stock === 0) return;
 
   try {

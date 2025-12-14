@@ -348,7 +348,7 @@ const fetchProducts = async (page = 1) => {
 
 // Actions
 const addToCart = async (product) => {
-  if (!authStore.authenticatedweb) return router.push({ name: 'AuthLogin' })
+  if (!authStore.authenticatedweb) return router.push({ name: 'authlog' })
   if (product.is_stock === 0) return
 
   try {
@@ -360,7 +360,7 @@ const addToCart = async (product) => {
 }
 
 const toggleFavorite = async (product) => {
-  if (!authStore.authenticatedweb) return router.push({ name: 'AuthLogin' })
+  if (!authStore.authenticatedweb) return router.push({ name: 'authlog' })
 
   const wasWished = product.is_wished
   try {

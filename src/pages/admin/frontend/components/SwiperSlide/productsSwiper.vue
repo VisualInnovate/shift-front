@@ -177,7 +177,7 @@ const handleCardClick = (event, product) => {
 const addToCart = async (product) => {
   if (product.is_stock === 1 || product.in_cart) return;
   if (!authStore.authenticatedweb) {
-    alert(t('auth.required') || 'Please log in to add items to cart.');
+    router.push({ name: 'authlog' });
     return;
   }
 
@@ -203,7 +203,7 @@ router.push({ name: 'products-exclusive', params: { id:stor_id.value } });
 };
 const toggleFavorite = async (product) => {
   if (!authStore.authenticatedweb) {
-    alert(t('auth.required') || 'Please log in to manage wishlist.');
+    router.push({ name: 'authlog' });
     return;
   }
 

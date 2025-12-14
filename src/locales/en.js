@@ -920,6 +920,7 @@ export default {
   yes: 'Yes',
   no: 'No',
   cart: {
+    selectStorePrompt: 'Please select a store to view cart items',
     selectStore: 'Select Store',
     selectStoreAria: 'Select store {name}',
     selectAllStores: 'Select All Stores',

@@ -56,6 +56,7 @@ export default {
     "saturday": "السبت"
   },
   "shippingSetting": {
+    "generalSettings": "الإعدادات العامة",
     "editTitle": "تعديل إعدادات الشحن",
     "hasZones": "تفعيل مناطق المسافات",
     "isEnabled": "الشحن مفعل",

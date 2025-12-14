@@ -25,6 +25,7 @@ const marketData = ref({
   name_en: '',
   name_ar: '',
   store_id: null,
+  min_amount_order: '',
   image: null,
   banner_one_image: null,
   banner_two_image: null
@@ -64,6 +65,7 @@ const fetchMarketById = async (id) => {
       name_en: market.name_en || '',
       name_ar: market.name_ar || '',
       store_id: market.store_id || null,
+      min_amount_order: market.min_amount_order || '',
       image: null, // File inputs cannot be pre-filled
       banner_one_image: null,
       banner_two_image: null
@@ -147,6 +149,7 @@ const submitForm = async () => {
   formData.append('name_en', marketData.value.name_en);
   formData.append('name_ar', marketData.value.name_ar);
   formData.append('store_id', marketData.value.store_id || '');
+  formData.append('min_amount_order', marketData.value.min_amount_order || '');
 
   if (marketData.value.image) {
     formData.append('image', marketData.value.image);
@@ -233,7 +236,7 @@ onMounted(async () => {
         </div>
 
         <!-- Store -->
-        <div class="space-y-2 lg:col-span-2">
+        <div class="space-y-2 ">
           <label for="store_id" class="block text-sm font-medium text-gray-700">
             {{ t('market.store') }} <span class="text-red-500">*</span>
           </label>
@@ -245,6 +248,21 @@ onMounted(async () => {
             optionValue="id"
             :placeholder="t('market.selectStore')"
             class="w-full"
+            required
+          />
+        </div>
+
+        <!-- Minimum Order Amount -->
+        <div class="space-y-2">
+          <label for="min_amount_order" class="block text-sm font-medium text-gray-700">
+            {{ t('market.minAmountOrder') }} <span class="text-red-500">*</span>
+          </label>
+          <InputText
+            id="min_amount_order"
+            v-model="marketData.min_amount_order"
+            :placeholder="t('market.enterMinAmountOrder')"
+            type="number"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             required
           />
         </div>

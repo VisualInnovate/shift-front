@@ -577,6 +577,12 @@ export default {
     "fileTypes": "SVG، PNG، JPG أو GIF (الحد الأقصى 2 ميجابايت)"
   },
   cart: {
+    "minAmountWarning": "الحد الأدنى لقيمة الطلب هو  لهذا المتجر",
+  "currentSubtotal": "المجموع الفرعي الحالي",
+  "someStoresBelowMin": "بعض المتاجر لا تفي بالحد الأدنى لقيمة الطلب",
+  "minRequired": "الحد الأدنى المطلوب:",
+  "cannotCheckoutDueToMinAmount": "لا يمكن إتمام الدفع: بعض المتاجر لا تفي بالحد الأدنى لقيمة الطلب",
+  "minAmountNotMet": "لم يتم الوصول إلى الحد الأدنى للطلب  لهذا المتجر",
     "selectStorePrompt":" يرجى اختيار متجر للمتابعة",
     "discountsFees": "اجمالي الخصم ",
     "checkoutThisStoreOnly": "اطلب من هذا المتجر فقط",
@@ -721,6 +727,8 @@ export default {
     logoutError: 'فشل تسجيل الخروج',
   },
   "market": {
+    "minAmountOrder": "الحد الأدنى لمبلغ الطلب",
+    "enterMinAmountOrder": "أدخل الحد الأدنى لمبلغ الطلب",
     "addServiceFee": "إضافة رسوم الخدمة",
     "addServiceFeeTitle": "تحديد رسوم الخدمة",
     "serviceFee": "رسوم الخدمة",
@@ -1055,6 +1063,8 @@ export default {
   no: 'لا',
   store: {
     default: 'المتجر',
+    updateTitle: 'تحديث المتجر',
+    minAmountOrder: 'الحد الأدنى للطلب',
     sliderThree: 'صور السلايدر الثالث',
     managementTitle: 'إدارة المتاجر',
     search: 'ابحث في المتاجر...',

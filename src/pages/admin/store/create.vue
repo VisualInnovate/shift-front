@@ -17,6 +17,7 @@ const storeData = ref({
   name_ar: '',
   is_default: false,
   has_market: false,
+  min_amount_order: '',
   store_image: null,
   main_banner_image: null,
   sub_banner_image: null,
@@ -150,6 +151,7 @@ const submitForm = async () => {
   formData.append('name_ar', storeData.value.name_ar);
   formData.append('is_default', storeData.value.is_default ? '1' : '0');
   formData.append('has_market', storeData.value.has_market ? '1' : '0');
+  formData.append('min_amount_order', storeData.value.min_amount_order);
 
   if (storeData.value.store_image) {
     formData.append('store_image', storeData.value.store_image);
@@ -227,6 +229,21 @@ const submitForm = async () => {
             v-model="storeData.name_ar"
             :placeholder="t('store.enterNameAr')"
             dir="rtl"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            required
+          />
+        </div>
+
+        <!-- Minimum Order Amount -->
+        <div class="space-y-2">
+          <label for="min_amount_order" class="block text-sm font-medium text-gray-700">
+            {{ t('store.minAmountOrder') }} <span class="text-red-500">*</span>
+          </label>
+          <InputText
+            id="min_amount_order"
+            v-model="storeData.min_amount_order"
+            :placeholder="t('store.enterMinAmountOrder')"
+            type="number"
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
             required
           />

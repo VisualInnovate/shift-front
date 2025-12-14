@@ -72,7 +72,6 @@
                     {{ t('cart.addAddressButton') }}
                 </button>
             </div>
-
           </div>
 
           <div v-if="filteredProducts.length === 0" class="text-center py-16 text-gray-500 text-lg">
@@ -95,15 +94,14 @@
               <div class="flex-1">
                 <h4 class="font-semibold text-gray-900 text-lg">{{ product.name }}</h4>
                 <span class="text-yellow-700 text-sm mt-1">
-                        {{ t('cart.price') }}: {{ product.price - product.total_discounts_value }} {{ t('cart.currency') }}
-              </span>
-              <span
-              v-if="product.total_discounts_value "
-                class=" text-sm m-1 text-[#0b3baa] line-through opacity-80"
-              >
-                {{product.price }} {{ $t("currencyLabel") }}
-              </span>
-
+                  {{ t('cart.price') }}: {{ (product.price - product.total_discounts_value).toFixed(2) }} {{ t('cart.currency') }}
+                </span>
+                <span
+                  v-if="product.total_discounts_value > 0"
+                  class="text-sm m-1 text-[#0b3baa] line-through opacity-80"
+                >
+                  {{ Number(product.price).toFixed(2) }} {{ t('cart.currency') }}
+                </span>
 
                 <div class="flex flex-wrap items-center gap-6 mt-4">
                   <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
@@ -133,6 +131,7 @@
               </div>
             </div>
 
+            <!-- Store Orders -->
             <div
               v-for="order in storeOrders"
               :key="order.unique_store_id"
@@ -142,12 +141,23 @@
                 {{ t('cart.orderFrom') }} {{ getStoreDisplayName(order.unique_store_id) }}
               </h3>
 
+              <!-- Delivery Message -->
               <div v-if="order.delivery_message"
                    class="mb-4 p-4 rounded-lg text-sm"
                    :class="getDeliveryMessageClasses(order.delivery_status)">
+                <p class="font-semibold">
+                  {{ t('cart.deliveryStatus') }}: {{ getDeliveryStatusDisplay(order.delivery_status) }}
+                </p>
+              </div>
 
-                <p class="font-semibold">{{ t('cart.deliveryStatus') }}: {{ getDeliveryStatusDisplay(order.delivery_status) }}</p>
-
+              <!-- Minimum Amount Warning -->
+              <div v-if="isBelowMinAmount(order)" class="mb-4 p-4 bg-orange-100 border border-orange-300 rounded-lg text-orange-800 text-sm">
+                <p class="font-semibold">
+                  ⚠️ {{ t('cart.minAmountWarning', { min: order.min_amount_order, currency: t('cart.currency') }) }}
+                </p>
+                <p class="mt-1 text-xs opacity-90">
+                  {{ t('cart.currentSubtotal') }}: {{ Number(order.subtotal).toFixed(2) }} {{ t('cart.currency') }}
+                </p>
               </div>
 
               <div class="space-y-3 text-sm">
@@ -178,14 +188,14 @@
                   <span class="text-green-600 font-medium">- {{ Number(order.coupon).toFixed(2) }} {{ t('cart.currency') }}</span>
                 </div>
 
-                <div class="flex justify-between" >
+                <div class="flex justify-between">
                   <span class="text-gray-600">{{ t('cart.serviceFees') }}</span>
                   <span>{{ Number(order.total_service_fees).toFixed(2) }} {{ t('cart.currency') }}</span>
                 </div>
 
-                <div class="flex justify-between" >
+                <div class="flex justify-between">
                   <span class="text-green-600 font-medium">{{ t('cart.discountsFees') || 'Discount Fees' }}</span>
-                  <span class="text-green-600 font-medium"> {{ Number(order.total_discounts_fees).toFixed(2) }} {{ t('cart.currency') }}</span>
+                  <span class="text-green-600 font-medium">{{ Number(order.total_discounts_fees).toFixed(2) }} {{ t('cart.currency') }}</span>
                 </div>
 
                 <div class="flex justify-between text-lg font-bold text-gray-900 pt-4 border-t border-amber-300">
@@ -196,16 +206,17 @@
 
               <button
                 @click="submitSingleStoreOrder(order.unique_store_id)"
-                :disabled="!selectedAddress || order.delivery_status === 'not_available'"
+                :disabled="!selectedAddress || order.delivery_status === 'not_available' || isBelowMinAmount(order)"
                 class="w-full mt-6 py-3 bg-yellow-600 text-white font-bold rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 shadow-md"
               >
-                {{ t('cart.checkoutThisStoreOnly') || 'اطلب من هذا المتجر فقط' }}
+                {{ t('cart.checkoutThisStoreOnly') }}
               </button>
             </div>
           </div>
         </div>
       </section>
 
+      <!-- Order Summary Sidebar -->
       <aside class="lg:w-96 w-full bg-white rounded-2xl shadow-lg p-6 h-fit sticky top-6">
         <h3 class="text-xl font-bold text-gray-800 mb-6">{{ t('cart.orderSummary') }}</h3>
 
@@ -224,12 +235,22 @@
           </div>
           <div class="flex justify-between" v-if="totalOrderSummary.total_discounts_fees > 0">
             <span class="text-green-600 font-medium">{{ t('cart.discountsFees') || 'Discount Fees' }}</span>
-            <span class="text-green-600 font-medium"> {{ totalOrderSummary.total_discounts_fees.toFixed(2) }} {{ t('cart.currency') }}</span>
+            <span class="text-green-600 font-medium">{{ totalOrderSummary.total_discounts_fees.toFixed(2) }} {{ t('cart.currency') }}</span>
           </div>
           <div class="flex justify-between text-xl font-bold pt-4 text-gray-900">
             <span>{{ t('cart.total') }}</span>
             <span class="text-yellow-700">{{ totalOrderSummary.total.toFixed(2) }} {{ t('cart.currency') }}</span>
           </div>
+        </div>
+
+        <!-- Global Minimum Amount Warning -->
+        <div v-if="totalOrderSummary.belowMinAmountStores.length > 0" class="mt-4 p-4 bg-orange-100 border border-orange-300 rounded-lg text-orange-800 text-sm">
+          <p class="font-semibold">⚠️ {{ t('cart.someStoresBelowMin') }}</p>
+          <ul class="mt-2 text-xs list-disc list-inside opacity-90">
+            <li v-for="store in totalOrderSummary.belowMinAmountStores" :key="store.unique_store_id">
+              {{ getStoreDisplayName(store.unique_store_id) }}: {{ t('cart.minRequired') }} {{ store.min_amount_order }} {{ t('cart.currency') }}
+            </li>
+          </ul>
         </div>
 
         <div class="mt-8">
@@ -250,12 +271,14 @@
 
         <button
           @click="submitOrder"
-          :disabled="!canCheckout || totalOrderSummary.unavailable"
+          :disabled="!canCheckoutAllStores"
           class="w-full mt-8 py-4 bg-gray-900 text-white font-bold text-lg rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
         >
-          {{ t('cart.checkoutAll') || 'إتمام الطلب (الكل)' }}
+          {{ t('cart.checkoutAll') }}
         </button>
-        <p v-if="totalOrderSummary.unavailable" class="text-red-500 text-xs mt-2 text-center">{{ t('cart.cannotCheckoutDueToDelivery') }}</p>
+        <p v-if="!canCheckoutAllStores && selectedAddress && filteredProducts.length > 0" class="text-red-500 text-xs mt-2 text-center">
+          {{ totalOrderSummary.unavailable ? t('cart.cannotCheckoutDueToDelivery') : t('cart.cannotCheckoutDueToMinAmount') }}
+        </p>
       </aside>
     </div>
 
@@ -286,7 +309,6 @@ const stores = ref([])
 const selectedStores = ref([])
 const storeOrders = ref([])
 
-// Generate unique store ID
 const generateUniqueStoreId = (store) => `${store.store_id}-${store.market_id || 'default'}`
 
 const fetchAddresses = async () => {
@@ -297,8 +319,6 @@ const fetchAddresses = async () => {
       if (addresses.value.length > 0) {
         const defaultAddress = addresses.value.find(addr => addr.is_default)
         selectedAddress.value = defaultAddress ? defaultAddress.id : addresses.value[0].id
-      } else {
-        selectedAddress.value = null
       }
     }
   } catch (err) {
@@ -307,8 +327,6 @@ const fetchAddresses = async () => {
 }
 
 const fetchCart = async () => {
-  // Logic for fetching cart items (omitted for brevity, assume it's functional)
-  // ... (Your existing fetchCart logic here) ...
   try {
     loading.value = true
     const { data } = await axios.get('/api/cart')
@@ -331,7 +349,6 @@ const fetchCart = async () => {
       }
 
       storeGroup.items.forEach(item => {
-        console.log(item)
         const price = item.variant?.price || item.product.base_price || 0
         const img = item.product.media?.[0]?.url || item.product.key_default_image || '/images/placeholder-product.png'
 
@@ -341,8 +358,8 @@ const fetchCart = async () => {
           variant_id: item.variant_id || null,
           name: locale.value === 'ar' ? item.product.name_ar : item.product.name_en,
           img,
-          price: Number(price).toFixed(2),
-          total_discounts_value: item.product.total_discounts_value,
+          price: Number(price),
+          total_discounts_value: item.product.total_discounts_value || 0,
           quantity: item.quantity,
           store_id: storeGroup.store_id,
           unique_store_id,
@@ -365,20 +382,31 @@ const fetchCart = async () => {
   }
 }
 
-
-// Computed
 const filteredProducts = computed(() => {
   if (selectedStores.value.length === 0) return []
   return products.value.filter(p => selectedStores.value.includes(p.unique_store_id))
 })
 
-const hasAddresses = computed(() => {
-  return addresses.value.length > 0
-})
+const hasAddresses = computed(() => addresses.value.length > 0)
+
+// New: Check if a store order meets minimum amount
+const isBelowMinAmount = (order) => {
+  const min = parseFloat(order.min_amount_order || 0)
+  const subtotal = parseFloat(order.subtotal || 0)
+  return subtotal < min
+}
 
 const totalOrderSummary = computed(() => {
   if (storeOrders.value.length === 0) {
-    return { subtotal: 0, tax: 0, total: 0, coupon: 0, unavailable: false }
+    return {
+      subtotal: 0,
+      tax: 0,
+      total: 0,
+      coupon: 0,
+      total_discounts_fees: 0,
+      unavailable: false,
+      belowMinAmountStores: []
+    }
   }
 
   const summary = storeOrders.value.reduce((acc, order) => ({
@@ -387,14 +415,27 @@ const totalOrderSummary = computed(() => {
     total: acc.total + Number(order.total || 0),
     coupon: acc.coupon + Number(order.coupon || 0),
     total_discounts_fees: acc.total_discounts_fees + Number(order.total_discounts_fees || 0),
-    unavailable: acc.unavailable || (order.delivery_status === 'not_available'),
-  }), { subtotal: 0, tax: 0, total: 0, coupon: 0, total_discounts_fees: 0, unavailable: false })
+    unavailable: acc.unavailable || order.delivery_status === 'not_available',
+    belowMinAmountStores: isBelowMinAmount(order) ? [...acc.belowMinAmountStores, order] : acc.belowMinAmountStores
+  }), {
+    subtotal: 0,
+    tax: 0,
+    total: 0,
+    coupon: 0,
+    total_discounts_fees: 0,
+    unavailable: false,
+    belowMinAmountStores: []
+  })
 
   return summary
 })
 
-const canCheckout = computed(() => {
-  return selectedAddress.value && filteredProducts.value.length > 0
+// Updated: Can checkout all only if address selected, items exist, delivery available, AND all stores meet min amount
+const canCheckoutAllStores = computed(() => {
+  return selectedAddress.value &&
+         filteredProducts.value.length > 0 &&
+         !totalOrderSummary.value.unavailable &&
+         totalOrderSummary.value.belowMinAmountStores.length === 0
 })
 
 const fetchOrderTotals = async () => {
@@ -421,14 +462,14 @@ const fetchOrderTotals = async () => {
     if (data.is_success) {
       storeOrders.value = data.data.map(order => ({
         ...order,
-        // Ensure numbers are used for display
         subtotal: parseFloat(order.subtotal),
         tax: parseFloat(order.tax),
         total: parseFloat(order.total),
-        coupon: parseFloat(order.coupon),
-        total_service_fees: parseFloat(order.total_service_fees),
-        total_discounts_fees:order.total_discounts_fees,
+        coupon: parseFloat(order.coupon || 0),
+        total_service_fees: parseFloat(order.total_service_fees || 0),
+        total_discounts_fees: parseFloat(order.total_discounts_fees || 0),
         delivery_fee: parseFloat(order.delivery_fee || 0),
+        min_amount_order: order.min_amount_order || '0.00',
         unique_store_id: generateUniqueStoreId({
           store_id: order.store_id,
           market_id: order.market_id,
@@ -447,34 +488,28 @@ const getStoreDisplayName = (unique_store_id) => {
 }
 
 const goToAddAddress = () => {
-    router.push({ name: 'add-addres' })
+  router.push({ name: 'add-addres' })
 }
 
-// NEW: Function to get delivery status display text
 const getDeliveryStatusDisplay = (status) => {
-    switch(status) {
-        case 'available':
-            return t('cart.statusAvailable');
-        case 'free':
-            return t('cart.statusFree');
-        case 'not_available':
-            return t('cart.statusNotAvailable');
-        default:
-            return status;
-    }
+  switch(status) {
+    case 'available': return t('cart.statusAvailable')
+    case 'free': return t('cart.statusFree')
+    case 'not_available': return t('cart.statusNotAvailable')
+    default: return status
+  }
 }
 
-// NEW: Function to get dynamic Tailwind classes for delivery message box
 const getDeliveryMessageClasses = (status) => {
-    switch(status) {
-        case 'available':
-        case 'free':
-            return 'bg-green-100 text-green-800 border-green-300';
-        case 'not_available':
-            return 'bg-red-100 text-red-800 border-red-300';
-        default:
-            return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-    }
+  switch(status) {
+    case 'available':
+    case 'free':
+      return 'bg-green-100 text-green-800 border-green-300'
+    case 'not_available':
+      return 'bg-red-100 text-red-800 border-red-300'
+    default:
+      return 'bg-yellow-100 text-yellow-800 border-yellow-300'
+  }
 }
 
 const toggleStore = (id) => {
@@ -533,16 +568,21 @@ const applyCoupon = async () => {
 }
 
 const submitSingleStoreOrder = async (unique_store_id) => {
-  const order = storeOrders.value.find(o => o.unique_store_id === unique_store_id);
+  const order = storeOrders.value.find(o => o.unique_store_id === unique_store_id)
 
   if (!selectedAddress.value) {
     toast.add({ severity: 'warn', summary: t('warning'), detail: t('cart.selectAddressFirst'), life: 4000 })
     return
   }
 
-  if (order && order.delivery_status === 'not_available') {
-     toast.add({ severity: 'error', summary: t('error'), detail: t('cart.cannotCheckoutDueToDelivery'), life: 5000 })
-     return
+  if (order.delivery_status === 'not_available') {
+    toast.add({ severity: 'error', summary: t('error'), detail: t('cart.cannotCheckoutDueToDelivery'), life: 5000 })
+    return
+  }
+
+  if (isBelowMinAmount(order)) {
+    toast.add({ severity: 'warn', summary: t('warning'), detail: t('cart.minAmountNotMet', { min: order.min_amount_order }), life: 5000 })
+    return
   }
 
   const itemsInThisStore = filteredProducts.value.filter(p => p.unique_store_id === unique_store_id)
@@ -579,20 +619,18 @@ const submitSingleStoreOrder = async (unique_store_id) => {
 }
 
 const submitOrder = async () => {
-  if (!canCheckout.value) {
-    if (!selectedAddress.value && !hasAddresses.value) {
-        toast.add({ severity: 'error', summary: t('error'), detail: t('cart.selectAddressWarning'), life: 5000 })
-        goToAddAddress()
-        return
-    }
-
-    toast.add({ severity: 'warn', summary: t('warning'), detail: t('cart.cannotCheckout'), life: 4000 })
-    return
-  }
-
-  if (totalOrderSummary.value.unavailable) {
-      toast.add({ severity: 'error', summary: t('error'), detail: t('cart.cannotCheckoutDueToDelivery'), life: 5000 })
+  if (!canCheckoutAllStores.value) {
+    if (!selectedAddress.value) {
+      toast.add({ severity: 'error', summary: t('error'), detail: t('cart.selectAddressWarning'), life: 5000 })
+      goToAddAddress()
       return
+    }
+    if (totalOrderSummary.value.belowMinAmountStores.length > 0) {
+      toast.add({ severity: 'warn', summary: t('warning'), detail: t('cart.cannotCheckoutDueToMinAmount'), life: 5000 })
+    } else if (totalOrderSummary.value.unavailable) {
+      toast.add({ severity: 'error', summary: t('error'), detail: t('cart.cannotCheckoutDueToDelivery'), life: 5000 })
+    }
+    return
   }
 
   try {
@@ -610,7 +648,7 @@ const submitOrder = async () => {
 
     if (data.is_success) {
       toast.add({ severity: 'success', summary: t('success'), detail: t('cart.orderSuccess'), life: 5000 })
-      products.value = products.value.filter(p => !selectedStores.value.includes(p.unique_store_id))
+      products.value = []
       storeOrders.value = []
       selectedStores.value = []
     }
@@ -620,10 +658,8 @@ const submitOrder = async () => {
   }
 }
 
-// Watchers
 watch(() => [selectedAddress.value, selectedStores.value, couponCode.value], fetchOrderTotals, { deep: true })
 
-// Lifecycle
 onMounted(() => {
   fetchAddresses()
   fetchCart()

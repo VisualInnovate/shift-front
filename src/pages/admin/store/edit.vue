@@ -3,9 +3,11 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useToast } from 'primevue/usetoast';
 import { useRouter } from "vue-router";
+import { useI18n } from 'vue-i18n';
 
 const router = useRouter();
 const toast = useToast();
+const { t } = useI18n();
 const form = ref();
 const storeId = ref(router.currentRoute._value.params.id);
 const loading = ref(false);
@@ -16,6 +18,7 @@ const storeData = ref({
   name_ar: '',
   is_default: false,
   has_market: false,
+  min_amount_order: '',
   store_image: null,
   main_banner_image: null,
   sub_banner_image: null,
@@ -57,6 +60,10 @@ const validateForm = () => {
   }
   if (!storeData.value.name_ar.trim()) {
     toast.add({ severity: 'error', summary: 'Validation Error', detail: 'Arabic name is required', life: 3000 });
+    return false;
+  }
+  if (!storeData.value.min_amount_order) {
+    toast.add({ severity: 'error', summary: 'Validation Error', detail: 'Minimum order amount is required', life: 3000 });
     return false;
   }
   return true;
@@ -295,6 +302,7 @@ const fetchStore = async () => {
     storeData.value.name_en = data.name_en;
     storeData.value.is_default = data.is_default === 1;
     storeData.value.has_market = data.has_market === 1;
+    storeData.value.min_amount_order = data.min_amount_order || '';
 
     // Process media - Now storing { url, id }
     data.media.forEach(media => {
@@ -350,6 +358,7 @@ const submitForm = async () => {
   formData.append('name_ar', storeData.value.name_ar || '');
   formData.append('is_default', storeData.value.is_default ? '1' : '0');
   formData.append('has_market', storeData.value.has_market ? '1' : '0');
+  formData.append('min_amount_order', storeData.value.min_amount_order || '');
 
   // Handle image updates
   // Note: We no longer need to check for null on existing_images here,
@@ -432,54 +441,68 @@ onMounted(() => {
 
 <template>
   <div class="max-w-5xl p-6 mx-auto bg-white shadow-lg rounded-xl">
-    <h1 class="mb-8 text-3xl font-bold text-center text-gray-800">Update Store</h1>
+    <h1 class="mb-8 text-3xl font-bold text-center text-gray-800">{{ t('store.updateTitle') }}</h1>
 
     <form ref="form" @submit.prevent="submitForm" class="space-y-6">
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div class="space-y-2">
           <label for="name_en" class="block text-sm font-medium text-gray-700">
-            English Name <span class="text-red-500">*</span>
+            {{ t('store.nameEn') }} <span class="text-red-500">*</span>
           </label>
           <input
             id="name_en"
             v-model="storeData.name_en"
             type="text"
-            placeholder="Enter store name in English"
+            :placeholder="t('store.enterNameEn')"
             class="w-full px-4 py-2 transition border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
         <div class="space-y-2">
           <label for="name_ar" class="block text-sm font-medium text-gray-700">
-            Arabic Name <span class="text-red-500">*</span>
+            {{ t('store.nameAr') }} <span class="text-red-500">*</span>
           </label>
           <input
             id="name_ar"
             v-model="storeData.name_ar"
             type="text"
-            placeholder="أدخل اسم المتجر بالعربية"
+            :placeholder="t('store.enterNameAr')"
             dir="rtl"
             class="w-full px-4 py-2 transition border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
+        <div class="space-y-2">
+          <label for="min_amount_order" class="block text-sm font-medium text-gray-700">
+            {{ t('store.minAmountOrder') }} <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="min_amount_order"
+            v-model="storeData.min_amount_order"
+            type="number"
+            :placeholder="t('store.enterMinAmountOrder')"
+            class="w-full px-4 py-2 transition border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+        </div>
+
         <div class="space-y-4 md:col-span-2">
           <div class="flex items-center space-x-4">
-            <label class="block text-sm font-medium text-gray-700">Default Store</label>
+            <label class="block text-sm font-medium text-gray-700">{{ t('store.isDefault') }}</label>
             <input type="checkbox" v-model="storeData.is_default" class="w-5 h-5 rounded" />
-            <span class="text-sm text-gray-500">Mark this store as default</span>
+            <span class="text-sm text-gray-500">{{ t('store.markAsDefault') }}</span>
           </div>
 
           <div class="flex items-center space-x-4">
-            <label class="block text-sm font-medium text-gray-700">Has Market</label>
+            <label class="block text-sm font-medium text-gray-700">{{ t('store.hasMarket') }}</label>
             <input type="checkbox" v-model="storeData.has_market" class="w-5 h-5 rounded" />
-            <span class="text-sm text-gray-500">Enable market features for this store</span>
+            <span class="text-sm text-gray-500">{{ t('store.enableMarketFeatures') }}</span>
           </div>
         </div>
 
         <div class="space-y-2">
           <label class="block text-sm font-medium text-gray-700">
-            Store Logo
+            {{ t('store.storeLogo') }}
           </label>
           <div class="flex justify-center">
             <label
@@ -515,9 +538,9 @@ onMounted(() => {
                   <i class="text-xl text-blue-500 pi pi-image"></i>
                 </div>
                 <p class="text-sm text-center text-gray-600">
-                  <span class="font-medium text-blue-500">Click to upload</span> or drag and drop
+                  <span class="font-medium text-blue-500">{{ t('store.clickToUpload') }}</span> {{ t('store.orDragDrop') }}
                 </p>
-                <p class="text-xs text-gray-400">PNG, JPG (max. 2MB)</p>
+                <p class="text-xs text-gray-400">{{ t('store.imageFormat') }}</p>
               </div>
             </label>
           </div>
@@ -525,7 +548,7 @@ onMounted(() => {
 
         <div class="space-y-2">
           <label class="block text-sm font-medium text-gray-700">
-            Main Banner
+            {{ t('store.mainBanner') }}
           </label>
           <div class="flex justify-center">
             <label
@@ -561,16 +584,16 @@ onMounted(() => {
                   <i class="text-xl text-blue-500 pi pi-image"></i>
                 </div>
                 <p class="text-sm text-center text-gray-600">
-                  <span class="font-medium text-blue-500">Click to upload</span> or drag and drop
+                  <span class="font-medium text-blue-500">{{ t('store.clickToUpload') }}</span> {{ t('store.orDragDrop') }}
                 </p>
-                <p class="text-xs text-gray-400">PNG, JPG (max. 2MB)</p>
+                <p class="text-xs text-gray-400">{{ t('store.imageFormat') }}</p>
               </div>
             </label>
           </div>
         </div>
 
         <div class="space-y-2 md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700">Sub Banner</label>
+          <label class="block text-sm font-medium text-gray-700">{{ t('store.subBanner') }}</label>
           <div class="flex justify-center">
             <label
               @dragover.prevent="isDraggingSubBanner = true"
@@ -605,9 +628,9 @@ onMounted(() => {
                   <i class="text-xl text-blue-500 pi pi-image"></i>
                 </div>
                 <p class="text-sm text-center text-gray-600">
-                  <span class="font-medium text-blue-500">Click to upload</span> or drag and drop
+                  <span class="font-medium text-blue-500">{{ t('store.clickToUpload') }}</span> {{ t('store.orDragDrop') }}
                 </p>
-                <p class="text-xs text-gray-400">PNG, JPG (max. 2MB)</p>
+                <p class="text-xs text-gray-400">{{ t('store.imageFormat') }}</p>
               </div>
             </label>
           </div>
@@ -615,7 +638,7 @@ onMounted(() => {
 
         <div class="space-y-2 md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">
-            Slider Images One <span class="text-gray-500">(Max 10 images)</span>
+            {{ t('store.sliderOne') }} <span class="text-gray-500">({{ t('store.maxImages') }})</span>
           </label>
           <div class="flex justify-center">
             <label
@@ -664,7 +687,7 @@ onMounted(() => {
                   </div>
                 </div>
                 <p class="mt-2 text-sm text-center text-gray-500">
-                  {{ storeData.existing_images.slider_images_one.length + sliderOnePreviews.length }} image(s) uploaded. Click or drag to add more (max 10)
+                  {{ storeData.existing_images.slider_images_one.length + sliderOnePreviews.length }} {{ t('store.imagesUploaded') }}
                 </p>
               </div>
 
@@ -673,9 +696,9 @@ onMounted(() => {
                   <i class="text-2xl text-blue-500 pi pi-images"></i>
                 </div>
                 <p class="mb-1 text-sm text-center text-gray-600">
-                  <span class="font-medium text-blue-500">Click to upload</span> or drag and drop
+                  <span class="font-medium text-blue-500">{{ t('store.clickToUpload') }}</span> {{ t('store.orDragDrop') }}
                 </p>
-                <p class="text-xs text-gray-400">Multiple images can be selected (max 10, 2MB each)</p>
+                <p class="text-xs text-gray-400">{{ t('store.multipleImages') }}</p>
               </div>
             </label>
           </div>
@@ -683,7 +706,7 @@ onMounted(() => {
 
         <div class="space-y-2 md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">
-            Slider Images Two <span class="text-gray-500">(Max 10 images)</span>
+            {{ t('store.sliderTwo') }} <span class="text-gray-500">({{ t('store.maxImages') }})</span>
           </label>
           <div class="flex justify-center">
             <label
@@ -732,7 +755,7 @@ onMounted(() => {
                   </div>
                 </div>
                 <p class="mt-2 text-sm text-center text-gray-500">
-                  {{ storeData.existing_images.slider_images_two.length + sliderTwoPreviews.length }} image(s) uploaded. Click or drag to add more (max 10)
+                  {{ storeData.existing_images.slider_images_two.length + sliderTwoPreviews.length }} {{ t('store.imagesUploaded') }}
                 </p>
               </div>
 
@@ -741,9 +764,9 @@ onMounted(() => {
                   <i class="text-2xl text-blue-500 pi pi-images"></i>
                 </div>
                 <p class="mb-1 text-sm text-center text-gray-600">
-                  <span class="font-medium text-blue-500">Click to upload</span> or drag and drop
+                  <span class="font-medium text-blue-500">{{ t('store.clickToUpload') }}</span> {{ t('store.orDragDrop') }}
                 </p>
-                <p class="text-xs text-gray-400">Multiple images can be selected (max 10, 2MB each)</p>
+                <p class="text-xs text-gray-400">{{ t('store.multipleImages') }}</p>
               </div>
             </label>
           </div>
@@ -751,7 +774,7 @@ onMounted(() => {
 
         <div class="space-y-2 md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">
-            Slider Images Three <span class="text-gray-500">(Max 10 images)</span>
+            {{ t('store.sliderThree') }} <span class="text-gray-500">({{ t('store.maxImages') }})</span>
           </label>
           <div class="flex justify-center">
             <label
@@ -800,7 +823,7 @@ onMounted(() => {
                   </div>
                 </div>
                 <p class="mt-2 text-sm text-center text-gray-500">
-                  {{ storeData.existing_images.slider_images_three.length + sliderThreePreviews.length }} image(s) uploaded. Click or drag to add more (max 10)
+                  {{ storeData.existing_images.slider_images_three.length + sliderThreePreviews.length }} {{ t('store.imagesUploaded') }}
                 </p>
               </div>
 
@@ -809,9 +832,9 @@ onMounted(() => {
                   <i class="text-2xl text-blue-500 pi pi-images"></i>
                 </div>
                 <p class="mb-1 text-sm text-center text-gray-600">
-                  <span class="font-medium text-blue-500">Click to upload</span> or drag and drop
+                  <span class="font-medium text-blue-500">{{ t('store.clickToUpload') }}</span> {{ t('store.orDragDrop') }}
                 </p>
-                <p class="text-xs text-gray-400">Multiple images can be selected (max 10, 2MB each)</p>
+                <p class="text-xs text-gray-400">{{ t('store.multipleImages') }}</p>
               </div>
             </label>
           </div>
@@ -824,7 +847,7 @@ onMounted(() => {
             class="flex items-center justify-center w-full px-6 py-3 text-lg font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <i v-if="loading" class="mr-2 pi pi-spin pi-spinner"></i>
-            {{ loading ? 'Updating...' : 'Update Store' }}
+            {{ loading ? t('store.updating') : t('store.updateStore') }}
           </button>
         </div>
       </div>

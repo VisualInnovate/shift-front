@@ -409,3 +409,10 @@ onUnmounted(() => {
 })
 </script>
 
+<style scoped>
+/* Your existing styles remain unchanged */
+.icon-container {
+  @apply flex place-content-center p-2 rounded-md items-center text-[0.5rem] h-[28px] w-[28px] sm:h-[32px] sm:w-[32px] md:h-[36px] md:w-[36px] transition-all duration-200;
+}
+/* ... rest of your styles ... */
+</style>

@@ -90,9 +90,7 @@
             :disabled="!newDetail.type"
             :class="{ 'p-invalid': showAddValidationErrors && (!newDetail.ids || newDetail.ids.length === 0) }"
           />
-          <small v-if="showAddValidationErrors && (!newDetail.ids || newDetail.ids.length === 0)" class="p-error">
-            {{ $t('custom_tabs.items_required') }}
-          </small>
+   
         </div>
 
         <div class="field-group lg:col-span-2">
@@ -375,7 +373,6 @@ const isAddFormValid = computed(() => {
     newDetail.value.name_en.trim() &&
     newDetail.value.name_ar.trim() &&
     newDetail.value.type &&
-    newDetail.value.ids.length > 0 &&
     newDetail.value.image
   );
 });

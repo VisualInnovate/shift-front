@@ -152,12 +152,11 @@
 
               <!-- Minimum Amount Warning -->
               <div v-if="isBelowMinAmount(order)" class="mb-4 p-4 bg-orange-100 border border-orange-300 rounded-lg text-orange-800 text-sm">
-                <p class="font-semibold">
+                <span class="font-semibold">
                   ⚠️ {{ t('cart.minAmountWarning', { min: order.min_amount_order, currency: t('cart.currency') }) }}
-                </p>
-                <p class="mt-1 text-xs opacity-90">
-                  {{ t('cart.currentSubtotal') }}: {{ Number(order.subtotal).toFixed(2) }} {{ t('cart.currency') }}
-                </p>
+                </span>
+                <span class="mx-1 text-base opacity-90">{{ order.min_amount_order }} {{ $t("currencyLabel") }}</span>
+
               </div>
 
               <div class="space-y-3 text-sm">

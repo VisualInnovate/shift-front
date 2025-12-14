@@ -577,12 +577,12 @@ export default {
     "fileTypes": "SVG، PNG، JPG أو GIF (الحد الأقصى 2 ميجابايت)"
   },
   cart: {
-    "minAmountWarning": "الحد الأدنى لقيمة الطلب هو {min} {currency} لهذا المتجر",
+    "minAmountWarning": "الحد الأدنى لقيمة الطلب   لهذا المتجر",
   "currentSubtotal": "المجموع الفرعي الحالي",
   "someStoresBelowMin": "بعض المتاجر لا تفي بالحد الأدنى لقيمة الطلب",
   "minRequired": "الحد الأدنى المطلوب:",
   "cannotCheckoutDueToMinAmount": "لا يمكن إتمام الدفع: بعض المتاجر لا تفي بالحد الأدنى لقيمة الطلب",
-  "minAmountNotMet": "لم يتم الوصول إلى الحد الأدنى للطلب ({min} {currency}) لهذا المتجر",
+  "minAmountNotMet": "لم يتم الوصول إلى الحد الأدنى للطلب لهذا المتجر",
     "selectStorePrompt":" يرجى اختيار متجر للمتابعة",
     "discountsFees": "اجمالي الخصم ",
     "checkoutThisStoreOnly": "اطلب من هذا المتجر فقط",

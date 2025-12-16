@@ -72,7 +72,29 @@
           </small>
         </div>
 
-        <div class="field-group">
+        <!-- Store/Market Selector (only for Categories) -->
+        <div v-if="newDetail.type === 1" class="field-group">
+          <label class="input-label">
+            {{ $t('custom_tabs.select_store_market') }} <span class="text-red-500">*</span>
+          </label>
+          <Dropdown
+            v-model="newDetail.model_id"
+            :options="modelOptions"
+            :optionLabel="modelOptionLabel"
+            optionValue="id"
+            :placeholder="$t('custom_tabs.select_store_or_market')"
+            :loading="loadingModels"
+            class="w-full"
+            :class="{ 'p-invalid': showAddValidationErrors && !newDetail.model_id }"
+            @change="fetchCategoriesForModel('new')"
+          />
+          <small v-if="showAddValidationErrors && !newDetail.model_id" class="p-error">
+            {{ $t('custom_tabs.store_market_required') }}
+          </small>
+        </div>
+
+        <!-- Items MultiSelect -->
+        <div class="field-group" :class="{ 'lg:col-span-2': newDetail.type !== 1 }">
           <label class="input-label">
             {{ currentSelectLabel(newDetail.type) }} <span class="text-red-500">*</span>
           </label>
@@ -87,13 +109,15 @@
             filter
             @filter="(e) => onItemFilter('new', e)"
             class="w-full"
-            :disabled="!newDetail.type"
+            :disabled="!newDetail.type || (newDetail.type === 1 && !newDetail.model_id)"
             :class="{ 'p-invalid': showAddValidationErrors && (!newDetail.ids || newDetail.ids.length === 0) }"
           />
-   
+          <small v-if="showAddValidationErrors && (!newDetail.ids || newDetail.ids.length === 0)" class="p-error">
+            {{ $t('custom_tabs.items_required') }}
+          </small>
         </div>
 
-        <div class="field-group lg:col-span-2">
+        <div class="field-group lg:col-span-3">
           <label class="input-label">
             {{ $t('custom_tabs.image') }} <span class="text-red-500">*</span>
           </label>
@@ -107,7 +131,6 @@
               :chooseLabel="$t('custom_tabs.select_image')"
               class="p-button-sm p-button-rounded"
             />
-
           </div>
           <small v-if="showAddValidationErrors && !newDetail.image" class="p-error">
             {{ $t('custom_tabs.image_required') }}
@@ -124,6 +147,7 @@
       />
     </div>
 
+    <!-- Details List -->
     <div class="card-fancy mb-8">
       <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-3 border-blue-100 flex items-center">
         <i class="pi pi-list mr-3 text-blue-500"></i>
@@ -131,17 +155,9 @@
       </h2>
 
       <div v-if="tabDetails?.details?.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <div
-          v-for="detail in tabDetails.details"
-          :key="detail.id"
-          class="detail-card"
-        >
+        <div v-for="detail in tabDetails.details" :key="detail.id" class="detail-card">
           <div v-if="detail.media?.length" class="h-40 overflow-hidden">
-            <img
-              :src="detail.media[0].url"
-              :alt="detail.name_en"
-              class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-            />
+            <img :src="detail.media[0].url" :alt="detail.name_en" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
           </div>
           <div class="p-5">
             <div class="flex justify-between items-start mb-4">
@@ -167,6 +183,7 @@
       </p>
     </div>
 
+    <!-- Edit Dialog -->
     <Dialog
       v-model:visible="showEditDialog"
       :header="$t('custom_tabs.edit_detail')"
@@ -178,78 +195,52 @@
       <div v-if="editingDetail" class="p-fluid">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div class="field-group">
-            <label class="input-label">
-              {{ $t('custom_tabs.name_en') }} <span class="text-red-500">*</span>
-            </label>
-            <InputText
-              v-model="editingDetail.name_en"
-              :placeholder="$t('custom_tabs.enter_name_en')"
-              class="w-full"
-              :class="{ 'p-invalid': showEditValidationErrors && !editingDetail.name_en }"
-            />
-            <small v-if="showEditValidationErrors && !editingDetail.name_en" class="p-error">
-              {{ $t('custom_tabs.name_en_required') }}
-            </small>
+            <label class="input-label">{{ $t('custom_tabs.name_en') }} <span class="text-red-500">*</span></label>
+            <InputText v-model="editingDetail.name_en" class="w-full" :class="{ 'p-invalid': showEditValidationErrors && !editingDetail.name_en }" />
           </div>
 
           <div class="field-group">
-            <label class="input-label">
-              {{ $t('custom_tabs.name_ar') }} <span class="text-red-500">*</span>
-            </label>
-            <InputText
-              v-model="editingDetail.name_ar"
-              :placeholder="$t('custom_tabs.enter_name_ar')"
-              class="w-full"
-              :class="{ 'p-invalid': showEditValidationErrors && !editingDetail.name_ar }"
-            />
-            <small v-if="showEditValidationErrors && !editingDetail.name_ar" class="p-error">
-              {{ $t('custom_tabs.name_ar_required') }}
-            </small>
+            <label class="input-label">{{ $t('custom_tabs.name_ar') }} <span class="text-red-500">*</span></label>
+            <InputText v-model="editingDetail.name_ar" class="w-full" :class="{ 'p-invalid': showEditValidationErrors && !editingDetail.name_ar }" />
           </div>
 
           <div class="field-group">
-            <label class="input-label">
-              {{ $t('custom_tabs.type') }}
-            </label>
+            <label class="input-label">{{ $t('custom_tabs.type') }}</label>
+            <Dropdown v-model="editingDetail.type" :options="detailTypeOptions" optionLabel="label" optionValue="value" class="w-full bg-gray-100 cursor-not-allowed" disabled />
+          </div>
+
+          <div v-if="editingDetail.type === 1" class="field-group">
+            <label class="input-label">{{ $t('custom_tabs.select_store_market') }} <span class="text-red-500">*</span></label>
             <Dropdown
-              v-model="editingDetail.type"
-              :options="detailTypeOptions"
-              optionLabel="label"
-              optionValue="value"
-              class="w-full bg-gray-100 cursor-not-allowed"
-              disabled
+              v-model="editingDetail.model_id"
+              :options="editModelOptions"
+              :optionLabel="modelOptionLabel"
+              optionValue="id"
+              :placeholder="$t('custom_tabs.select_store_or_market')"
+              :loading="editLoadingModels"
+              class="w-full"
+              @change="fetchCategoriesForModel('edit')"
             />
-            <small class="text-xs text-orange-500">
-              {{ $t('custom_tabs.type_cannot_change') }}
-            </small>
           </div>
 
-          <div class="field-group">
-            <label class="input-label">
-              {{ currentSelectLabel(editingDetail.type) }} <span class="text-red-500">*</span>
-            </label>
+          <div class="field-group" :class="{ 'lg:col-span-2': editingDetail.type !== 1 }">
+            <label class="input-label">{{ currentSelectLabel(editingDetail.type) }} <span class="text-red-500">*</span></label>
             <MultiSelect
               v-model="editingDetail.ids"
               :options="editAvailableItems"
               :optionLabel="multiSelectLabel"
               optionValue="id"
               :placeholder="currentSelectPlaceholder(editingDetail.type)"
-              :filterPlaceholder="$t('custom_tabs.search') + ' ' + currentSelectLabel(editingDetail.type).toLowerCase()"
               :loading="editLoadingItems"
               filter
               @filter="(e) => onItemFilter('edit', e)"
               class="w-full"
-              :class="{ 'p-invalid': showEditValidationErrors && (!editingDetail.ids || editingDetail.ids.length === 0) }"
+              :disabled="editingDetail.type === 1 && !editingDetail.model_id"
             />
-            <small v-if="showEditValidationErrors && (!editingDetail.ids || editingDetail.ids.length === 0)" class="p-error">
-              {{ $t('custom_tabs.items_required') }}
-            </small>
           </div>
 
-          <div class="field-group lg:col-span-2">
-            <label class="input-label">
-              {{ $t('custom_tabs.image') }} ({{ $t('custom_tabs.optional_reupload') }})
-            </label>
+          <div class="field-group lg:col-span-3">
+            <label class="input-label">{{ $t('custom_tabs.image') }} ({{ $t('custom_tabs.optional_reupload') }})</label>
             <div class="flex items-center space-x-4">
               <FileUpload
                 mode="basic"
@@ -260,11 +251,8 @@
                 :chooseLabel="editingDetail.newImage ? $t('custom_tabs.change_image') : $t('custom_tabs.select_new_image')"
                 class="p-button-sm p-button-rounded p-button-secondary"
               />
-
             </div>
-            <small class="text-xs text-gray-500 mt-1">
-              {{ $t('custom_tabs.leave_empty_to_keep') }}
-            </small>
+            <small class="text-xs text-gray-500 mt-1">{{ $t('custom_tabs.leave_empty_to_keep') }}</small>
           </div>
         </div>
       </div>
@@ -286,52 +274,56 @@ import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { debounce } from 'lodash';
 
-// PrimeVue and Vue Hooks
 const router = useRouter();
 const route = useRoute();
 const toast = useToast();
 const confirm = useConfirm();
 const { t, locale } = useI18n();
 
-// State
 const tabDetails = ref(null);
 
-// Add Form State
-const availableItems = ref([]);
-const loadingItems = ref(false);
-const addingDetail = ref(false);
-const showAddValidationErrors = ref(false);
+// Add Form
 const newDetail = ref({
   custom_tab_id: route.params.id,
   name_en: '',
   name_ar: '',
-  type: null, // 1 = category, 2 = product, 3 = brand
+  type: null,
+  model_id: null,
   ids: [],
   image: null,
 });
+const availableItems = ref([]);
+const modelOptions = ref([]);
+const loadingItems = ref(false);
+const loadingModels = ref(false);
+const addingDetail = ref(false);
+const showAddValidationErrors = ref(false);
 
-// Edit Form State
+// Edit Form
 const showEditDialog = ref(false);
 const editingDetail = ref(null);
 const editAvailableItems = ref([]);
+const editModelOptions = ref([]);
 const editLoadingItems = ref(false);
+const editLoadingModels = ref(false);
 const updatingDetail = ref(false);
 const showEditValidationErrors = ref(false);
 
 const itemSearchQuery = ref({ new: '', edit: '' });
 
 const appLanguage = computed(() => locale.value);
-
-// Computed Properties
 const labelField = computed(() => (appLanguage.value === 'en' ? 'name_en' : 'name_ar'));
 const multiSelectLabel = computed(() => labelField.value);
 
+// Dynamic label for Store/Market dropdown
+const modelOptionLabel = computed(() => (item) => {
+  const name = item[labelField.value] || item.name_en;
+  const typeLabel = item.type === 'store' ? t('custom_tabs.store') : t('custom_tabs.market');
+  return `${name} (${typeLabel})`;
+});
+
 const belongsToLabel = computed(() => {
-  const map = {
-    store: t('custom_tabs.store'),
-    category: t('custom_tabs.category'),
-    market: t('custom_tabs.market'),
-  };
+  const map = { store: t('custom_tabs.store'), category: t('custom_tabs.category'), market: t('custom_tabs.market') };
   return map[tabDetails.value?.belongs_to] || t('custom_tabs.unknown');
 });
 
@@ -359,102 +351,94 @@ const currentSelectLabel = (type) => {
 const currentSelectPlaceholder = (type) => currentSelectLabel(type);
 
 const getTypeLabel = (type) => {
-  const typeStr = String(type);
   const map = {
     '1': t('custom_tabs.category'),
     '2': t('custom_tabs.product'),
     '3': t('custom_tabs.brand'),
   };
-  return map[typeStr] || t('custom_tabs.unknown');
+  return map[String(type)] || t('custom_tabs.unknown');
 };
 
 const isAddFormValid = computed(() => {
-  return (
-    newDetail.value.name_en.trim() &&
-    newDetail.value.name_ar.trim() &&
-    newDetail.value.type &&
-    newDetail.value.image
-  );
+  const base = newDetail.value.name_en.trim() && newDetail.value.name_ar.trim() && newDetail.value.type && newDetail.value.image && newDetail.value.ids.length > 0;
+  return newDetail.value.type === 1 ? base && newDetail.value.model_id : base;
 });
 
 const isEditFormValid = computed(() => {
   if (!editingDetail.value) return false;
-  return (
-    editingDetail.value.name_en.trim() &&
-    editingDetail.value.name_ar.trim() &&
-    editingDetail.value.type &&
-    editingDetail.value.ids.length > 0
-  );
+  const base = editingDetail.value.name_en.trim() && editingDetail.value.name_ar.trim() && editingDetail.value.ids.length > 0;
+  return editingDetail.value.type === 1 ? base && editingDetail.value.model_id : base;
 });
 
-const getImagePreview = (file) => URL.createObjectURL(file);
+// Fetch Stores & Markets
+const fetchModels = async (formType = 'new') => {
+  const loadingRef = formType === 'new' ? loadingModels : editLoadingModels;
+  const optionsRef = formType === 'new' ? modelOptions : editModelOptions;
 
-/**
- * Helper to merge new items with selected items, ensuring selected items remain in the list.
- * @param {Array<Object>} newItems - Newly fetched items.
- * @param {Array<Object>} existingItems - Current options list (if fetching is partial).
- * @param {Array<number>} selectedIds - IDs of items currently selected.
- */
-const getUniqueItems = (newItems, existingItems, selectedIds) => {
-    // Collect selected items from the existing list that are not in the new list
-    const selectedItemsNotInNew = existingItems.filter(item =>
-        selectedIds.includes(item.id) &&
-        !newItems.some(newItem => newItem.id === item.id)
-    );
-
-    // Merge new items and the selected items that were previously loaded.
-    const mergedItems = [...newItems, ...selectedItemsNotInNew];
-
-    // Ensure uniqueness based on ID (though the logic above should handle most cases)
-    const uniqueMap = new Map();
-    for (const item of mergedItems) {
-        if (!uniqueMap.has(item.id)) {
-            uniqueMap.set(item.id, item);
-        }
+  loadingRef.value = true;
+  try {
+    const { data } = await axios.get('/api/custom-tab-details/get/markets-stores');
+    if (data.is_success) {
+      optionsRef.value = data.data.map(item => ({
+        ...item,
+        // Ensure fallback
+        name_en: item.name_en || '',
+        name_ar: item.name_ar || '',
+      }));
+    } else {
+      throw new Error(data.message);
     }
-    return Array.from(uniqueMap.values());
+  } catch (err) {
+    toast.add({ severity: 'error', summary: t('error'), detail: t('custom_tabs.models_load_failed'), life: 3000 });
+    optionsRef.value = [];
+  } finally {
+    loadingRef.value = false;
+  }
 };
 
+// Fetch categories for selected model
+const fetchCategoriesForModel = async (formType) => {
+  const detail = formType === 'new' ? newDetail.value : editingDetail.value;
+  const itemsRef = formType === 'new' ? availableItems : editAvailableItems;
+  const loadingRef = formType === 'new' ? loadingItems : editLoadingItems;
 
-// API Calls - Consolidated Item Fetching
-const fetchItemsByType = async (type, query, formType) => {
-  const itemType = type ? String(type) : null;
-  if (!itemType) {
-    if (formType === 'new') availableItems.value = [];
-    if (formType === 'edit') editAvailableItems.value = [];
+  if (!detail.model_id || detail.type !== 1) {
+    itemsRef.value = [];
     return;
   }
 
+  loadingRef.value = true;
+  try {
+    const model = (formType === 'new' ? modelOptions : editModelOptions).value.find(m => m.id === detail.model_id);
+    if (!model) throw new Error('Model not found');
+
+    const typeSlug = model.type; // API expects 'store' or 'market' directly
+
+    const { data } = await axios.get(`/api/custom-tab-details/get/model-categories/${typeSlug}/${detail.model_id}`);
+    itemsRef.value = data.data || [];
+  } catch (err) {
+    toast.add({ severity: 'error', summary: t('error'), detail: t('custom_tabs.categories_load_failed'), life: 3000 });
+    itemsRef.value = [];
+  } finally {
+    loadingRef.value = false;
+  }
+};
+
+// Fetch products or brands
+const fetchItemsByType = async (type, query, formType) => {
+  if (type === 1) return;
+
   const itemsRef = formType === 'new' ? availableItems : editAvailableItems;
   const loadingRef = formType === 'new' ? loadingItems : editLoadingItems;
-  const selectedIds = formType === 'new' ? newDetail.value.ids : (editingDetail.value?.ids || []);
 
+  const endpoints = { '2': '/api/product', '3': '/api/brand' };
 
   loadingRef.value = true;
-
-  const endpoints = {
-    '1': '/api/category',
-    '2': '/api/product',
-    '3': '/api/brand',
-  };
-
   try {
-    const { data } = await axios.get(endpoints[itemType], {
-      params: {
-        search: query || undefined,
-        per_page: 50,
-        // Optional: Include selected IDs in the search parameters to force API to return them
-        // ids: selectedIds.join(',')
-      },
+    const { data } = await axios.get(endpoints[type], {
+      params: { search: query || undefined, per_page: 50 },
     });
-
-    const fetchedItems = data.data?.data || data.data || [];
-
-    // --- FIX IMPLEMENTATION START ---
-    // Merge fetched items with currently selected items to prevent 'null' labels.
-    itemsRef.value = getUniqueItems(fetchedItems, itemsRef.value, selectedIds);
-    // --- FIX IMPLEMENTATION END ---
-
+    itemsRef.value = data.data?.data || data.data || [];
   } catch (err) {
     toast.add({ severity: 'error', summary: t('error'), detail: t('custom_tabs.items_load_failed'), life: 3000 });
   } finally {
@@ -469,106 +453,137 @@ const onItemFilter = (formType, e) => {
   if (formType === 'new') {
     itemSearchQuery.value.new = e.value;
     debouncedFetchItemsNew();
-  } else if (formType === 'edit' && editingDetail.value) {
+  } else if (formType === 'edit') {
     itemSearchQuery.value.edit = e.value;
     debouncedFetchItemsEdit();
   }
 };
 
-const fetchDetails = () => {
-  axios.get(`/api/custom-tabs/${route.params.id}`)
-    .then(({ data }) => {
-      if (data.is_success && data.data) {
-        data.data.details = data.data.details.map(detail => ({
-            ...detail,
-            type: Number(detail.type),
-            ids: detail.ids || [],
-        }));
-        tabDetails.value = data.data;
-      } else {
-        throw new Error(data.message || t('custom_tabs.details_load_failed'));
-      }
-    })
-    .catch((err) => {
-      console.error("Error fetching details:", err);
-      toast.add({ severity: 'error', summary: t('error'), detail: t('custom_tabs.details_load_failed'), life: 3000 });
-    });
-};
-
-// Watchers
+// Watch type change
 watch(() => newDetail.value.type, (newType) => {
   newDetail.value.ids = [];
+  newDetail.value.model_id = null;
   availableItems.value = [];
   itemSearchQuery.value.new = '';
-  if (newType) {
+
+  if (newType === 1) {
+    fetchModels('new');
+  } else if (newType) {
     fetchItemsByType(newType, '', 'new');
   }
 });
 
-// Actions
+const fetchDetails = async () => {
+  try {
+    const { data } = await axios.get(`/api/custom-tabs/${route.params.id}`);
+    if (data.is_success && data.data) {
+      data.data.details = data.data.details.map(d => ({
+        ...d,
+        type: Number(d.type),
+        ids: d.ids || [],
+      }));
+      tabDetails.value = data.data;
+    }
+  } catch (err) {
+    toast.add({ severity: 'error', summary: t('error'), detail: t('custom_tabs.details_load_failed'), life: 3000 });
+  }
+};
+
 const onImageSelect = (type, event) => {
   const file = event.files[0];
   if (!file) return;
-
-  if (type === 'new') {
-    newDetail.value.image = file;
-  } else if (type === 'edit' && editingDetail.value) {
-    editingDetail.value.newImage = file;
-  }
+  if (type === 'new') newDetail.value.image = file;
+  else editingDetail.value.newImage = file;
 };
 
 const addDetail = async () => {
   showAddValidationErrors.value = true;
-
   if (!isAddFormValid.value) {
     toast.add({ severity: 'warn', summary: t('validation'), detail: t('custom_tabs.fill_all_fields'), life: 4000 });
     return;
   }
 
   addingDetail.value = true;
-
   const formData = new FormData();
   formData.append('custom_tab_id', newDetail.value.custom_tab_id);
   formData.append('name_en', newDetail.value.name_en);
   formData.append('name_ar', newDetail.value.name_ar);
   formData.append('type', newDetail.value.type);
   formData.append('image', newDetail.value.image);
-
-  newDetail.value.ids.forEach((id, i) => {
-    formData.append(`ids[${i}]`, id);
-  });
+  if (newDetail.value.type === 1) formData.append('model_id', newDetail.value.model_id);
+  newDetail.value.ids.forEach((id, i) => formData.append(`ids[${i}]`, id));
 
   try {
-    await axios.post('/api/custom-tab-details', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-
+    await axios.post('/api/custom-tab-details', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
     toast.add({ severity: 'success', summary: t('success'), detail: t('custom_tabs.detail_added'), life: 3000 });
     resetNewForm();
     await fetchDetails();
   } catch (err) {
-    console.error(err);
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: err.response?.data?.message || t('custom_tabs.add_failed'),
-      life: 5000,
-    });
+    toast.add({ severity: 'error', summary: t('error'), detail: err.response?.data?.message || t('custom_tabs.add_failed'), life: 5000 });
   } finally {
     addingDetail.value = false;
   }
 };
 
+const openEditDialog = async (detail) => {
+  editingDetail.value = {
+    ...detail,
+    ids: detail.ids || [],
+    model_id: detail.model_id || null,
+    newImage: null,
+  };
+
+  if (detail.type === 1) {
+    await fetchModels('edit');
+    if (editingDetail.value.model_id) {
+      await fetchCategoriesForModel('edit');
+    }
+  } else {
+    await fetchItemsByType(detail.type, '', 'edit');
+  }
+
+  showEditDialog.value = true;
+};
+
+const updateDetail = async () => {
+  showEditValidationErrors.value = true;
+  if (!isEditFormValid.value) {
+    toast.add({ severity: 'warn', summary: t('validation'), detail: t('custom_tabs.fill_all_fields'), life: 4000 });
+    return;
+  }
+
+  updatingDetail.value = true;
+  const formData = new FormData();
+  formData.append('_method', 'PUT');
+  formData.append('name_en', editingDetail.value.name_en);
+  formData.append('name_ar', editingDetail.value.name_ar);
+  formData.append('type', editingDetail.value.type);
+  formData.append('custom_tab_id', newDetail.value.custom_tab_id);
+  if (editingDetail.value.newImage) formData.append('image', editingDetail.value.newImage);
+  if (editingDetail.value.type === 1) formData.append('model_id', editingDetail.value.model_id);
+  editingDetail.value.ids.forEach((id, i) => formData.append(`ids[${i}]`, id));
+
+  try {
+    await axios.post(`/api/custom-tab-details/${editingDetail.value.id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    toast.add({ severity: 'success', summary: t('success'), detail: t('custom_tabs.detail_updated'), life: 3000 });
+    showEditDialog.value = false;
+    resetEditForm();
+    await fetchDetails();
+  } catch (err) {
+    toast.add({ severity: 'error', summary: t('error'), detail: err.response?.data?.message || t('custom_tabs.update_failed'), life: 5000 });
+  } finally {
+    updatingDetail.value = false;
+  }
+};
+
 const confirmDeleteDetail = (id) => {
-    confirm.require({
-        message: t('custom_tabs.confirm_delete_message'),
-        header: t('custom_tabs.confirm_delete'),
-        icon: 'pi pi-exclamation-triangle',
-        acceptClass: 'p-button-danger',
-        accept: () => {
-            deleteDetail(id);
-        },
-    });
+  confirm.require({
+    message: t('custom_tabs.confirm_delete_message'),
+    header: t('custom_tabs.confirm_delete'),
+    icon: 'pi pi-exclamation-triangle',
+    acceptClass: 'p-button-danger',
+    accept: () => deleteDetail(id),
+  });
 };
 
 const deleteDetail = async (id) => {
@@ -581,132 +596,41 @@ const deleteDetail = async (id) => {
   }
 };
 
-const openEditDialog = async (detail) => {
-  // Deep clone and map fields for editing
-  editingDetail.value = {
-    ...detail,
-    ids: detail.ids || [], // Use the 'ids' field from the API response
-    newImage: null, // Placeholder for new image file object
-  };
-
-  // Fetch items for the edit dialog. The fix ensures selected items are included.
-  await fetchItemsByType(editingDetail.value.type, '', 'edit');
-
-  showEditDialog.value = true;
-};
-
-const updateDetail = async () => {
-  showEditValidationErrors.value = true;
-
-  if (!isEditFormValid.value) {
-    toast.add({ severity: 'warn', summary: t('validation'), detail: t('custom_tabs.fill_all_fields'), life: 4000 });
-    return;
-  }
-
-  updatingDetail.value = true;
-
-  const formData = new FormData();
-  formData.append('_method', 'PUT');
-  formData.append('name_en', editingDetail.value.name_en);
-  formData.append('name_ar', editingDetail.value.name_ar);
-  formData.append('type', editingDetail.value.type);
-  formData.append('custom_tab_id', newDetail.value.custom_tab_id);
-
-  if (editingDetail.value.newImage) {
-    formData.append('image', editingDetail.value.newImage);
-  }
-
-  editingDetail.value.ids.forEach((id, i) => {
-    formData.append(`ids[${i}]`, id);
-  });
-
-  try {
-    await axios.post(`/api/custom-tab-details/${editingDetail.value.id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-
-    toast.add({ severity: 'success', summary: t('success'), detail: t('custom_tabs.detail_updated'), life: 3000 });
-    showEditDialog.value = false;
-    resetEditForm();
-    await fetchDetails();
-  } catch (err) {
-    console.error(err);
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: err.response?.data?.message || t('custom_tabs.update_failed'),
-      life: 5000,
-    });
-  } finally {
-    updatingDetail.value = false;
-  }
-};
-
 const resetNewForm = () => {
   newDetail.value = {
     custom_tab_id: route.params.id,
-    name_en: '',
-    name_ar: '',
-    type: null,
-    ids: [],
-    image: null,
+    name_en: '', name_ar: '', type: null, model_id: null, ids: [], image: null,
   };
-  showAddValidationErrors.value = false;
   availableItems.value = [];
-  itemSearchQuery.value.new = '';
+  modelOptions.value = [];
+  showAddValidationErrors.value = false;
 };
 
 const resetEditForm = () => {
-    editingDetail.value = null;
-    showEditValidationErrors.value = false;
-    editAvailableItems.value = [];
-    itemSearchQuery.value.edit = '';
-}
+  editingDetail.value = null;
+  editAvailableItems.value = [];
+  editModelOptions.value = [];
+  showEditValidationErrors.value = false;
+};
 
-// Lifecycle
 onMounted(() => {
   fetchDetails();
 });
-
-// Styles
 </script>
 
-<style>
-/* Fancy Card Styles */
+<style scoped>
 .card-fancy {
   @apply bg-white p-6 lg:p-8 rounded-2xl shadow-xl transition-all duration-500 transform hover:shadow-2xl hover:scale-[1.005];
 }
-
-/* Field Group Styles */
-.field-group {
-  @apply space-y-2;
-}
-
-/* Input Label Styles */
-.input-label {
-  @apply block text-sm font-semibold text-gray-700;
-}
-
-/* Primary Button Styles */
+.field-group { @apply space-y-2; }
+.input-label { @apply block text-sm font-semibold text-gray-700; }
 .button-primary {
   @apply bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-[1.02];
 }
-
-/* Detail Card Styles */
 .detail-card {
   @apply border border-gray-100 rounded-xl bg-white shadow-lg overflow-hidden transition-all duration-300 transform hover:shadow-xl hover:-translate-y-1;
 }
-
-/* Error Styles */
-.p-error {
-  @apply text-red-600 text-sm block mt-1 font-medium;
-}
-
-/* RTL Specific Styles (using the helper class) */
-.rtl .input-label {
-    @apply text-right;
-}
-.rtl .p-placeholder, .rtl .p-inputtext {
-    text-align: right;
-}
+.p-error { @apply text-red-600 text-sm block mt-1 font-medium; }
+.rtl .input-label { @apply text-right; }
+.rtl .p-placeholder, .rtl .p-inputtext { text-align: right; }
 </style>

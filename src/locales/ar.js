@@ -278,7 +278,11 @@ export default {
   },
 
   "custom_tabs": {
-
+    select_store_or_market: 'اختر المتجر أو السوق',
+  select_store_market: 'اختر المتجر أو السوق',
+    store_market_required: 'يجب اختيار المتجر أو السوق',
+    store: 'متجر',
+    market: 'سوق',
     "add_new_detail": "إضافة عنصر تفصيلي جديد",
     "details": "تفاصيل التبويب",
     "no_details": "لم تتم إضافة أي تفاصيل بعد. ابدأ بإضافة العنصر الأول!",

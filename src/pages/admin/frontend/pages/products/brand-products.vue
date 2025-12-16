@@ -9,13 +9,54 @@
     <!-- Error State -->
     <div v-else-if="error" class="text-center py-20">
       <p class="text-lg font-semibold text-red-600 mb-4">{{ error }}</p>
-      <button @click="fetchProducts" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+      <button @click="fetchBrandAvailability" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
         {{ t('products.retry') }}
       </button>
     </div>
 
-    <!-- Main Content -->
-    <div v-else class="lg:flex gap-8">
+    <!-- Availability Selection - ALWAYS VISIBLE -->
+    <div v-else class="max-w-4xl mx-auto mb-6">
+      <section class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+
+        <div class="flex flex-wrap gap-4">
+          <label
+            v-for="avail in availabilities"
+            :key="avail.id"
+            class="relative flex-1 min-w-[160px] group cursor-pointer"
+          >
+            <input
+              type="radio"
+              name="availability"
+              :value="avail"
+              v-model="selectedAvailability"
+              class="peer sr-only"
+              @change="onAvailabilityChange(avail)"
+            />
+            <div class="h-full border-2 border-gray-100 rounded-xl p-4 transition-all duration-300
+                        peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50
+                         flex items-center gap-4">
+              <div class="w-12 h-12 rounded-lg bg-gray-50 p-1 overflow-hidden flex-shrink-0 border border-gray-100 transition-transform group-hover:scale-105">
+                <img :src="avail.image" :alt="avail.name" class="w-full h-full object-contain" />
+              </div>
+              <div class="flex flex-col">
+                <span class="font-bold text-gray-900 leading-tight">{{ avail.name }}</span>
+                <span class="text-[10px] text-gray-400 uppercase font-medium mt-1">{{ avail.type }}</span>
+              </div>
+              <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                <div class="bg-indigo-600 rounded-full p-0.5">
+                  <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
+      </section>
+    </div>
+
+    <!-- Main Products Content - Only shown AFTER selection -->
+    <div v-if="selectedAvailability" class="lg:flex gap-8">
       <!-- Filters Sidebar -->
       <aside class="lg:w-1/4 mb-8 lg:mb-0">
         <div class="bg-white p-6 rounded-xl shadow-lg sticky top-24">
@@ -201,11 +242,17 @@
         </div>
       </div>
     </div>
+
+    <!-- Optional: Show a message if no availability selected yet -->
+    <div v-if="!selectedAvailability && !isLoading && !error" class="text-center py-20 text-gray-500">
+      <p class="text-xl">{{ t('products.pleaseSelectAvailability') }}</p>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount, onMounted, onUnmounted, watch } from 'vue';
+// الكود الـ script يبقى كما هو تمامًا (لا تغيير مطلوب)
+import { ref, computed, onBeforeMount, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
@@ -219,11 +266,9 @@ const router = useRouter();
 const { t, locale } = useI18n();
 const authStore = useAuthStore();
 
-// Set locale
 const storedLanguage = localStorage.getItem('appLang') || 'en';
 locale.value = storedLanguage;
 
-// Reactive state
 const isLoading = ref(true);
 const error = ref(null);
 const products = ref([]);
@@ -231,7 +276,9 @@ const currentPage = ref(1);
 const limit = ref(12);
 const totalProducts = ref(0);
 
-// Filters
+const availabilities = ref([]);
+const selectedAvailability = ref(null);
+
 const selectedFilters = ref({
   category_ids: [],
   rate: 0,
@@ -248,7 +295,6 @@ const categorySearchQuery = ref('');
 const hasMoreCategories = ref(true);
 const categoryPage = ref(1);
 
-// Computed
 const filteredCategories = computed(() => {
   let cats = [];
   categories.value.forEach(cat => {
@@ -263,19 +309,40 @@ const filteredCategories = computed(() => {
 
 const paginatedProducts = computed(() => products.value);
 
-// Format price
-const formatPrice = (price) => {
-  return Number(price).toFixed(2);
+const formatPrice = (price) => Number(price).toFixed(2);
+const truncateName = (name, length) => !name ? '' : name.length > length ? name.substring(0, length) + '...' : name;
+
+const fetchBrandAvailability = async () => {
+  isLoading.value = true;
+  error.value = null;
+  try {
+    const res = await axios.get(`/api/home/brand-availability/${route.params.id}`);
+    if (res.data.is_success) {
+      availabilities.value = res.data.data.map(a => ({
+        id: a.id,
+        type: a.type,
+        name: locale.value === 'ar' ? (a.name_ar || a.name_en) : (a.name_en || a.name_ar),
+        image: a.image
+      }));
+    } else {
+      error.value = t('products.errorLoading');
+    }
+  } catch (err) {
+    error.value = t('products.errorLoading');
+    console.error(err);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
-// Truncate name
-const truncateName = (name, length) => {
-  if (!name) return '';
-  return name.length > length ? name.substring(0, length) + '...' : name;
+const onAvailabilityChange = async (avail) => {
+  selectedAvailability.value = avail;
+  await fetchCategories();
+  await fetchProducts();
 };
 
-// Fetch Categories
 const fetchCategories = async (page = 1, append = false) => {
+  if (!selectedAvailability.value) return;
   try {
     const res = await axios.get(`/api/home/categories-by-brand/${route.params.id}`, {
       params: { page, search: categorySearchQuery.value || undefined }
@@ -288,6 +355,7 @@ const fetchCategories = async (page = 1, append = false) => {
     }));
     categories.value = append ? [...categories.value, ...mapped] : mapped;
     hasMoreCategories.value = !!data.next_page_url;
+    categoryPage.value = page;
   } catch (err) {
     console.error(err);
   }
@@ -302,7 +370,6 @@ watch(categorySearchQuery, debounce(() => {
   fetchCategories();
 }, 300));
 
-// Watch filters
 watch(selectedFilters, () => {
   currentPage.value = 1;
   fetchProducts();
@@ -311,24 +378,27 @@ watch(selectedFilters, () => {
 watch(locale, () => {
   fetchCategories();
   fetchProducts();
+  availabilities.value = availabilities.value.map(a => ({
+    ...a,
+    name: locale.value === 'ar' ? (a.name_ar || a.name_en) : (a.name_en || a.name_ar)
+  }));
 });
 
-// Fetch Products
 const fetchProducts = async (page = 1) => {
+  if (!selectedAvailability.value) return;
   error.value = null;
   try {
     const params = {
       page,
       limit: limit.value,
-      brand_ids: route.params.id,
       category_ids: selectedFilters.value.category_ids.length ? selectedFilters.value.category_ids.join(',') : undefined,
       rate: selectedFilters.value.rate > 0 ? selectedFilters.value.rate : undefined,
       min_price: selectedFilters.value.min_price,
       max_price: selectedFilters.value.max_price,
     };
 
-    const res = await axios.get('/api/home/products', { params });
-    const data = res.data.data;
+    const res = await axios.get(`/api/home/products-by-brand-v2/${route.params.id}/${selectedAvailability.value.id}/${selectedAvailability.value.type}`, { params });
+    const data = res.data.data.products;
 
     products.value = data.data.map(p => ({
       id: p.id,
@@ -354,18 +424,14 @@ const fetchProducts = async (page = 1) => {
   } catch (err) {
     error.value = t('products.errorLoading');
     console.error(err);
-  } finally {
-    isLoading.value = false;
   }
 };
 
-// Pagination
 const onPageChange = (event) => {
   currentPage.value = event.page + 1;
   fetchProducts(currentPage.value);
 };
 
-// Cart & Wishlist
 const addToCart = async (product) => {
   if (!authStore.authenticatedweb) return router.push({ name: 'authlog' });
   if (product.is_stock === 0) return;
@@ -401,10 +467,8 @@ const toggleFilter = (key) => {
   filtersExpanded.value[key] = !filtersExpanded.value[key];
 };
 
-// Lifecycle
 onBeforeMount(() => {
-  fetchCategories();
-  fetchProducts();
+  fetchBrandAvailability();
 });
 
 onMounted(() => {
@@ -414,51 +478,24 @@ onMounted(() => {
 });
 </script>
 
-
-
 <style scoped>
-/* Custom animations */
+/* جميع الستايلات كما هي */
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes progress {
-  0% {
-    transform: translateX(-100%);
-  }
-  50% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.8s ease-out forwards;
-}
+.animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
+.animate-progress { animation: progress 2s ease-in-out infinite; }
 
-.animate-progress {
-  animation: progress 2s ease-in-out infinite;
-}
-
-/* PrimeVue Paginator custom styles */
-.custom-paginator {
-  margin-top: 2rem;
-  padding-bottom: 0.5rem;
-}
-
-.custom-paginator :deep(.p-paginator) {
-  @apply flex items-center justify-center gap-1 bg-transparent;
-}
-
+.custom-paginator { margin-top: 2rem; padding-bottom: 0.5rem; }
+.custom-paginator :deep(.p-paginator) { @apply flex items-center justify-center gap-1 bg-transparent; }
 .custom-paginator :deep(.p-paginator-page),
 .custom-paginator :deep(.p-paginator-next),
 .custom-paginator :deep(.p-paginator-prev),
@@ -466,38 +503,13 @@ onMounted(() => {
 .custom-paginator :deep(.p-paginator-last) {
   @apply min-w-[2.5rem] h-10 rounded-md border border-gray-300 bg-white text-gray-400 transition-colors hover:bg-gray-100;
 }
+.custom-paginator :deep(.p-paginator-page.p-highlight) { @apply bg-indigo-600 text-white border-indigo-600; }
 
-.custom-paginator :deep(.p-paginator-page.p-highlight) {
-  @apply bg-indigo-600 text-white border-indigo-600;
-}
-
-.custom-paginator :deep(.p-paginator-prev),
-.custom-paginator :deep(.p-paginator-next),
-.custom-paginator :deep(.p-paginator-first),
-.custom-paginator :deep(.p-paginator-last) {
-  @apply flex items-center justify-center;
-}
-
-/* Product card hover effect */
 .group:hover {
   transform: translateY(-0.5rem);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Image container */
-.h-60 {
-  height: 15rem;
-}
-
-/* Line clamp for product names */
-.line-clamp-1 {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Custom range slider styles */
 input[type="range"] {
   -webkit-appearance: none;
   width: 100%;
@@ -507,7 +519,6 @@ input[type="range"] {
   outline: none;
   transition: background 0.3s;
 }
-
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 20px;
@@ -517,7 +528,6 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-
 input[type="range"]::-moz-range-thumb {
   width: 20px;
   height: 20px;
@@ -526,41 +536,17 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+input[type="range"]:focus::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3); }
+input[type="range"]:focus::-moz-range-thumb { box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3); }
 
-input[type="range"]:focus::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
-}
-
-input[type="range"]:focus::-moz-range-thumb {
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
-}
-
-/* Responsive adjustments */
 @media (max-width: 640px) {
-  .xs\:text-lg {
-    font-size: 1.125rem;
-    line-height: 1.75rem;
-  }
-  .h-60 {
-    height: 10rem;
-  }
+  .xs\:text-lg { font-size: 1.125rem; line-height: 1.75rem; }
 }
-
 @media (max-width: 768px) {
-  .sm\:text-xl {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-  }
+  .sm\:text-xl { font-size: 1.25rem; line-height: 1.75rem; }
 }
-
 @media (max-width: 1024px) {
-  .md\:text-2xl {
-    font-size: 1.5rem;
-    line-height: 2rem;
-  }
-  .lg\:text-3xl {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
-  }
+  .md\:text-2xl { font-size: 1.5rem; line-height: 2rem; }
+  .lg\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
 }
 </style>

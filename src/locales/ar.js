@@ -579,9 +579,9 @@ export default {
   cart: {
     "minAmountWarning": "الحد الأدنى لقيمة الطلب   لهذا المتجر",
   "currentSubtotal": "المجموع الفرعي الحالي",
-  "someStoresBelowMin": "بعض المتاجر لا تفي بالحد الأدنى لقيمة الطلب",
+  "someStoresBelowMin": "لضمان أفضل تجربة، المتاجر تعتمد حدًا أدنى لقيمة الطلب",
   "minRequired": "الحد الأدنى المطلوب:",
-  "cannotCheckoutDueToMinAmount": "لا يمكن إتمام الدفع: بعض المتاجر لا تفي بالحد الأدنى لقيمة الطلب",
+  "cannotCheckoutDueToMinAmount": "لا يمكن إتمام الدفع: لضمان أفضل تجربة، المتاجر تعتمد حدًا أدنى لقيمة الطلب",
   "minAmountNotMet": "لم يتم الوصول إلى الحد الأدنى للطلب لهذا المتجر",
     "selectStorePrompt":" يرجى اختيار متجر للمتابعة",
     "discountsFees": "اجمالي الخصم ",
@@ -1191,6 +1191,7 @@ export default {
   "no": "لا",
   "products": {
     "stars":"عدد النجوم ",
+    pleaseSelectAvailability: "يرجى اختيار حالة التوفر",
     "Free_Delivery": "توصيل مجاني",
     "filters": "الفلاتر",
     "category": "الفئة",

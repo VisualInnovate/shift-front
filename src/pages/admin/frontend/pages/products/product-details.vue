@@ -103,7 +103,7 @@
                     class="w-6 h-6 rounded-full border-2 border-gray-300"
                     :style="{ backgroundColor: option.value_en }"
                   ></span>
-                  <span>{{ locale === 'en' ? option.value_en : option.value_ar }}</span>
+                  <span  v-if="!option.is_color">{{ locale === 'en' ? option.value_en : option.value_ar }}</span>
                 </button>
               </div>
             </div>

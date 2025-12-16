@@ -21,8 +21,8 @@ const attributeData = ref({
   is_color: false,
   values: [
     {
-      value_en: '',
-      value_ar: ''
+      value_en: '#000',
+      value_ar: '#000'
     }
   ]
 });

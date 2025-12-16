@@ -112,13 +112,13 @@ const fetchProduct = async () => {
       is_displayed: data.is_displayed === 1,
       is_stock: data.is_stock === 1,
       variants: data.variants?.map(variant => ({
-        id: variant.id,
-        sku: variant.sku || '',
-        price: variant.price,
-        attribute_value_id: variant.attribute_values.length > 0 ? variant.attribute_values[0].id : null,
-        variant_image: null,
-        variant_image_preview: variant.media?.[0]?.url || null
-      })) || []
+          id: variant.id,
+          sku: variant.sku || '',
+          price: variant.price,
+          attribute_value_ids: variant.attribute_values?.map(av => av.id) || [],
+          variant_image: null,
+          variant_image_preview: variant.media?.[0]?.url || null
+        })) || []
     };
 
     hasVariants.value = !!data.has_variants;
@@ -323,7 +323,7 @@ const addVariant = () => {
     id: null,
     sku: '',
     price: '',
-    attribute_value_id: null,
+    attribute_value_ids: [],
     variant_image: null,
     variant_image_preview: null
   });
@@ -353,7 +353,7 @@ const submitForm = async () => {
 
   // Validate variants: price & attributes required, SKU optional
   if (hasVariants.value) {
-    if (productData.value.variants.some(v => !v.price || !v.attribute_value_id)) {
+    if (productData.value.variants.some(v => !v.price || !(v.attribute_value_ids && v.attribute_value_ids.length))) {
       toast.add({ severity: 'error', summary: t('error'), detail: t('validation.variantRequiredFields'), life: 3000 });
       return;
     }
@@ -398,8 +398,10 @@ const submitForm = async () => {
       if (variant.id) formData.append(`variants[${index}][id]`, variant.id);
       if (variant.sku) formData.append(`variants[${index}][sku]`, variant.sku);
       formData.append(`variants[${index}][price]`, variant.price);
-      if (variant.attribute_value_id) {
-        formData.append(`variants[${index}][attribute_value_id]`, variant.attribute_value_id);
+      if (variant.attribute_value_ids && variant.attribute_value_ids.length) {
+        variant.attribute_value_ids.forEach((attrId, attrIndex) => {
+          formData.append(`variants[${index}][attribute_value_ids][${attrIndex}]`, attrId);
+        });
       }
       if (variant.variant_image) {
         formData.append(`variants[${index}][variant_image]`, variant.variant_image);
@@ -675,17 +677,18 @@ const submitForm = async () => {
                 <label :for="'attributes_' + index" class="block text-sm font-medium text-gray-700">
                   {{ t('product.attributes') }} <span class="text-red-500">*</span>
                 </label>
-                <Dropdown
+                <MultiSelect
                   :id="'attributes_' + index"
-                  v-model="variant.attribute_value_id"
+                  v-model="variant.attribute_value_ids"
                   :options="formattedAttributes"
                   optionGroupLabel="label"
                   optionGroupChildren="items"
                   :optionLabel="labelField"
                   optionValue="attribute_value_id"
                   class="w-full"
-                  :class="{ 'p-invalid': !variant.attribute_value_id }"
+                  :class="{ 'p-invalid': !(variant.attribute_value_ids && variant.attribute_value_ids.length) }"
                   :filter="true"
+                  display="chip"
                 />
               </div>
 

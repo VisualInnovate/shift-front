@@ -5,6 +5,7 @@ import { useToast } from 'primevue/usetoast';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import Dropdown from 'primevue/dropdown';
+import MultiSelect from 'primevue/multiselect';
 
 const router = useRouter();
 const toast = useToast();
@@ -576,7 +577,7 @@ const submitForm = async () => {
                 <label :for="'attributes_' + index" class="block text-xs font-medium text-gray-700">
                   {{ t('product.attributes') }} <span class="text-red-500">*</span>
                 </label>
-                <Dropdown
+                <MultiSelect
                   :id="'attributes_' + index"
                   v-model="variant.attribute_value_ids"
                   :options="formattedAttributes"

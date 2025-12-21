@@ -254,7 +254,39 @@ const downloadExample = () => {
   link.download = 'product_import_example.csv'
   link.click()
 }
+// Example Downloads xlsx file
+const downloadExample2 = () => {
+  const data = [
+    { product_id: 84, variant_id: 9, price: 2 },
+    { product_id: 1650, variant_id: 10, price: 0 },
+    { product_id: 22516, variant_id: 11, price: 0.03 },
+    { product_id: 22516, variant_id: 12, price: 0.33 },
+    { product_id: 37864, variant_id: 19, price: 10 },
+    { product_id: 37864, variant_id: 20, price: 9 },
+    { product_id: 37864, variant_id: 21, price: 10 },
+    { product_id: 37864, variant_id: 22, price: 9 },
+    { product_id: 55, variant_id: 25, price: 0.77 }
+  ];
 
+  const headers = ['product_id', 'variant_id', 'price'];
+
+  const csvContent = [
+    headers.join(','),
+    ...data.map(row => `${row.product_id},${row.variant_id},${row.price}`)
+  ].join('\n');
+
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'products_template.csv');
+  link.style.visibility = 'hidden';
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 const downloadPriceExample = () => {
   const csvContent = 'id,price,cost_price\n1,16.00,10.50\n2,23.50,15.00'
   const blob = new Blob([csvContent], { type: 'text/csv' })
@@ -576,13 +608,15 @@ onMounted(() => {
         <!-- Import Dialog 2 -->
         <Dialog v-model:visible="importDialog2" :style="{ width: '450px' }" :header="t('product.import_product_characteristics')"
           :modal="true">
-          <div>
+          <div class="flex flex-column gap-3">
+             <Button :label="t('product.downloadExample')" icon="pi pi-download" class="p-button-outlined"
+              @click="downloadExample2" />
             <FileUpload mode="basic" :custom-upload="true" @select="onFileSelect" :maxFileSize="10000000"
-              chooseLabel="Select File" />
+            chooseLabel="Select File" />
+          </div>
             <div v-if="selectedFile" class="mt-4">
               <p class="font-semibold">{{ t('selectedFile') }}: {{ selectedFile.name }}</p>
             </div>
-          </div>
           <template #footer>
             <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text" @click="importDialog2 = false; selectedFile = null" />
             <Button :label="t('product.importButton')" icon="pi pi-check" :loading="importLoading"

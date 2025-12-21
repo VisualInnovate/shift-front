@@ -1072,6 +1072,8 @@ export default {
   to: 'to',
   from: 'of',
   "product": {
+    export_prices_features: "Export Prices & Features",
+    import_product_characteristics: "Import Product Characteristics",
     "Price after discount" : "Price after discount",
     "Free_Delivery": " Free Delivery",
     "freeShipping": "Free Shipping",

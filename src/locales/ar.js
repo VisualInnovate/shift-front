@@ -1210,6 +1210,8 @@ export default {
     "missingParams": "معرف المتجر مفقود."
   },
   "product": {
+    export_prices_features: "تصدير أسعار وميزات المنتجات",
+    import_product_characteristics: "استيراد خصائص المنتج",
     "bestSeller": "الأكثر مبيعًا",
   "isBestSeller": "مميز كمنتج رائج",
   "notBestSeller": "غير مميز كمنتج رائج",

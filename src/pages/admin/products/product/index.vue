@@ -176,7 +176,8 @@ watch(appLanguage, () => {
 
 // Filter events
 const onCategoryFilter = (event) => {
-  categorySearchQuery.value = event.filter
+
+  categorySearchQuery.value = event.value
   fetchCategories()
 }
 
@@ -500,16 +501,65 @@ onMounted(() => {
             </template>
           </DataTable>
 
-          <!-- Pagination -->
-          <div class="flex flex-column md:flex-row justify-content-between align-items-center mt-4">
-            <span class="text-sm text-500">{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}</span>
-            <div class="flex align-items-center gap-2 mt-3 md:mt-0">
-              <Button icon="pi pi-angle-double-left" :disabled="currentPage === 1" @click="goToPage(1)" class="p-button-text" />
-              <Button icon="pi pi-angle-left" :disabled="!links.prev" @click="goToPage(currentPage - 1)" class="p-button-text" />
-              <span class="mx-3 text-sm">Page {{ currentPage }} of {{ totalPages }}</span>
-              <Button icon="pi pi-angle-right" :disabled="!links.next" @click="goToPage(currentPage + 1)" class="p-button-text" />
-              <Button icon="pi pi-angle-double-right" :disabled="currentPage === totalPages" @click="goToPage(totalPages)" class="p-button-text" />
-              <Dropdown v-model="rowsPerPage" :options="[5, 10, 20, 30]" @change="changeRowsPerPage" class="ml-3" style="width: 80px" />
+
+          <!-- Custom Pagination -->
+          <div class="p-paginator p-component p-unselectable-text p-paginator-bottom">
+            <div class="p-paginator-left-content">
+              <span class="p-paginator-current">{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}</span>
+            </div>
+            <div class="p-paginator-right-content">
+              <button
+                class="p-paginator-first p-paginator-element p-link"
+                :disabled="currentPage === 1"
+                @click="goToPage(1)"
+                aria-label="First page"
+              >
+                <span class="p-paginator-icon pi pi-angle-double-left"></span>
+              </button>
+              <button
+                class="p-paginator-prev p-paginator-element p-link"
+                :disabled="!prevPageUrl"
+                @click="goToPage(currentPage - 1)"
+                aria-label="Previous page"
+              >
+                <span class="p-paginator-icon pi pi-angle-left"></span>
+              </button>
+              <template v-for="(link, index) in links" :key="index">
+                <button
+                  v-if="link.label && !isNaN(parseInt(link.label))"
+                  class="p-paginator-page p-paginator-element p-link"
+                  :class="{ 'p-highlight': link.active }"
+                  @click="goToPage(parseInt(link.label))"
+                  :aria-label="`Page ${link.label}`"
+                >
+                  {{ link.label }}
+                </button>
+                <span v-else-if="link.label === '...'" class="p-paginator-dots">...</span>
+              </template>
+              <button
+                class="p-paginator-next p-paginator-element p-link"
+                :disabled="!nextPageUrl"
+                @click="goToPage(currentPage + 1)"
+                aria-label="Next page"
+              >
+                <span class="p-paginator-icon pi pi-angle-right"></span>
+              </button>
+              <button
+                class="p-paginator-last p-paginator-element p-link"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(totalPages)"
+                aria-label="Last page"
+              >
+                <span class="p-paginator-icon pi pi-angle-double-right"></span>
+              </button>
+              <Dropdown
+                v-model="rowsPerPage"
+                :options="[5, 10, 20, 30]"
+                @change="changeRowsPerPage"
+                class="ml-2"
+                style="width: 80px"
+                aria-label="Rows per page"
+              />
             </div>
           </div>
         </div>
@@ -595,20 +645,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-:deep(.p-datatable) {
-  font-size: 0.9rem;
-}
-
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.5px;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr:hover) {
-  background-color: var(--surface-hover);
-}
-</style>

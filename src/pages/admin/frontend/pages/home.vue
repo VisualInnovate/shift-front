@@ -102,44 +102,11 @@
       : { name: 'produts_category', params: { id: d.id } }
 
 
-  const loaddata = async () => {
-    try {
-      // Fetch categories
-      const categoryResponse = await axios.get(`api/home/get-categories/${stor_id.value}`)
-      categoryResponse.data.data.forEach((category) => {
-        titels.value[category.id] = {
-          name: localStorage.getItem('appLang') == 'en' ? category.name_en : category.name_ar || category.name_en,
-          id: category.id,
-          has_subcategories: category.has_subcategories,
-        }
-      })
 
-      // Fetch banner slider images
-      const bannerResponse = await axios.get('api/home/get-media-link')
-      banners_slider.value = bannerResponse.data.data.map((item) => ({
-        url: item.url,
-        id: item.id,
-      }))
-
-      // Fetch store images
-      if (Stor.value.media?.length > 0) {
-        storimg.value = {
-          store_image: Stor.value.media.find((img) => img.name == 'store_image')?.url,
-          sub_banner_image: Stor.value.media.find((img) => img.name == 'sub_banner_image')?.url,
-          slider_images_one: Stor.value.media.find((img) => img.name == 'slider_images_one')?.url,
-          slider_images_two: Stor.value.media.find((img) => img.name == 'slider_images_two')?.url,
-          slider_images_three: Stor.value.media.find((img) => img.name == 'slider_images_three')?.url,
-          main_banner_image: Stor.value.media.find((img) => img.name == 'main_banner_image')?.url,
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    }
-  }
 
   onBeforeMount(() => {
     localStorage.setItem('defaultStoreId',4)
-    loaddata()
+
   })
 </script>
 

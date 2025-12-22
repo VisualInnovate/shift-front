@@ -145,11 +145,11 @@ const onIdFilter = (event, mediaId) => {
 
 const submitMediaLink = async (mediaId) => {
   const selection = mediaSelections.value[mediaId];
-  if (!selection.selectedIds.length || !selection.selectedType) {
+  if (!selection.selectedType) {
     toast.add({
       severity: 'error',
       summary: t('error'),
-      detail: t('selectIdsAndType'),
+      detail: t('selectType'),
       life: 3000
     });
     return;
@@ -277,7 +277,6 @@ const typeOptions = [
             class="mt-4 w-full"
             severity="success"
             @click="submitMediaLink(media.id)"
-            :disabled="!mediaSelections[media.id].selectedIds.length"
           />
         </template>
       </Card>

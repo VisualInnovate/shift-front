@@ -417,7 +417,7 @@ onMounted(() => {
         <Toolbar class="mb-4">
           <template #start>
             <h2 class="text-2xl font-bold">{{ t('product.managementTitle') }}</h2>
-            <span class="p-input-icon-left ml-4">
+            <span class="p-input-icon-left mx-4">
               <i class="pi pi-search" />
               <InputText v-model="searchQuery" :placeholder="t('product.search')" />
             </span>

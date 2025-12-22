@@ -24,9 +24,9 @@ const formData = ref({
 
 // Dropdown options
 const belongsToOptions = ref([
-  { label: 'Store', value: 'store' },
-  { label: 'Category', value: 'category' },
-  { label: 'Market', value: 'market' }
+  { label: t("customTabs.store"), value: 'store' },
+  { label: t(`customTabs.category`), value: 'category' },
+  { label: t(`customTabs.market`), value: 'market' }
 ]);
 
 

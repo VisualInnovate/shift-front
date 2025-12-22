@@ -2,7 +2,7 @@
   <div class="product-page max-w-7xl mx-auto p-4 lg:p-8">
     <div v-if="isLoading" class="text-center py-20">
       <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
-      <p class="mt-4 text-gray-600">{{ t('loading') }}</p>
+      <p class="mt-4 text-gray-600">{{ t('common.loading') }}</p>
     </div>
     <div v-if="error" class="text-red-500 text-center py-10 text-lg">{{ error }}</div>
 

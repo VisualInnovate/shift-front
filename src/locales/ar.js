@@ -225,6 +225,7 @@ export default {
     "updateError": "فشل تحديث الإعدادات"
   },
   common: {
+    loading: 'جارٍ التحميل...',
     id: 'المعرف',
     name: 'الاسم',
     description: 'الوصف',
@@ -278,6 +279,9 @@ export default {
   },
 
   "custom_tabs": {
+    category: 'فئة',
+    brand: 'علامة تجارية',
+    product: 'منتج',
     select_store_or_market: 'اختر المتجر أو السوق',
   select_store_market: 'اختر المتجر أو السوق',
     store_market_required: 'يجب اختيار المتجر أو السوق',

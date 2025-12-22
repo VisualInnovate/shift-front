@@ -30,21 +30,7 @@
         </swiper-slide>
       </swiper>
       <!-- main banner -->
-      <swiper
-        :modules="[Autoplay]"
-        :slides-per-view="1.3"
-        :centered-slides="true"
-        :space-between="10"
-        :loop="true"
-        :autoplay="{ delay: 3000, disableOnInteraction: false }"
-        :speed="3000"
-        grab-cursor
-        class="my-swiper mt-2"
-      >
-        <swiper-slide v-for="(pro, index) in banners_slider" :key="index" class="flex justify-center">
-          <img :src="pro.url" class="w-full h-auto max-w-[1200px]  object-contain mb-2 rounded-lg" />
-        </swiper-slide>
-      </swiper>
+
     </header>
     <StoreDetails></StoreDetails>
 

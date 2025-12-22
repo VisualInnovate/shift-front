@@ -464,7 +464,7 @@ onBeforeMount(() => {
 }
 
 .custom-paginator :deep(.p-paginator-page.p-highlight) {
-  @apply bg-indigo-600 text-white border-indigo-600;
+  @apply bg-indigo-600 text-white border-yellow-100;
 }
 
 .custom-paginator :deep(.p-paginator-prev),

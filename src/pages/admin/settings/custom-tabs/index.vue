@@ -222,20 +222,17 @@ onMounted(() => {
               </template>
             </Column>
 
-            <Column field="model_type" :header="t('customTabs.modelType')" :sortable="true" header-style="width:14%; min-width:10rem;">
+            <Column field="belongs_to" :header="t('customTabs.belongsTo')" :sortable="true" header-style="width:18%; min-width:10rem;">
               <template #body="slotProps">
-                {{ slotProps.data.model_type || t('customTabs.noModelType') }}
+                {{ $t(`customTabs.${slotProps.data.belongs_to}`) }}
+              </template>
+            </Column>
+             <Column field="model.name_ar" :header="t('customTabs.modelId')" :sortable="true" header-style="width:18%; min-width:10rem;">
+              <template #body="slotProps">
+                {{ slotProps.data.model.name_ar }}
               </template>
             </Column>
 
-            <Column field="type_description" :header="t('customTabs.typeDescription')" :sortable="true" header-style="width:14%; min-width:10rem;">
-              <template #body="slotProps">
-                <Tag
-                  :value="slotProps.data.type_description || t('customTabs.noType')"
-                  :severity="getTypeSeverity(slotProps.data.type)"
-                />
-              </template>
-            </Column>
 
             <Column :header="t('actions')" header-style="width:15rem;">
               <template #body="slotProps">

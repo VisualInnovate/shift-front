@@ -5,7 +5,7 @@
       :modules="[Autoplay, Navigation]"
       :centered-slides="true"
       :slides-per-view="1.3"
-      :loop="true"
+      :loop="false"
       :space-between="10"
       :autoplay="{ delay: 3000, disableOnInteraction: false }"
       :navigation="false"

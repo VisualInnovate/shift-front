@@ -274,6 +274,10 @@ if( localStorage.appLang ==  'en' )
 else
 document.body.dir ="rtl"
 
+// Scroll to top on route change
+router.afterEach(() => {
+  window.scrollTo(0, 0);
+});
 
 app.directive('can', (el, binding, vnode) =>{
   // console.log(JSON.parse(localStorage.getItem('permissions')))

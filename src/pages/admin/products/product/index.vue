@@ -16,6 +16,7 @@ import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
 import InputSwitch from 'primevue/inputswitch'
+import Menu from 'primevue/menu'
 
 const router = useRouter()
 const toast = useToast()
@@ -50,8 +51,8 @@ const selectedPriceFile = ref(null)
 const priceUpdateLoading = ref(false)
 
 // Toggle Loading States
-const toggleLoading = ref({}) // for is_free_shipping
-const toggleBestSellerLoading = ref({}) // NEW: for is_best_seller
+const toggleLoading = ref({})
+const toggleBestSellerLoading = ref({})
 
 // Pagination
 const currentPage = ref(1)
@@ -66,7 +67,44 @@ const from = ref(0)
 const to = ref(0)
 const links = ref([])
 
-// Fetch categories
+// Menu refs
+const importMenu = ref(null)
+const exportMenu = ref(null)
+
+// Import Menu Items
+const importItems = ref([
+  {
+    label: t('product.import'),
+    icon: 'pi pi-download',
+    command: () => { importDialog.value = true }
+  },
+  {
+    label: t('product.import_product_characteristics'),
+    icon: 'pi pi-table',
+    command: () => { importDialog2.value = true }
+  },
+  {
+    label: t('product.updatePrice'),
+    icon: 'pi pi-dollar',
+    command: () => { priceUpdateDialog.value = true }
+  }
+])
+
+// Export Menu Items
+const exportItems = ref([
+  {
+    label: t('product.export'),
+    icon: 'pi pi-upload',
+    command: () => { exportCSV() }
+  },
+  {
+    label: t('product.export_prices_features'),
+    icon: 'pi pi-file-export',
+    command: () => { export_prices_featuresCSV() }
+  }
+])
+
+// Fetch categories, stores, markets, products (same as before)
 const fetchCategories = async () => {
   try {
     const response = await axios.get('/api/category', {
@@ -82,7 +120,6 @@ const fetchCategories = async () => {
   }
 }
 
-// Fetch stores
 const fetchStores = async () => {
   try {
     const response = await axios.get('/api/store')
@@ -96,7 +133,6 @@ const fetchStores = async () => {
   }
 }
 
-// Fetch markets
 const fetchMarkets = async () => {
   try {
     const response = await axios.get('/api/market', {
@@ -112,7 +148,6 @@ const fetchMarkets = async () => {
   }
 }
 
-// Fetch products
 const fetchData = () => {
   loading.value = true
   axios.get('/api/product', {
@@ -145,7 +180,7 @@ const fetchData = () => {
     })
 }
 
-// Watchers
+// Watchers (unchanged)
 watch([searchQuery, rowsPerPage, selectedCategory, selectedStore, selectedMarket], () => {
   currentPage.value = 1
   fetchData()
@@ -155,9 +190,18 @@ watch(appLanguage, () => {
   fetchCategories()
   fetchStores()
   fetchMarkets()
+  // Update menu labels on language change
+  importItems.value = [
+    { label: t('product.import'), icon: 'pi pi-download', command: () => { importDialog.value = true } },
+    { label: t('product.import_product_characteristics'), icon: 'pi pi-table', command: () => { importDialog2.value = true } },
+    { label: t('product.updatePrice'), icon: 'pi pi-dollar', command: () => { priceUpdateDialog.value = true } }
+  ]
+  exportItems.value = [
+    { label: t('product.export'), icon: 'pi pi-upload', command: () => { exportCSV() } },
+    { label: t('product.export_prices_features'), icon: 'pi pi-file-export', command: () => { export_prices_featuresCSV() } }
+  ]
 })
 
-// Filters
 const onCategoryFilter = (event) => {
   categorySearchQuery.value = event.value
   fetchCategories()
@@ -168,7 +212,7 @@ const onMarketFilter = (event) => {
   fetchMarkets()
 }
 
-// Pagination
+// Pagination (unchanged)
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
@@ -182,7 +226,7 @@ const changeRowsPerPage = (event) => {
   fetchData()
 }
 
-// Delete
+// Delete (unchanged)
 const confirmDelete = (id) => {
   deleteId.value = id
   deleteDialog.value = true
@@ -200,7 +244,7 @@ const deleteProduct = () => {
     })
 }
 
-// Export CSV
+// Export functions (unchanged)
 const exportCSV = () => {
   const params = new URLSearchParams({
     search: searchQuery.value || '',
@@ -222,7 +266,7 @@ const exportCSV = () => {
       toast.add({ severity: 'error', summary: t('error'), detail: t('product.exportError'), life: 3000 })
     })
 }
-//  Export Prices Features CSV
+
 const export_prices_featuresCSV = () => {
   const params = new URLSearchParams({
     search: searchQuery.value || '',
@@ -245,7 +289,7 @@ const export_prices_featuresCSV = () => {
     })
 }
 
-// Example Downloads
+// Download examples (unchanged)
 const downloadExample = () => {
   const csvContent = 'store_id,category_id,market_id,name_en,name_ar,sku,brand_id,sub_name_en,sub_name_ar,description_en,description_ar,base_price,cost_price,tax\n1,1,1,Demo Product,منتج تجريبي,SKU001,1,Sub Demo,تجريبي فرعي,Description,وصف,15.50,10.00,0.05'
   const blob = new Blob([csvContent], { type: 'text/csv' })
@@ -254,7 +298,7 @@ const downloadExample = () => {
   link.download = 'product_import_example.csv'
   link.click()
 }
-// Example Downloads xlsx file
+
 const downloadExample2 = () => {
   const data = [
     { product_id: 84, variant_id: 9, price: 2 },
@@ -269,7 +313,6 @@ const downloadExample2 = () => {
   ];
 
   const headers = ['product_id', 'variant_id', 'price'];
-
   const csvContent = [
     headers.join(','),
     ...data.map(row => `${row.product_id},${row.variant_id},${row.price}`)
@@ -282,11 +325,11 @@ const downloadExample2 = () => {
   link.href = url;
   link.setAttribute('download', 'products_template.csv');
   link.style.visibility = 'hidden';
-
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 };
+
 const downloadPriceExample = () => {
   const csvContent = 'id,price,cost_price\n1,16.00,10.50\n2,23.50,15.00'
   const blob = new Blob([csvContent], { type: 'text/csv' })
@@ -296,11 +339,10 @@ const downloadPriceExample = () => {
   link.click()
 }
 
-// File Select
+// File selects and imports (unchanged)
 const onFileSelect = (event) => { selectedFile.value = event.files[0] }
 const onPriceFileSelect = (event) => { selectedPriceFile.value = event.files[0] }
 
-// Import & Update
 const importProducts = () => {
   if (!selectedFile.value) return toast.add({ severity: 'error', detail: t('validation.fileRequired'), life: 3000 })
   importLoading.value = true
@@ -317,7 +359,6 @@ const importProducts = () => {
     .finally(() => importLoading.value = false)
 }
 
-// Import Product Characteristics
 const importProductsCharacteristics = () => {
   if (!selectedFile.value) return toast.add({ severity: 'error', detail: t('validation.fileRequired'), life: 3000 })
   importLoading.value = true
@@ -350,7 +391,7 @@ const updatePrices = () => {
     .finally(() => priceUpdateLoading.value = false)
 }
 
-// TOGGLE FREE SHIPPING
+// Toggle functions (unchanged)
 const toggleFreeShipping = async (product) => {
   const productId = product.id
   const currentValue = product.is_free_shipping
@@ -374,7 +415,6 @@ const toggleFreeShipping = async (product) => {
   }
 }
 
-// NEW: TOGGLE BEST SELLER
 const toggleBestSeller = async (product) => {
   const productId = product.id
   const currentValue = product.is_best_seller ? 1 : 0
@@ -384,25 +424,16 @@ const toggleBestSeller = async (product) => {
 
   try {
     await axios.get(`/api/product/update/best-sellers/${productId}`)
-
     product.is_best_seller = newValue === 1
-
     toast.add({
       severity: 'success',
       summary: t('success'),
-      detail: newValue === 1
-        ? 'Product marked as Best Seller'
-        : 'Product removed from Best Sellers',
+      detail: newValue === 1 ? 'Product marked as Best Seller' : 'Product removed from Best Sellers',
       life: 3000
     })
   } catch (error) {
     product.is_best_seller = currentValue === 1
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: 'Failed to update Best Seller status',
-      life: 3000
-    })
+    toast.add({ severity: 'error', summary: t('error'), detail: 'Failed to update Best Seller status', life: 3000 })
     console.error('Error updating best seller:', error)
   } finally {
     toggleBestSellerLoading.value[productId] = false
@@ -413,7 +444,6 @@ const toggleBestSeller = async (product) => {
 const createNewProduct = () => router.push({ name: 'product-create' })
 const editProduct = (id) => router.push({ name: 'product-update', params: { id } })
 
-// Mount
 onMounted(() => {
   Promise.all([fetchCategories(), fetchStores(), fetchMarkets(), fetchData()])
 })
@@ -428,72 +458,81 @@ onMounted(() => {
             <h2 class="text-2xl font-bold">{{ t('product.managementTitle') }}</h2>
           </template>
           <template #end>
-      <div>
-            <div class="flex gap-2 align-items-center">
-              <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText v-model="searchQuery" :placeholder="t('product.search')" />
-              </span>
-              <Dropdown v-model="selectedCategory" :options="categories" optionLabel="label" optionValue="value"
-                :placeholder="t('product.categoryFilter')" class="w-12rem" :showClear="true" filter
-                @filter="onCategoryFilter" />
-              <Dropdown v-model="selectedStore" :options="stores" optionLabel="label" optionValue="value"
-                :placeholder="t('product.storeFilter')" class="w-12rem" :showClear="true" />
-              <Dropdown v-model="selectedMarket" :options="markets" optionLabel="label" optionValue="value"
-                :placeholder="t('product.marketFilter')" class="w-12rem" :showClear="true" filter
-                @filter="onMarketFilter" />
-            </div>
-            <div class="flex flex-wrap gap-2 align-items-center mt-2">
-              <Button :label="t('product.updatePrice')" icon="pi pi-dollar" class="p-button-warning p-button-outlined"
-                @click="priceUpdateDialog = true" />
-              <Button :label="t('product.import')" icon="pi pi-download" @click="importDialog = true" />
-              <Button :label="t('product.export')" icon="pi pi-upload" @click="exportCSV" />
-              <Button v-can="'create products'" :label="t('product.new')" icon="pi pi-plus" class="p-button-success"
-                @click="createNewProduct" />
-              <Button :label="t('product.import_product_characteristics')" icon="pi pi-download"
-                @click="importDialog2 = true" />
-              <Button :label="t('product.export_prices_features')" icon="pi pi-upload" @click="export_prices_featuresCSV" />
-            </div>
+            <div class="flex flex-column gap-3">
+              <!-- Filters -->
+              <div class="flex gap-2 align-items-center">
+                <span class="p-input-icon-left">
+                  <i class="pi pi-search" />
+                  <InputText v-model="searchQuery" :placeholder="t('product.search')" />
+                </span>
+                <Dropdown v-model="selectedCategory" :options="categories" optionLabel="label" optionValue="value"
+                  :placeholder="t('product.categoryFilter')" class="w-12rem" :showClear="true" filter
+                  @filter="onCategoryFilter" />
+                <Dropdown v-model="selectedStore" :options="stores" optionLabel="label" optionValue="value"
+                  :placeholder="t('product.storeFilter')" class="w-12rem" :showClear="true" />
+                <Dropdown v-model="selectedMarket" :options="markets" optionLabel="label" optionValue="value"
+                  :placeholder="t('product.marketFilter')" class="w-12rem" :showClear="true" filter
+                  @filter="onMarketFilter" />
+              </div>
+
+              <!-- Actions: Import Menu, Export Menu, New Product -->
+              <div class="flex flex-wrap gap-2 align-items-center">
+                <!-- Import Menu Button -->
+                <Button
+                  :label="t('product.import')"
+                  icon="pi pi-download"
+                  class="p-button-outlined"
+                  @click="(event) => importMenu.toggle(event)"
+                />
+                <Menu ref="importMenu" :model="importItems" :popup="true" />
+
+                <!-- Export Menu Button -->
+                <Button
+                  :label="t('product.export')"
+                  icon="pi pi-upload"
+                  class="p-button-outlined"
+                  @click="(event) => exportMenu.toggle(event)"
+                />
+                <Menu ref="exportMenu" :model="exportItems" :popup="true" />
+
+                <!-- New Product -->
+                <Button v-can="'create products'" :label="t('product.new')" icon="pi pi-plus" class="p-button-success"
+                  @click="createNewProduct" />
+              </div>
             </div>
           </template>
         </Toolbar>
 
         <Toast />
 
+        <!-- DataTable and rest of the template remains unchanged -->
         <div class="card shadow-1 surface-0">
           <DataTable :value="products" :loading="loading" data-key="id" responsive-layout="scroll" stripedRows
             showGridlines class="p-datatable-sm">
-
+            <!-- All columns remain the same -->
             <Column field="id" :header="t('id')" :sortable="true" header-style="width:6%;">
               <template #body="slotProps">{{ slotProps.data.id }}</template>
             </Column>
-
             <Column field="name_ar" :header="t('product.nameAr')" :sortable="true">
               <template #body="slotProps">{{ slotProps.data.name_ar }}</template>
             </Column>
-
             <Column field="name_en" :header="t('product.nameEn')" :sortable="true">
               <template #body="slotProps">{{ slotProps.data.name_en }}</template>
             </Column>
-
             <Column field="base_price" :header="t('product.basePrice')">
               <template #body="slotProps">{{ slotProps.data.base_price }}</template>
             </Column>
-
             <Column :header="t('product.Price after discount')">
               <template #body="slotProps">
                 {{ slotProps.data.base_price - slotProps.data.total_discounts_value }}
               </template>
             </Column>
-
             <Column field="is_displayed" :header="t('product.isDisplayed')">
               <template #body="slotProps">
                 <Tag :value="slotProps.data.is_displayed ? t('yes') : t('no')"
                   :severity="slotProps.data.is_displayed ? 'success' : 'info'" />
               </template>
             </Column>
-
-            <!-- FREE SHIPPING TOGGLE -->
             <Column :header="t('product.freeShipping')">
               <template #body="slotProps">
                 <div class="flex justify-content-center align-items-center">
@@ -506,8 +545,6 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-
-            <!-- BEST SELLER TOGGLE (NEW) -->
             <Column :header="t('product.bestSeller') || 'Best Seller'">
               <template #body="slotProps">
                 <div class="flex justify-content-center align-items-center">
@@ -520,7 +557,6 @@ onMounted(() => {
                 </div>
               </template>
             </Column>
-
             <Column :header="t('actions')">
               <template #body="slotProps">
                 <Button v-can="'edit products'" icon="pi pi-pencil" class="p-detail"
@@ -537,11 +573,10 @@ onMounted(() => {
             </template>
           </DataTable>
 
-          <!-- Pagination & Rows Per Page -->
+          <!-- Pagination (unchanged) -->
           <div class="p-paginator p-component p-unselectable-text p-paginator-bottom">
             <div class="p-paginator-left-content">
-              <span class="p-paginator-current">{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{
-                totalRecords }}</span>
+              <span class="p-paginator-current">{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}</span>
             </div>
             <div class="p-paginator-right-content">
               <button class="p-paginator-first p-link" :disabled="currentPage === 1" @click="goToPage(1)">
@@ -550,7 +585,6 @@ onMounted(() => {
               <button class="p-paginator-prev p-link" :disabled="!prevPageUrl" @click="goToPage(currentPage - 1)">
                 <span class="pi pi-angle-left"></span>
               </button>
-
               <template v-for="(link, index) in links" :key="index">
                 <button v-if="link.label && !isNaN(parseInt(link.label))" class="p-paginator-page p-link"
                   :class="{ 'p-highlight': link.active }" @click="goToPage(parseInt(link.label))">
@@ -558,7 +592,6 @@ onMounted(() => {
                 </button>
                 <span v-else-if="link.label === '...'" class="p-paginator-dots">...</span>
               </template>
-
               <button class="p-paginator-next p-link" :disabled="!nextPageUrl" @click="goToPage(currentPage + 1)">
                 <span class="pi pi-angle-right"></span>
               </button>
@@ -566,16 +599,14 @@ onMounted(() => {
                 @click="goToPage(totalPages)">
                 <span class="pi pi-angle-double-right"></span>
               </button>
-
               <Dropdown v-model="rowsPerPage" :options="[5, 10, 20, 30]" @change="changeRowsPerPage" class="ml-2"
                 style="width: 80px" />
             </div>
           </div>
         </div>
 
-        <!-- Delete Dialog -->
-        <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" :header="t('product.deleteConfirmTitle')"
-          :modal="true">
+        <!-- All Dialogs remain exactly the same -->
+        <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" :header="t('product.deleteConfirmTitle')" :modal="true">
           <div class="flex align-items-center justify-content-center">
             <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem; color: var(--red-500)" />
             <span>{{ t('product.deleteConfirmMessage') }}</span>
@@ -586,9 +617,7 @@ onMounted(() => {
           </template>
         </Dialog>
 
-        <!-- Import Dialog -->
-        <Dialog v-model:visible="importDialog" :style="{ width: '450px' }" :header="t('product.importTitle')"
-          :modal="true">
+        <Dialog v-model:visible="importDialog" :style="{ width: '450px' }" :header="t('product.importTitle')" :modal="true">
           <div class="flex flex-column gap-3">
             <Button :label="t('product.downloadExample')" icon="pi pi-download" class="p-button-outlined"
               @click="downloadExample" />
@@ -605,18 +634,16 @@ onMounted(() => {
           </template>
         </Dialog>
 
-        <!-- Import Dialog 2 -->
-        <Dialog v-model:visible="importDialog2" :style="{ width: '450px' }" :header="t('product.import_product_characteristics')"
-          :modal="true">
+        <Dialog v-model:visible="importDialog2" :style="{ width: '450px' }" :header="t('product.import_product_characteristics')" :modal="true">
           <div class="flex flex-column gap-3">
-             <Button :label="t('product.downloadExample')" icon="pi pi-download" class="p-button-outlined"
+            <Button :label="t('product.downloadExample')" icon="pi pi-download" class="p-button-outlined"
               @click="downloadExample2" />
             <FileUpload mode="basic" :custom-upload="true" @select="onFileSelect" :maxFileSize="10000000"
-            chooseLabel="Select File" />
-          </div>
+              chooseLabel="Select File" />
             <div v-if="selectedFile" class="mt-4">
               <p class="font-semibold">{{ t('selectedFile') }}: {{ selectedFile.name }}</p>
             </div>
+          </div>
           <template #footer>
             <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text" @click="importDialog2 = false; selectedFile = null" />
             <Button :label="t('product.importButton')" icon="pi pi-check" :loading="importLoading"
@@ -624,9 +651,7 @@ onMounted(() => {
           </template>
         </Dialog>
 
-        <!-- Price Update Dialog -->
-        <Dialog v-model:visible="priceUpdateDialog" :style="{ width: '450px' }" :header="t('product.updatePriceTitle')"
-          :modal="true">
+        <Dialog v-model:visible="priceUpdateDialog" :style="{ width: '450px' }" :header="t('product.updatePriceTitle')" :modal="true">
           <div class="flex flex-column gap-3">
             <Button :label="t('product.downloadPriceExample')" icon="pi pi-download"
               class="p-button-outlined p-button-warning" @click="downloadPriceExample" />

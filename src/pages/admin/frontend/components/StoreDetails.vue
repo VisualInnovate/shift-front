@@ -7,7 +7,7 @@
       :slides-per-view="1.3"
       :loop="false"
       :space-between="10"
-      :autoplay="{ delay: 3000, disableOnInteraction: false }"
+      :autoplay="{ delay: 6000, disableOnInteraction: false }"
       :navigation="false"
       class="w-full"
     >
@@ -39,7 +39,7 @@
           }"
           :slides-per-view="1"
           :space-between="10"
-          :autoplay="{ delay: 2500, disableOnInteraction: false }"
+          :autoplay="{ delay: 4500, disableOnInteraction: false }"
           class="w-full h-full"
         >
           <SwiperSlide v-for="(image, index) in sliderImagesTwo" :key="'two-' + index">
@@ -70,7 +70,7 @@
           }"
           :slides-per-view="1"
           :space-between="10"
-          :autoplay="{ delay: 2500, disableOnInteraction: false }"
+          :autoplay="{ delay: 4500, disableOnInteraction: false }"
           class="w-full h-full"
         >
           <SwiperSlide v-for="(image, index) in sliderImagesThree" :key="'two-' + index">

@@ -49,11 +49,11 @@
             class="group flex flex-col items-center cursor-pointer transition-all duration-300 hover:-translate-y-2"
             @click="goCatgory(market)"
           >
-            <div class="w-full h-58 overflow-hidden  rounded-lg shadow-md relative">
+            <div class="w-full h-58 overflow-hidden  rounded-lg relative">
               <img
                 :src="market.media.find(m => m.name === 'category_image')?.url || defaultMarketImage"
                 :alt="`${market.title} category image`"
-                class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                class="w-full shadow-md h-full object-contain transition-transform duration-500 group-hover:scale-110"
                 loading="lazy"
                 :aria-label="`${market.title} category image`"
               />

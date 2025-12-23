@@ -1,133 +1,119 @@
 <template>
-  <div class="mx-auto px-4 max-w-[1500px]">
-    <div v-if="isLoading" class="flex justify-center items-center py-16">
-      <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+  <div class="mx-auto px-4 max-w-[1500px] pb-20">
+    <div v-if="isLoading" class="flex flex-col justify-center items-center py-32">
+      <svg class="animate-spin h-12 w-12 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
-    </div>
-    <div v-else-if="error" class="text-center py-16 text-red-600">
-      <p class="text-lg font-semibold">{{ error }}</p>
-      <button @click="fetchCustomTabs(route.params.id, currentPage)" class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded">
-        Retry
-      </button>
+      <p class="mt-4 text-gray-600 font-medium">{{ t('common.loading') || 'Loading...' }}</p>
     </div>
 
-    <div v-else v-for="tab in customTabs" :key="tab.id" class="m-auto max-w-7xl">
-      <h2 class="font-bold font-sans text-gray-600 lg:mt-4 xs:mt-2 xs:text-lg text-center sm:text-xl md:text-2xl lg:text-3xl">
-        {{ title || (locale === 'ar' ? tab.name_ar : tab.name_en) || 'Category' }}
-      </h2>
-      <div
-        class="mt-6 grid gap-x-4 gap-y-8"
-        :class="
-          tab.row_type === 1
-            ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5'
-            : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5'
-        "
-      >
-        <div
-          v-for="(detail, i) in tab.details"
-          :key="i"
-          class="group flex flex-col items-start cursor-pointer transition-all pb-[1%] rounded-lg shadow-lg duration-300 hover:-translate-y-2 h-auto"
-          @click="navigateToDetail( detail.id)"
-          :aria-label="`Maps to ${locale === 'ar' ? detail.name_ar : detail.name_en}`"
+    <div v-else-if="error" class="text-center py-32 animate-fade-in">
+      <div class="bg-red-50 inline-block p-8 rounded-2xl border border-red-100">
+        <p class="text-xl font-semibold text-red-600 mb-6">{{ error }}</p>
+        <button
+          @click="fetchCustomTabs(route.params.id, 1)"
+          class="bg-indigo-600 text-white px-8 py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg active:scale-95"
         >
-          <div class="w-full overflow-hidden rounded-xl shadow-sm relative bg-gray-100 aspect-square">
-            <img
-              :src="detail.media[0]?.url || '/placeholder.jpg'"
-              :alt="locale === 'ar' ? detail.name_ar : detail.name_en"
-              class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
-              loading="lazy"
-            />
-            <div
-              class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300"
-            ></div>
-          </div>
-          <p
-            class="font-sans mt-4 mb-1 text-center mx-3 text-gray-800 font-medium xs:text-sm sm:text-base md:text-lg w-full truncate"
-          >
-            {{ locale === 'ar' ? detail.name_ar : detail.name_en }}
-          </p>
-        </div>
+          {{ t('common.retry') || 'Retry' }}
+        </button>
       </div>
+    </div>
 
-      <div v-if="pagination.last_page > 1" class="flex justify-center items-center pt-8">
-        <nav class="inline-flex gap-2" aria-label="Pagination">
-          <template v-for="(link, index) in pagination.links" :key="index">
-            <button
-              v-if="link.url && !['&laquo; Previous', 'Next &raquo;'].includes(link.label)"
-              @click="goToPage(parseInt(link.label))"
-              :aria-current="link.active ? 'page' : undefined"
-              :class="[
-                'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200',
-                link.active
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-indigo-100 hover:text-indigo-700'
-              ]"
-            >
-              {{ link.label }}
-            </button>
-          </template>
-        </nav>
+    <div v-else class="animate-fade-in">
+      <div v-for="tab in customTabs" :key="tab.id" class="m-auto max-w-7xl">
+        <h2 class="font-bold text-gray-800 lg:mt-12 mt-6 text-center text-2xl sm:text-3xl md:text-4xl mb-10">
+          {{ title || (locale === 'ar' ? tab.name_ar : tab.name_en) || 'Category' }}
+        </h2>
+
+        <div
+          v-if="tab.details && tab.details.length > 0"
+          class="grid gap-x-6 gap-y-10"
+          :class="
+            tab.row_type === 1
+              ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5'
+              : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+          "
+        >
+          <div
+            v-for="(detail, i) in tab.details"
+            :key="i"
+            class="group flex flex-col cursor-pointer"
+            @click="navigateToDetail(detail.id)"
+          >
+            <div class="w-full overflow-hidden rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 relative bg-white aspect-square border border-gray-100">
+              <img
+                :src="detail.media[0]?.url || '/placeholder.jpg'"
+                :alt="locale === 'ar' ? detail.name_ar : detail.name_en"
+                class="w-full h-full  transition-transform duration-700 group-hover:scale-110"
+                loading="lazy"
+                @error="(e) => e.target.src = '/placeholder.jpg'"
+              />
+              <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+            </div>
+
+            <p class="mt-4 text-center px-2 text-gray-900 font-semibold text-base md:text-lg line-clamp-2 group-hover:text-indigo-600 transition-colors">
+              {{ locale === 'ar' ? detail.name_ar : detail.name_en }}
+            </p>
+          </div>
+        </div>
+
+        <div v-else class="text-center py-20 bg-gray-50 rounded-3xl">
+          <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+          </svg>
+          <p class="mt-4 text-gray-500 text-lg">{{ t('common.no_data') || 'No items available in this section' }}</p>
+        </div>
+
+        <div v-if="totalRecords > perPageLimit" class="mt-10 flex justify-center">
+          <Paginator
+            :rows="perPageLimit"
+            :totalRecords="totalRecords"
+            :first="(currentPage - 1) * perPageLimit"
+            @page="onPageChange"
+            template="PrevPageLink PageLinks NextPageLink"
+            class="custom-paginator"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { useI18n } from 'vue-i18n'
+import Paginator from 'primevue/paginator'
 
 // --- Props ---
 defineProps({
-  title: {
-    type: String,
-    default: ''
-  }
+  title: { type: String, default: '' }
 })
 
 // --- Setup ---
-const { t } = useI18n()
-const locale = ref(localStorage.getItem('appLang') || 'ar')
+const { t, locale: i18nLocale } = useI18n()
+const locale = computed(() => i18nLocale.value)
+
+const router = useRouter()
+const route = useRoute()
+
+// --- State ---
 const customTabs = ref([])
 const isLoading = ref(true)
 const error = ref(null)
-const router = useRouter()
-const route = useRoute()
-const pagination = ref({
-  current_page: 1,
-  last_page: 1,
-  next_page_url: null,
-  prev_page_url: null,
-  links: []
-})
+const totalRecords = ref(0)
 const currentPage = ref(parseInt(route.query.page) || 1)
-const isMobile = ref(false)
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
 
-// --- Responsiveness and Page Limit Logic ---
-const checkScreenSize = () => {
-  if (typeof window !== 'undefined') {
-    isMobile.value = window.innerWidth < 768
-  }
+// --- Responsiveness ---
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
 }
 
 const perPageLimit = computed(() => {
-  return isMobile.value ? 8 : 15
-})
-
-onMounted(() => {
-  checkScreenSize()
-  if (typeof window !== 'undefined') {
-    window.addEventListener('resize', checkScreenSize)
-  }
-})
-
-onUnmounted(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', checkScreenSize)
-  }
+  return windowWidth.value < 768 ? 8 : 15
 })
 
 // --- Data Fetching ---
@@ -137,20 +123,17 @@ const fetchCustomTabs = async (id, page = 1) => {
   isLoading.value = true
   error.value = null
 
-  const url = `/api/home/get-custom-tab-details/${id}?limit=${perPageLimit.value}&page=${page}`
-
   try {
-    const response = await axios.get(url)
-    const apiData = response.data.data
+    const response = await axios.get(`/api/home/get-custom-tab-details/${id}`, {
+      params: {
+        limit: perPageLimit.value,
+        page: page
+      }
+    })
 
-    pagination.value = {
-      current_page: apiData.details.current_page,
-      last_page: apiData.details.last_page,
-      next_page_url: apiData.details.next_page_url,
-      prev_page_url: apiData.details.prev_page_url,
-      links: apiData.details.links
-    }
-    currentPage.value = apiData.details.current_page
+    const apiData = response.data.data
+    // Ensure we are drilling into the right level of the response
+    const paginationSource = apiData.details || { data: [], total: 0, current_page: 1 }
 
     customTabs.value = [
       {
@@ -159,60 +142,212 @@ const fetchCustomTabs = async (id, page = 1) => {
         name_en: apiData.name_en || t('home.customTabTitle', { number: id }),
         type: apiData.type,
         row_type: apiData.type === 1 ? 1 : 2,
-        details: (apiData.details.data || []).map((item) => ({
+        details: (paginationSource.data || []).map((item) => ({
           id: item.id,
           name_ar: item.name_ar,
           name_en: item.name_en,
           has_subcategories: item.has_subcategories,
-          media: item.media
+          media: item.media || []
         }))
       }
     ]
+
+    totalRecords.value = paginationSource.total
+    currentPage.value = paginationSource.current_page
+
+    // Sync URL query
+    router.replace({
+      query: { ...route.query, page: page > 1 ? page : undefined }
+    }).catch(() => {})
+
   } catch (err) {
-    console.error('Error fetching custom tabs:', err)
+    console.error('Fetch Error:', err)
     error.value = t('error.fetchFailed') || 'Failed to load custom content.'
   } finally {
     isLoading.value = false
-    router.push({ query: { ...route.query } }).catch(() => {})
   }
 }
 
-// --- Navigation ---
-const navigateToDetail = ( id) => {
-
-  router.push({ name: 'products-brand', params: { id:id } })
+// --- Handlers ---
+const onPageChange = (event) => {
+  const newPage = event.page + 1
+  currentPage.value = newPage
+  fetchCustomTabs(route.params.id, newPage)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// --- Pagination ---
-const goToPage = (pageNumber) => {
-  if (pageNumber >= 1 && pageNumber <= pagination.value.last_page) {
-    fetchCustomTabs(route.params.id, pageNumber)
-  }
+const navigateToDetail = (id) => {
+  router.push({ name: 'products-brand', params: { id: id } })
 }
 
-// --- Lifecycle & Watchers ---
+// --- Lifecycle ---
 onMounted(() => {
+  window.addEventListener('resize', handleResize)
   fetchCustomTabs(route.params.id, currentPage.value)
 })
 
-watch(
-  () => route.params.id,
-  (newId) => {
-    if (newId) {
-      currentPage.value = 1
-      fetchCustomTabs(newId, 1)
-    }
-  }
-)
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+})
 
-watch(perPageLimit, (newLimit, oldLimit) => {
-  if (newLimit !== oldLimit) {
+// --- Watchers ---
+watch(() => route.params.id, (newId) => {
+  if (newId) {
     currentPage.value = 1
-    fetchCustomTabs(route.params.id, 1)
+    fetchCustomTabs(newId, 1)
   }
+})
+
+watch(perPageLimit, () => {
+  fetchCustomTabs(route.params.id, 1)
 })
 </script>
 
 <style scoped>
-/* You can add custom styles here if needed, but Tailwind is mostly used inline */
+/* Custom animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.animate-progress {
+  animation: progress 2s ease-in-out infinite;
+}
+
+/* PrimeVue Paginator custom styles */
+.custom-paginator {
+  margin-top: 2rem;
+  padding-bottom: 0.5rem;
+}
+
+.custom-paginator :deep(.p-paginator) {
+  @apply flex items-center justify-center gap-1 bg-transparent;
+}
+
+.custom-paginator :deep(.p-paginator-page),
+.custom-paginator :deep(.p-paginator-next),
+.custom-paginator :deep(.p-paginator-prev),
+.custom-paginator :deep(.p-paginator-first),
+.custom-paginator :deep(.p-paginator-last) {
+  @apply min-w-[2.5rem] h-10 rounded-md border border-gray-300 bg-white text-gray-400 transition-colors hover:bg-gray-100;
+}
+
+.custom-paginator :deep(.p-paginator-page.p-highlight) {
+  @apply bg-indigo-600 text-white border-yellow-100;
+}
+
+.custom-paginator :deep(.p-paginator-prev),
+.custom-paginator :deep(.p-paginator-next),
+.custom-paginator :deep(.p-paginator-first),
+.custom-paginator :deep(.p-paginator-last) {
+  @apply flex items-center justify-center;
+}
+
+/* Product card hover effect */
+.group:hover {
+  transform: translateY(-0.5rem);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Image container */
+.h-60 {
+  height: 15rem;
+}
+
+/* Line clamp for product names */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom range slider styles */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 5px;
+  outline: none;
+  transition: background 0.3s;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #4f46e5;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #4f46e5;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+}
+
+input[type="range"]:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .xs\:text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  .h-60 {
+    height: 10rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .sm\:text-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .md\:text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  .lg\:text-3xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
 </style>

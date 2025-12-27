@@ -106,6 +106,11 @@
                   </svg>
                 </button>
               </div>
+              <!-- Free Shipping -->
+              <div v-if="pro.is_free_shipping" class="flex items-center text-[#0b3baa] text-xs font-medium mt-2">
+                <span class="pi pi-truck mr-2"></span>
+                {{ t('products.Free_Delivery') }}
+              </div>
             </div>
           </div>
         </div>

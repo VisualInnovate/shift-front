@@ -268,6 +268,16 @@
           </button>
         </div>
 
+        <div class="mt-6">
+          <label class="block text-gray-700 font-medium mb-2">{{ t('cart.notes') || 'Special Instructions' }}</label>
+          <textarea
+            v-model="notes"
+            :placeholder="t('cart.notesPlaceholder') || 'Add any special instructions for your order...'"
+            class="w-full px-4 py-3 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600 transition resize-none"
+            rows="4"
+          ></textarea>
+        </div>
+
         <button
           @click="submitOrder"
           :disabled="!canCheckoutAllStores"
@@ -303,6 +313,7 @@ const loading = ref(true)
 const addresses = ref([])
 const selectedAddress = ref(null)
 const couponCode = ref('')
+const notes = ref('')
 const products = ref([])
 const stores = ref([])
 const selectedStores = ref([])
@@ -601,6 +612,7 @@ const submitSingleStoreOrder = async (unique_store_id) => {
       })),
     }
     if (couponCode.value.trim()) payload.coupon = couponCode.value.trim()
+    if (notes.value.trim()) payload.notes = notes.value.trim()
 
     const { data } = await axios.post('/api/order', payload)
 
@@ -642,6 +654,7 @@ const submitOrder = async () => {
       })),
     }
     if (couponCode.value.trim()) payload.coupon = couponCode.value.trim()
+    if (notes.value.trim()) payload.notes = notes.value.trim()
 
     const { data } = await axios.post('/api/order', payload)
 
@@ -650,6 +663,8 @@ const submitOrder = async () => {
       products.value = []
       storeOrders.value = []
       selectedStores.value = []
+      notes.value = ''
+      couponCode.value = ''
     }
   } catch (err) {
     const msg = err.response?.data?.message || t('cart.orderError')

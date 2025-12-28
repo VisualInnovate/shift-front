@@ -580,7 +580,7 @@ onMounted(() => {
         >
           <div class=" gap-3">
             <p for="service_fee" class="my-1">{{ t('market.serviceFee') }}</p>
-            <InputNumber class="w-full" id="service_fee" v-model="service_fee" :min="0" :step="0.01"  />
+            <InputNumber class="w-full" id="service_fee" v-model="service_fee" :min="0" :step="0.01" mode="decimal" :minFractionDigits="0" :maxFractionDigits="2" />
           </div>
           <template #footer>
             <Button

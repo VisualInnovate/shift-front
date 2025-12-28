@@ -591,6 +591,8 @@ export default {
     "fileTypes": "SVG، PNG، JPG أو GIF (الحد الأقصى 2 ميجابايت)"
   },
   cart: {
+    notes: "ملاحظات الطلب",
+    notesPlaceholder: "أضف ملاحظات خاصة للمتجر (اختياري)",
     "minAmountWarning": "الحد الأدنى لقيمة الطلب   لهذا المتجر",
   "currentSubtotal": "المجموع الفرعي الحالي",
   "someStoresBelowMin": "لضمان أفضل تجربة، المتاجر تعتمد حدًا أدنى لقيمة الطلب",

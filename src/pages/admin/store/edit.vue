@@ -62,7 +62,7 @@ const validateForm = () => {
     toast.add({ severity: 'error', summary: 'Validation Error', detail: 'Arabic name is required', life: 3000 });
     return false;
   }
-  if (!storeData.value.min_amount_order) {
+  if (storeData.value.min_amount_order === '' || storeData.value.min_amount_order === null || storeData.value.min_amount_order === undefined) {
     toast.add({ severity: 'error', summary: 'Validation Error', detail: 'Minimum order amount is required', life: 3000 });
     return false;
   }
@@ -358,7 +358,10 @@ const submitForm = async () => {
   formData.append('name_ar', storeData.value.name_ar || '');
   formData.append('is_default', storeData.value.is_default ? '1' : '0');
   formData.append('has_market', storeData.value.has_market ? '1' : '0');
-  formData.append('min_amount_order', storeData.value.min_amount_order || '');
+  const minAmountValue = (storeData.value.min_amount_order === '' || storeData.value.min_amount_order === null || storeData.value.min_amount_order === undefined)
+    ? ''
+    : String(storeData.value.min_amount_order);
+  formData.append('min_amount_order', minAmountValue);
 
   // Handle image updates
   // Note: We no longer need to check for null on existing_images here,
@@ -480,6 +483,8 @@ onMounted(() => {
             id="min_amount_order"
             v-model="storeData.min_amount_order"
             type="number"
+            min="0"
+            step="0.01"
             :placeholder="t('store.enterMinAmountOrder')"
             class="w-full px-4 py-2 transition border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             required

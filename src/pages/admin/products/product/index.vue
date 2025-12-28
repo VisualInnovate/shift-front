@@ -38,6 +38,7 @@ const markets = ref([])
 const selectedCategory = ref(null)
 const selectedStore = ref(null)
 const selectedMarket = ref(null)
+const hasDiscounts = ref(null)
 const categorySearchQuery = ref('')
 const marketSearchQuery = ref('')
 const appLanguage = ref(localStorage.getItem('appLang') || 'en')
@@ -133,7 +134,8 @@ const fetchData = () => {
       search: searchQuery.value || undefined,
       category_id: selectedCategory.value || undefined,
       store_id: selectedStore.value || undefined,
-      market_id: selectedMarket.value || undefined
+      market_id: selectedMarket.value || undefined,
+      has_discounts: hasDiscounts.value !== null ? hasDiscounts.value : undefined
     }
   })
     .then((response) => {
@@ -153,7 +155,7 @@ const fetchData = () => {
 }
 
 // Watchers
-watch([searchQuery, rowsPerPage, selectedCategory, selectedStore, selectedMarket], () => {
+watch([searchQuery, rowsPerPage, selectedCategory, selectedStore, selectedMarket, hasDiscounts], () => {
   currentPage.value = 1
   fetchData()
 }, { deep: true })
@@ -190,6 +192,7 @@ const clearFilters = () => {
   selectedCategory.value = null
   selectedStore.value = null
   selectedMarket.value = null
+  hasDiscounts.value = null
   currentPage.value = 1
   fetchData()
 }
@@ -581,6 +584,13 @@ onMounted(() => {
               <label class="block text-900 font-medium mb-2">{{ t('product.marketFilter') }}</label>
               <Dropdown v-model="selectedMarket" :options="markets" optionLabel="label" optionValue="value"
                 :placeholder="t('product.marketFilter')" showClear filter @filter="onMarketFilter" class="w-full" />
+            </div>
+            <div>
+              <label class="block text-900 font-medium mb-2">{{ t('product.discountsFilter') || 'Has Discounts' }}</label>
+              <div class="flex align-items-center gap-3">
+                <InputSwitch v-model="hasDiscounts" :true-value="true" :false-value="false" />
+
+             </div>
             </div>
           </div>
           <template #footer>

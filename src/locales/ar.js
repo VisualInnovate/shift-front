@@ -1204,6 +1204,7 @@ export default {
   "yes": "نعم",
   "no": "لا",
   "products": {
+
     "stars":"عدد النجوم ",
     pleaseSelectAvailability: "يرجى اختيار حالة التوفر",
     "Free_Delivery": "توصيل مجاني",
@@ -1220,6 +1221,9 @@ export default {
     "missingParams": "معرف المتجر مفقود."
   },
   "product": {
+      discountsFilter: "منتجات تحوي خصومات",
+    availabilityFilter: "التوفر",
+    "allProducts": "جميع المنتجات",
     export_prices_features: "تصدير الخصائص   ",
     import_product_characteristics: "  تحديث اسعار الخائص",
     "bestSeller": "الأكثر مبيعًا",

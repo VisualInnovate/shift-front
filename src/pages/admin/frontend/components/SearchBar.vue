@@ -18,6 +18,7 @@
         style="max-height: 70vh;"
         @mousedown.prevent
       >
+        <!-- Products Section -->
         <router-link
           v-for="result in searchResults.products"
           :key="'product-' + result.id"
@@ -35,15 +36,19 @@
           <div v-else class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-sm mr-2">
             <i class="fa-solid fa-box text-gray-400"></i>
           </div>
-          <span class="flex-grow text-sm text-gray-700 font-medium">
-            <template v-for="(part, index) in highlightMatch(result)" :key="index">
-              <span v-if="part.isMatch" class="bg-yellow-200">{{ part.text }}</span>
-              <span v-else>{{ part.text }}</span>
-            </template>
-          </span>
+          <div class="flex-grow">
+            <span class="text-sm text-gray-700 font-medium block">
+              <template v-for="(part, index) in highlightMatch(result)" :key="index">
+                <span v-if="part.isMatch" class="bg-yellow-200">{{ part.text }}</span>
+                <span v-else>{{ part.text }}</span>
+              </template>
+            </span>
+            <span class="text-xs text-gray-500">{{ result.belongs_to ? (appLang == 'ar' ? result.belongs_to.name_ar : result?.belongs_to?.name_en) : '' }}</span>
+          </div>
           <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">{{ t('search.product') }}</span>
         </router-link>
 
+        <!-- Categories Section -->
         <router-link
           v-for="result in searchResults.categories"
           :key="'category-' + result.id"
@@ -61,15 +66,19 @@
           <div v-else class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-sm mr-2">
             <i class="fa-solid fa-folder text-gray-400"></i>
           </div>
-          <span class="flex-grow text-sm text-gray-700 font-medium">
-            <template v-for="(part, index) in highlightMatch(result)" :key="index">
-              <span v-if="part.isMatch" class="bg-yellow-200">{{ part.text }}</span>
-              <span v-else>{{ part.text }}</span>
-            </template>
-          </span>
+          <div class="flex-grow">
+            <span class="text-sm text-gray-700 font-medium block">
+              <template v-for="(part, index) in highlightMatch(result)" :key="index">
+                <span v-if="part.isMatch" class="bg-yellow-200">{{ part.text }}</span>
+                <span v-else>{{ part.text }}</span>
+              </template>
+            </span>
+            <span class="text-xs text-gray-500">{{ result.belongs_to ? (appLang === 'ar' ? result.belongs_to.name_ar : result.belongs_to.name_en) : '' }}</span>
+          </div>
           <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{{ t('search.category') }}</span>
         </router-link>
 
+        <!-- Brands Section -->
         <router-link
           v-for="result in searchResults.brands"
           :key="'brand-' + result.id"
@@ -102,7 +111,6 @@
 
 <script setup>
 import { ref, onUnmounted, computed } from 'vue';
-import { useRouter } from 'vue-router'; // useRouter is no longer strictly needed for navigation, but kept for context
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 
@@ -116,13 +124,15 @@ const searchResults = ref({
 const showSearchResults = ref(false);
 let searchTimeout = null;
 
-// Computed property to determine which name to display based on appLang
+// Get current language (fallback to 'en')
+const appLang = localStorage.getItem('appLang') || 'en';
+
+// Computed property to display name based on language
 const displayName = computed(() => {
-  const lang = localStorage.getItem('appLang') || 'en';
-  return (result) => (lang === 'ar' ? result.name_ar : result.name_en) || 'Unnamed';
+  return (result) => (appLang === 'ar' ? result.name_ar : result.name_en) || 'Unnamed';
 });
 
-// Function to highlight the matched search query in the result name
+// Function to highlight matched text
 const highlightMatch = (result) => {
   const name = displayName.value(result);
   const query = searchQuery.value.trim();
@@ -155,14 +165,17 @@ const handleSearch = async () => {
     }
 
     try {
-      // NOTE: Make sure the URL structure is correct for your backend.
       const response = await axios.get(`api/home/search?query=${encodeURIComponent(searchQuery.value)}`);
       searchResults.value = {
         products: response.data.data?.products || [],
         categories: response.data.data?.categories || [],
         brands: response.data.data?.brands || []
       };
-      showSearchResults.value = searchResults.value.products.length || searchResults.value.categories.length || searchResults.value.brands.length;
+      showSearchResults.value = !!(
+        searchResults.value.products.length ||
+        searchResults.value.categories.length ||
+        searchResults.value.brands.length
+      );
     } catch (error) {
       console.error('Error fetching search results:', error);
       searchResults.value = { products: [], categories: [], brands: [] };
@@ -178,21 +191,17 @@ const showResults = () => {
 };
 
 const hideResultsWithDelay = () => {
-  // Delay allows click events on the results to register before the dropdown disappears
-  // NOTE: This delay is less critical now, but kept as a fallback good practice.
   setTimeout(() => {
     showSearchResults.value = false;
   }, 200);
 };
 
-// Helper function to construct the category link dynamically
 const getCategoryLink = (result) => {
-    return result.has_subcategories
-      ? { name: 'subcategory', params: { id: result.id } }
-      : { name: 'produts_category', params: { id: result.id } };
+  return result.has_subcategories
+    ? { name: 'subcategory', params: { id: result.id } }
+    : { name: 'produts_category', params: { id: result.id } };
 };
 
-// Cleanup function to reset the state after a click on a result
 const cleanUpState = () => {
   showSearchResults.value = false;
   searchQuery.value = '';
@@ -248,10 +257,6 @@ onUnmounted(() => {
 }
 
 input:focus + i {
-  /* This targets the magnifying glass icon next to the focused input */
-  /* This needs to be checked for correctness in the actual component structure if it's not working */
-  /* @apply text-[#E6AC31]; is Tailwind, which can't be used directly in a standard <style> block. */
-  /* Assuming a CSS/Tailwind-compatible setup: */
   color: #E6AC31;
 }
 </style>

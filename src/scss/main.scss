@@ -60,12 +60,6 @@ pre {
   margin: auto !important;
 }
 
-.p-paginator .p-paginator-pages .p-paginator-page .p-highlight {
-  color:#000000 !important;
-  padding: 5px !important ;
-  margin: 2px !important;
-  background-color: #aa650b !important;
-}
 .ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -111,7 +105,19 @@ pre {
 .left {
   color: black !important;
 }
+.p-paginator-page {
+    padding: 5px !important ;
+  margin: 2px !important;
+  background-color: #0b3baa !important;
 
+  border-color: #ffff !important;
+  color: #ffff;
+}
+.p-highlight {
+  background-color: #F3B913 !important;
+  border-color: #F3B913 !important;
+  color: #000000;
+}
 .nave{
   direction: ltr !important;
 }

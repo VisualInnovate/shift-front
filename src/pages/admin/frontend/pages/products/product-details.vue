@@ -465,7 +465,50 @@ const handleCartAction = () => {
   addToCart()
 }
 
-const submitReview = async () => { /* unchanged */ }
+const submitReview = async () => {
+  if (newReview.value.rating === 0 || !newReview.value.comment.trim()) {
+    reviewError.value = t('reviews.requiredFields')
+    return
+  }
+
+  isSubmittingReview.value = true
+  reviewError.value = null
+
+  try {
+    const payload = {
+      model_id: route.params.id,
+      rate: newReview.value.rating,
+      type: 'product',
+      message: newReview.value.comment.trim()
+    }
+
+    const { data } = await axios.post('/api/review', payload)
+
+    if (data.is_success) {
+      reviews.value.unshift({
+        id: data.data.id || Date.now(),
+        rate: newReview.value.rating,
+        message: newReview.value.comment.trim(),
+        user: { name: authStore.user?.name || 'You' },
+        created_at: new Date().toISOString()
+      })
+
+      // Reset form
+      newReview.value = { rating: 0, comment: '' }
+
+      toast.add({
+        severity: 'success',
+        summary: t('success'),
+        detail: t('reviews.submitSuccess'),
+        life: 4000
+      })
+    }
+  } catch (err) {
+    reviewError.value = err.response?.data?.message || t('reviews.submitError')
+  } finally {
+    isSubmittingReview.value = false
+  }
+}
 
 const goCatgory = (cat) => cat && router.push(cat.has_subcategories ? { name: 'subcategory', params: { id: cat.id } } : { name: 'produts_category', params: { id: cat.id } })
 const goBrand = (brand) => brand && router.push({ name: 'products-brand', params: { id: brand.id } })

@@ -251,7 +251,11 @@ onMounted(() => {
                 #{{ slotProps.data.id }}
               </template>
             </Column>
-
+       <Column field="data.user.name" :header="t('order.name')" :sortable="true">
+              <template #body="slotProps">
+                {{ slotProps.data.user?.name }}
+              </template>
+            </Column>
             <Column field="total_price" :header="t('order.totalPrice')" :sortable="true">
               <template #body="slotProps">
                 {{ slotProps.data.total_price }} {{ $t("currencyLabel") }}

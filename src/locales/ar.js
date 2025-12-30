@@ -129,6 +129,8 @@ export default {
   "to": "إلى",
   "from": "من",
   "order": {
+    "notes": "ملاحظات الطلب",
+    "name": "اسم الزبون",
     "total": "الاجمالي ",
     "detailTitle": "تفاصيل الطلب",
     "financialSummary": "الملخص المالي",

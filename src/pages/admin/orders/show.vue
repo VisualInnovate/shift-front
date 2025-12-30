@@ -157,6 +157,16 @@ const formatCurrency = (value) => {
             <template #content>
               <div class="grid">
                 <div class="col-12 lg:col-6">
+
+                  <div class="space-y-3 mb-5">
+                    <p><strong>{{ t('order.name') }}:</strong> {{ orderData.user?.name }}</p>
+                    <p v-if="orderData.notes">
+                      <strong>{{ t('order.notes') }}:</strong>
+                      <span class="text-600">{{ orderData.notes }}</span>
+                    </p>
+
+                  </div>
+                  <Divider class="my-4" />
                   <h4 class="text-lg font-semibold mb-3 text-primary">
                     {{ t('order.financialSummary') }}
                   </h4>

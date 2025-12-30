@@ -1,12 +1,17 @@
 <template>
   <div class="product-page max-w-7xl mx-auto p-4 lg:p-8">
+    <!-- Loading State -->
     <div v-if="isLoading" class="text-center py-20">
       <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="4" />
       <p class="mt-4 text-gray-600">{{ t('common.loading') }}</p>
     </div>
+
+    <!-- Error State -->
     <div v-if="error" class="text-red-500 text-center py-10 text-lg">{{ error }}</div>
 
+    <!-- Main Content -->
     <header v-else class="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
+      <!-- Image Gallery -->
       <div class="w-full lg:w-1/2 flex flex-col-reverse lg:flex-row items-center gap-4">
         <div class="flex lg:flex-col flex-row items-center justify-center lg:justify-start gap-3 w-full lg:w-1/4 order-2 lg:order-1">
           <img
@@ -19,14 +24,18 @@
             @click="changeImg(img.url)"
           />
         </div>
+
         <div class="w-full lg:w-3/4 order-1 lg:order-2">
           <div class="relative w-full aspect-square shadow-xl rounded-2xl overflow-hidden bg-gray-50">
+            <!-- Best Seller Badge -->
             <div
               v-if="pro.is_best_seller"
               class="absolute top-4 left-4 z-10 bg-black text-white text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider shadow-lg"
             >
               Best Seller
             </div>
+
+            <!-- Free Shipping Badge -->
             <div
               v-if="pro.is_free_shipping"
               class="absolute top-4 right-4 z-10 bg-green-600 text-white text-xs font-bold px-4 py-2 rounded-full flex items-center gap-2 shadow-lg"
@@ -34,6 +43,8 @@
               <i class="pi pi-truck"></i>
               {{ t('products.Free_Delivery') }}
             </div>
+
+            <!-- Main Image -->
             <img
               :src="currentImg || pro.key_default_image || defaultPlaceholder"
               :alt="locale === 'en' ? pro.name_en : pro.name_ar"
@@ -44,32 +55,23 @@
         </div>
       </div>
 
+      <!-- Product Information -->
       <div class="w-full lg:w-1/2">
         <div class="bg-white rounded-2xl shadow-lg p-6 lg:p-8">
+          <!-- Breadcrumbs / Tags -->
           <section class="flex flex-wrap gap-3 mb-6">
-            <span
-              v-if="pro.store_id"
-              @click="selectStore(pro.store)"
-              class="sub-tiles cursor-pointer"
-            >
+            <span v-if="pro.store_id" @click="selectStore(pro.store)" class="sub-tiles cursor-pointer">
               {{ locale === 'en' ? pro.store?.name_en : pro.store?.name_ar || t('store.default') }}
             </span>
-            <span
-              v-if="pro.category"
-              @click="goCatgory(pro.category)"
-              class="sub-tiles cursor-pointer"
-            >
+            <span v-if="pro.category" @click="goCatgory(pro.category)" class="sub-tiles cursor-pointer">
               {{ locale === 'en' ? pro.category.name_en : pro.category.name_ar }}
             </span>
-            <span
-              @click="goBrand(pro.brand)"
-              v-if="pro.brand_id"
-              class="sub-tiles cursor-pointer"
-            >
+            <span @click="goBrand(pro.brand)" v-if="pro.brand_id" class="sub-tiles cursor-pointer">
               {{ locale === 'en' ? pro.brand?.name_en : pro.brand?.name_ar || t('brand.default') }}
             </span>
           </section>
 
+          <!-- Title & Subtitle -->
           <h1 class="text-3xl lg:text-4xl font-bold text-gray-800 mb-3 leading-tight">
             {{ locale === 'en' ? pro.name_en : pro.name_ar }}
           </h1>
@@ -77,14 +79,17 @@
             {{ locale === 'en' ? pro.sub_name_en : pro.sub_name_ar }}
           </h2>
 
+          <!-- Rating -->
           <div class="flex items-center gap-3 mb-6">
             <Rating :modelValue="averageRating" :readonly="true" :cancel="false" class="text-lg" />
-            <span class="text-gray-600">({{ reviews.length }} {{ reviews.length === 1 ? t('reviews.singular') : t('reviews.plural') }})</span>
+            <span class="text-gray-600">
+              ({{ reviews.length }} {{ reviews.length === 1 ? t('reviews.singular') : t('reviews.plural') }})
+            </span>
           </div>
 
           <hr class="bg-gradient-to-r from-transparent via-[#A17D1C] to-transparent h-0.5 my-8" />
 
-          <!-- Variant Selection: Dynamic Attributes -->
+          <!-- Variant Selection -->
           <section v-if="pro.has_variants && Object.keys(variantOptions).length" class="mb-8 space-y-6">
             <div v-for="(options, attribute) in variantOptions" :key="attribute" class="space-y-2">
               <div class="flex flex-wrap gap-3">
@@ -103,7 +108,9 @@
                     class="w-6 h-6 rounded-full border-2 border-gray-300"
                     :style="{ backgroundColor: option.value_en }"
                   ></span>
-                  <span  v-if="!option.is_color">{{ locale === 'en' ? option.value_en : option.value_ar }}</span>
+                  <span v-if="!option.is_color">
+                    {{ locale === 'en' ? option.value_en : option.value_ar }}
+                  </span>
                 </button>
               </div>
             </div>
@@ -116,26 +123,33 @@
             </p>
           </section>
 
+          <!-- PRICE SECTION - FULLY UPDATED -->
           <div class="mb-8">
             <div class="flex items-baseline gap-4 flex-wrap">
+              <!-- Final Price (After Discount) -->
               <span class="text-4xl font-bold text-gray-900">
-                {{ formatPrice(selectedVariantPrice.after_discount) }} {{ $t("currencyLabel") }}
+                {{ finalPrice }} {{ $t("currencyLabel") }}
               </span>
+
+              <!-- Original Price (Strikethrough in blue) -->
               <span
-                v-if="selectedVariantPrice.has_discount"
+                v-if="hasDiscount"
                 class="text-2xl font-bold text-[#0b3baa] line-through opacity-80"
               >
-                {{ formatPrice(selectedVariantPrice.base_price) }} {{ $t("currencyLabel") }}
+                {{ originalPrice }} {{ $t("currencyLabel") }}
               </span>
+
+              <!-- Discount Percentage Badge -->
               <span
-                v-if="selectedVariantPrice.has_discount"
+                v-if="hasDiscount"
                 class="bg-red-100 text-red-800 text-sm font-bold px-3 py-1 rounded-full"
               >
-                -{{ selectedVariantPrice.discount_percentage }}%
+                -{{ discountPercentage }}%
               </span>
             </div>
           </div>
 
+          <!-- Quantity Control (Only if in cart) -->
           <div v-if="selectedVariant?.in_cart" class="flex items-center gap-6 mb-8">
             <label class="font-bold text-gray-700 text-lg">{{ t('product.quantity') }}:</label>
             <div class="flex items-center border-2 border-gray-300 rounded-xl overflow-hidden select-none">
@@ -155,6 +169,7 @@
             </div>
           </div>
 
+          <!-- Add to Cart Button -->
           <button
             @click="handleCartAction"
             :disabled="isAddingToCart || selectedVariant?.isOutOfStock || !canAddToCart"
@@ -180,6 +195,7 @@
       </div>
     </header>
 
+    <!-- Product Description -->
     <section v-if="!isLoading && !error" class="bg-[#E6AC312B] px-8 py-10 rounded-2xl mt-12">
       <p class="text-gray-700 leading-relaxed text-base">
         {{ showFullDescription ? fullDescription : truncatedDescription }}
@@ -193,9 +209,11 @@
       </button>
     </section>
 
-    <!-- Reviews Section (unchanged) -->
+    <!-- Reviews Section -->
     <section v-if="!isLoading && !error" class="mt-12 p-8 bg-white rounded-2xl shadow-xl">
       <h2 class="text-3xl font-bold text-center text-gray-800 mb-10">{{ t('reviews.title') }}</h2>
+
+      <!-- Rating Summary -->
       <div class="grid md:grid-cols-3 gap-8 mb-12">
         <div class="text-center">
           <div class="text-6xl font-bold text-gray-800">{{ averageRating.toFixed(1) }}</div>
@@ -216,6 +234,7 @@
         </div>
       </div>
 
+      <!-- Write Review -->
       <div class="mt-12 border-t pt-12">
         <h3 class="text-2xl font-bold text-center mb-8">{{ t('reviews.writeReview') }}</h3>
         <div v-if="authStore.authenticatedweb" class="max-w-2xl mx-auto space-y-6">
@@ -245,6 +264,7 @@
         </div>
       </div>
 
+      <!-- Customer Reviews -->
       <div v-if="reviews.length" class="mt-12 space-y-8">
         <h3 class="text-2xl font-bold text-gray-800 border-b pb-4">{{ t('reviews.customerReviews') }}</h3>
         <div v-for="review in displayedReviews" :key="review.id" class="border-b pb-8 last:border-0">
@@ -268,6 +288,7 @@
       </div>
     </section>
 
+    <!-- Related Offers -->
     <section v-if="!isLoading && !error" class="mt-12">
       <ProductOffers />
     </section>
@@ -308,12 +329,40 @@ const newReview = ref({ rating: 0, comment: '' })
 // Variant state
 const variantOptions = ref({})
 const variantCombinations = ref([])
-const selectedAttributes = ref({}) // e.g., { color: optionObject, size: optionObject }
+const selectedAttributes = ref({})
 const selectedVariant = ref(null)
 
 const defaultPlaceholder = 'https://via.placeholder.com/600?text=No+Image'
 
-// Computed
+// ==================== PRICE COMPUTED PROPERTIES ====================
+const originalPrice = computed(() => {
+  const base = parseFloat(pro.value.base_price || 0)
+  return base.toFixed(2)
+})
+
+const finalPrice = computed(() => {
+  const base = parseFloat(pro.value.base_price || 0)
+  const discount = parseFloat(pro.value.total_discounts_value || 0)
+  const providedAfter = parseFloat(pro.value.base_price_after_discount || 0)
+
+  // Prefer provided base_price_after_discount if valid, else calculate
+  const price = providedAfter > 0 ? providedAfter : Math.max(0, base - discount)
+  return price.toFixed(2)
+})
+
+const hasDiscount = computed(() => {
+  const discount = parseFloat(pro.value.total_discounts_value || 0)
+  return discount > 0.01
+})
+
+const discountPercentage = computed(() => {
+  const base = parseFloat(pro.value.base_price || 0)
+  const discount = parseFloat(pro.value.total_discounts_value || 0)
+  if (base <= 0 || discount <= 0) return 0
+  return Math.round((discount / base) * 100)
+})
+// ==================================================================
+
 const currentImages = computed(() => {
   let images = [...allImages.value]
   if (selectedVariant.value?.image) {
@@ -323,28 +372,6 @@ const currentImages = computed(() => {
     }
   }
   return images.filter((img, i, self) => self.findIndex(t => t.url === img.url) === i)
-})
-
-const selectedVariantPrice = computed(() => {
-  let basePrice = parseFloat(pro.value.base_price || 0)
-  let afterDiscount = parseFloat(pro.value.base_price_after_discount || basePrice)
-  let totalDiscountsValue = parseFloat(pro.value.total_discounts_value || 0)
-
-  if (selectedVariant.value && selectedVariant.value.price) {
-    basePrice = parseFloat(selectedVariant.value.price)
-    afterDiscount = basePrice // assuming variant price is final (no extra discount)
-    totalDiscountsValue = 0
-  }
-
-  const has_discount = totalDiscountsValue > 0
-  const discount_percentage = basePrice ? Math.round((totalDiscountsValue / basePrice) * 100) : 0
-
-  return {
-    base_price: basePrice.toFixed(2),
-    after_discount: afterDiscount.toFixed(2),
-    has_discount,
-    discount_percentage
-  }
 })
 
 const canAddToCart = computed(() => pro.value.has_variants ? selectedVariant.value !== null : true)
@@ -374,22 +401,17 @@ const ratingDistribution = computed(() => {
 
 const displayedReviews = computed(() => reviews.value.slice(0, 5))
 
-const formatPrice = (v) => parseFloat(v || 0).toFixed(2)
-
 // Methods
 const changeImg = (url) => (currentImg.value = url)
 const toggleDescription = () => (showFullDescription.value = !showFullDescription.value)
 const formatDate = (date) => new Date(date).toLocaleDateString(locale.value === 'ar' ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 
-const isAttributeSelected = (attribute, option) => {
-  return selectedAttributes.value[attribute]?.id === option.id
-}
+const isAttributeSelected = (attribute, option) => selectedAttributes.value[attribute]?.id === option.id
 
 const selectAttribute = (attribute, option) => {
   const newSelection = { ...selectedAttributes.value, [attribute]: option }
   selectedAttributes.value = newSelection
 
-  // Find matching combination
   const match = variantCombinations.value.find(comb => {
     return Object.keys(newSelection).every(attr => {
       const selectedId = newSelection[attr].id
@@ -493,7 +515,6 @@ const submitReview = async () => {
         created_at: new Date().toISOString()
       })
 
-      // Reset form
       newReview.value = { rating: 0, comment: '' }
 
       toast.add({
@@ -532,15 +553,10 @@ const fetchProductData = async () => {
       allImages.value = p.media || []
       reviews.value = p.reviews || []
 
-      // Variants
       const variants = data.data.variants_details || {}
       variantOptions.value = variants.attributes || {}
-      variantCombinations.value = (variants.combinations || []).map(c => ({
-        ...c,
-        image: c.image // note: in sample it's null
-      }))
+      variantCombinations.value = (variants.combinations || []).map(c => ({ ...c }))
 
-      // Auto-select first full combination
       if (variantCombinations.value.length > 0) {
         const first = variantCombinations.value[0]
         selectedVariant.value = {
@@ -548,18 +564,17 @@ const fetchProductData = async () => {
           isOutOfStock: pro.value.is_stock === 0,
           in_cart: pro.value.in_cart
         }
-        // Pre-fill selected attributes
         Object.keys(variantOptions.value).forEach(attr => {
           const opt = variantOptions.value[attr].find(o => o.id === first.attributes[attr]?.id)
           if (opt) selectedAttributes.value[attr] = opt
         })
         if (first.image) currentImg.value = first.image
-      } else if (!pro.value.has_variants) {
+      } else {
         selectedVariant.value = {
           variant_id: null,
-          price: pro.value.base_price,
+          price: pro.value.base_price_after_discount || pro.value.base_price,
           image: null,
-          isOutOfStock: pro.value.isOutOfStock,
+          isOutOfStock: pro.value.is_stock === 0,
           in_cart: pro.value.in_cart
         }
       }
@@ -577,8 +592,10 @@ const fetchProductData = async () => {
 }
 
 watch(() => route.params.id, (newId) => {
-  if (newId) fetchProductData()
-  window.scrollTo(0, 0)
+  if (newId) {
+    fetchProductData()
+    window.scrollTo(0, 0)
+  }
 })
 
 onMounted(() => {

@@ -21,7 +21,7 @@ const searchQuery = ref('')
 // Pagination variables
 const currentPage = ref(1)
 const totalRecords = ref(0)
-const rowsPerPage = ref(5)
+const rowsPerPage = ref(10)
 const totalPages = ref(0)
 const firstPageUrl = ref('')
 const lastPageUrl = ref('')

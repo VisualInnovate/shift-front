@@ -160,7 +160,7 @@ const submitForm = async () => {
 
   // Prepare payload
   const payload = {
-    store_id: route.params.id, // Use route.params.id for consistency in update calls
+    category_id: route.params.id, // Use route.params.id for consistency in update calls
     has_zones: shippingData.value.has_zones ? 1 : 0,
     is_enabled: shippingData.value.is_enabled ? 1 : 0,
     is_free: shippingData.value.is_free ? 1 : 0,

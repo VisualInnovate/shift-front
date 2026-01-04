@@ -1049,6 +1049,18 @@ export default {
     "next": "التالي"
   },
   "templateNotification": {
+        "save": "حفظ",
+    "sendNotificationTitle": "إرسال إشعار",
+    "sendNotificationButton": "إرسال إشعار",
+    "notificationTitle": "عنوان الإشعار",
+    "notificationBody": "محتوى الإشعار",
+    "sendToAllUsers": "إرسال لجميع المستخدمين",
+    "yesAllUsers": "نعم، أرسل لجميع المستخدمين",
+    "selectUsers": "اختر المستخدمين",
+    "searchUsers": "ابحث واختر المستخدمين",
+    "requiredFields": "العنوان والمحتوى مطلوبان",
+    "selectAtLeastOne": "يرجى تحديد مستخدم واحد على الأقل",
+    "notificationSent": "تم إرسال الإشعار بنجاح",
     "managementTitle": "إدارة قوالب الإشعارات",
     "search": "البحث في الإشعارات",
     "export": "تصدير إلى CSV",

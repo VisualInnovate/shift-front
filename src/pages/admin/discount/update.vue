@@ -213,12 +213,7 @@ const submitForm = async () => {
 
   validator.required(discountData.value.type, 'type');
 
-  if (discountData.value.type === 'category') {
-    validator.required(discountData.value.ids, 'select_category');
-  } else if (discountData.value.type === 'product') {
-    validator.required(discountData.value.ids, 'select_category');
-    validator.required(discountData.value.products, 'select_product');
-  }
+
 
   validator.required(discountData.value.discount_type, 'discount_type');
   validator.numericRange(

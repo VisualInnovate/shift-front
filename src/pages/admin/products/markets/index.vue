@@ -380,12 +380,18 @@ onMounted(() => {
                 {{ slotProps.data.store?.name_en || t('market.noStore') }}
               </template>
             </Column>
-             <Column field="store.service_fee" :header="t('market.serviceFee')" :sortable="true" header-style="width:14%; min-width:10rem;">
+             <Column field="store.service_fee" :header="t('market.serviceFee')" :sortable="true" header-style="width:10%; min-width:10rem;">
               <template #body="slotProps">
                 {{ slotProps.data?.service_fee || 0   }} {{ $t("currencyLabel") }}
               </template>
             </Column>
-            <Column :header="t('actions')" header-style="width:14rem;">
+              <Column field="store.service_final_price" :header="t('market.serviceFinalPrice')" :sortable="true" header-style="width:10%; min-width:10rem;">
+              <template #body="slotProps">
+                {{ slotProps.data?.service_final_price || 0   }} {{ $t("currencyLabel") }}
+              </template>
+            </Column>
+
+            <Column :header="t('actions')" header-style="width:18rem;">
               <template #body="slotProps">
                 <Button
                   icon="pi pi-pencil"

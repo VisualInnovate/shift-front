@@ -745,6 +745,7 @@ export default {
     logoutError: 'فشل تسجيل الخروج',
   },
   "market": {
+    "serviceFinalPrice": "السعر النهائي للخدمة",
     "minAmountOrder": "الحد الأدنى لمبلغ الطلب",
     "enterMinAmountOrder": "أدخل الحد الأدنى لمبلغ الطلب",
     "addServiceFee": "إضافة رسوم الخدمة",
@@ -1060,7 +1061,18 @@ export default {
     "updateSuccess": "تم تحديث الإشعار بنجاح",
     "updateError": "فشل في تحديث الإشعار",
     "cancel": "إلغاء",
-    "save": "حفظ"
+    "save": "حفظ",
+    "sendNotificationTitle": "إرسال إشعار",
+    "sendNotificationButton": "إرسال إشعار",
+    "notificationTitle": "عنوان الإشعار",
+    "notificationBody": "محتوى الإشعار",
+    "sendToAllUsers": "إرسال لجميع المستخدمين",
+    "yesAllUsers": "نعم، أرسل لجميع المستخدمين",
+    "selectUsers": "اختر المستخدمين",
+    "searchUsers": "ابحث واختر المستخدمين",
+    "requiredFields": "العنوان والمحتوى مطلوبان",
+    "selectAtLeastOne": "يرجى تحديد مستخدم واحد على الأقل",
+    "notificationSent": "تم إرسال الإشعار بنجاح"
   },
   "error": "خطأ",
   "success": "نجاح",

@@ -12,6 +12,7 @@ import Toast from 'primevue/toast'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
 import Dropdown from 'primevue/dropdown'
+import MultiSelect from 'primevue/multiselect'
 
 const toast = useToast()
 const { t } = useI18n()
@@ -46,6 +47,19 @@ const updateForm = ref({
   body: ''
 })
 const updateLoading = ref(false)
+
+// Send notification modal variables
+const sendNotificationDialog = ref(false)
+const sendForm = ref({
+  all: 1,
+  title: '',
+  body: '',
+  ids: []
+})
+const sendLoading = ref(false)
+const allUsers = ref([])
+const selectedUsers = ref([])
+const usersLoading = ref(false)
 
 // Fetch data
 const fetchData = () => {
@@ -152,7 +166,114 @@ const updateNotification = () => {
 // Lifecycle hooks
 onMounted(() => {
   fetchData()
+  fetchAllUsers() // Load initial users
 })
+
+// Fetch all users for multi-select
+const fetchAllUsers = (searchTerm = '') => {
+  usersLoading.value = true
+  axios.get('/api/user', {
+    params: {
+      limit: 20,
+      search: searchTerm || undefined
+    }
+  })
+    .then((response) => {
+      allUsers.value = response.data.data.data.map(user => ({
+        id: user.id,
+        label: `${user.name} `,
+        value: user.id
+      }))
+    })
+    .catch((error) => {
+      console.error('Error fetching users:', error)
+      toast.add({
+        severity: 'error',
+        summary: t('error'),
+        detail: 'Failed to load users',
+        life: 3000
+      })
+    })
+    .finally(() => {
+      usersLoading.value = false
+    })
+}
+
+// Handle multi-select filter
+const handleUserFilter = (event) => {
+  fetchAllUsers(event.value)
+}
+
+// Send notification functions
+const openSendNotificationModal = () => {
+  sendForm.value = {
+    all: 1,
+    title: '',
+    body: '',
+    ids: []
+  }
+  selectedUsers.value = []
+  sendNotificationDialog.value = true
+}
+
+const sendNotification = () => {
+  if (!sendForm.value.title || !sendForm.value.body) {
+    toast.add({
+      severity: 'warn',
+      summary: t('warning'),
+      detail: t('templateNotification.requiredFields'),
+      life: 3000
+    })
+    return
+  }
+
+  if (sendForm.value.all === 0 && selectedUsers.value.length === 0) {
+    toast.add({
+      severity: 'warn',
+      summary: t('warning'),
+      detail: t('templateNotification.selectAtLeastOne'),
+      life: 3000
+    })
+    return
+  }
+
+  sendLoading.value = true
+  const payload = {
+    all: sendForm.value.all,
+    title: sendForm.value.title,
+    body: sendForm.value.body,
+    ids: sendForm.value.all === 0 ? selectedUsers.value : []
+  }
+
+  axios.post('/api/user-notification/send', payload)
+    .then((response) => {
+      toast.add({
+        severity: 'success',
+        summary: t('success'),
+        detail: t('templateNotification.notificationSent'),
+        life: 3000
+      })
+      sendNotificationDialog.value = false
+      sendForm.value = {
+        all: 1,
+        title: '',
+        body: '',
+        ids: []
+      }
+      selectedUsers.value = []
+    })
+    .catch((error) => {
+      toast.add({
+        severity: 'error',
+        summary: t('error'),
+        detail: error.response?.data?.message || 'Failed to send notification',
+        life: 3000
+      })
+    })
+    .finally(() => {
+      sendLoading.value = false
+    })
+}
 </script>
 
 <template>
@@ -176,6 +297,13 @@ onMounted(() => {
                 class="p-export"
                 v-can="'list template-notification'"
                 @click="exportCSV"
+              />
+              <Button
+                :label="t('templateNotification.sendNotificationButton')"
+                icon="pi pi-send"
+                class="p-button-success"
+                v-can="'create template-notification'"
+                @click="openSendNotificationModal"
               />
             </div>
           </template>
@@ -354,6 +482,83 @@ onMounted(() => {
               class="p-button-text p-button-success"
               :disabled="updateLoading"
               @click="updateNotification"
+            />
+          </template>
+        </Dialog>
+
+        <!-- Send Notification Modal -->
+        <Dialog
+          v-model:visible="sendNotificationDialog"
+          :style="{ width: '600px' }"
+          :header="t('templateNotification.sendNotificationTitle')"
+          :modal="true"
+          :maximizable="true"
+        >
+          <div class="p-fluid">
+            <div class="p-field mb-4">
+              <label for="send-title">{{ t('templateNotification.notificationTitle') }}</label>
+              <InputText
+                id="send-title"
+                v-model="sendForm.title"
+                :placeholder="t('templateNotification.notificationTitle')"
+                :disabled="sendLoading"
+              />
+            </div>
+            <div class="p-field mb-4">
+              <label for="send-body">{{ t('templateNotification.notificationBody') }}</label>
+              <InputText
+                id="send-body"
+                v-model="sendForm.body"
+                :placeholder="t('templateNotification.notificationBody')"
+                :disabled="sendLoading"
+              />
+            </div>
+            <div class="p-field mb-4">
+              <label for="send-all">{{ t('templateNotification.sendToAllUsers') }}</label>
+              <div class="flex align-items-center">
+                <input
+                  id="send-all"
+                  v-model.number="sendForm.all"
+                  type="checkbox"
+                  :true-value="1"
+                  :false-value="0"
+                  :disabled="sendLoading"
+                />
+                <span class="ml-2">{{ t('templateNotification.yesAllUsers') }}</span>
+              </div>
+            </div>
+            <div v-if="sendForm.all === 0" class="p-field mb-4">
+              <label for="send-users">{{ t('templateNotification.selectUsers') }}</label>
+              <MultiSelect
+                id="send-users"
+                v-model="selectedUsers"
+                :options="allUsers"
+                option-label="label"
+                option-value="value"
+                :placeholder="t('templateNotification.searchUsers')"
+                :max-selected-labels="3"
+                :disabled="sendLoading"
+                :loading="usersLoading"
+                filter
+                @filter="handleUserFilter"
+                class="w-full"
+              />
+            </div>
+          </div>
+          <template #footer>
+            <Button
+              :label="t('cancel')"
+              icon="pi pi-times"
+              class="p-button-text"
+              :disabled="sendLoading"
+              @click="sendNotificationDialog = false"
+            />
+            <Button
+              :label="t('templateNotification.sendNotificationButton')"
+              icon="pi pi-send"
+              class="p-button-text p-button-success"
+              :disabled="sendLoading"
+              @click="sendNotification"
             />
           </template>
         </Dialog>

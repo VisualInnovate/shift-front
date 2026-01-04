@@ -35,6 +35,7 @@ const importLoading = ref(false)
 const service_feeDialog = ref(false)
 const selectedMarketId = ref(null)
 const service_fee = ref(0)
+const service_final_price = ref(0)
 
 // Pagination variables
 const currentPage = ref(1)
@@ -252,12 +253,14 @@ const importMarkets = () => {
 const openservice_feeDialog = (data) => {
   selectedMarketId.value = data.id
   service_fee.value = data.service_fee // Reset or fetch current if needed
+  service_final_price.value = data.service_final_price || 0
   service_feeDialog.value = true
 }
 
 const addservice_fee = () => {
   axios.post(`/api/market/service/fee/${selectedMarketId.value}`, {
-    service_fee: service_fee.value
+    service_fee: service_fee.value,
+    service_final_price: service_final_price.value
   })
     .then(() => {
       toast.add({
@@ -578,9 +581,11 @@ onMounted(() => {
           :header="t('market.addServiceFee')"
           :modal="true"
         >
-          <div class=" gap-3">
+          <div class="gap-3">
             <p for="service_fee" class="my-1">{{ t('market.serviceFee') }}</p>
             <InputNumber class="w-full" id="service_fee" v-model="service_fee" :min="0" :step="0.01" mode="decimal" :minFractionDigits="0" :maxFractionDigits="2" />
+            <p for="service_final_price" class="my-3 mt-4">{{ t('market.serviceFinalPrice') }}</p>
+            <InputNumber class="w-full" id="service_final_price" v-model="service_final_price" :min="0" :step="0.01" mode="decimal" :minFractionDigits="0" :maxFractionDigits="2" />
           </div>
           <template #footer>
             <Button

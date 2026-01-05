@@ -121,6 +121,10 @@
                     </button>
                   </div>
 
+                  <div class="text-lg font-bold text-gray-900">
+                    {{ t('cart.total') || 'Total' }}: {{ getItemTotal(product) }} {{ t('cart.currency') }}
+                  </div>
+
                   <button
                     @click="removeProduct(product)"
                     class="text-red-600 hover:text-red-800 text-sm font-medium transition"
@@ -530,6 +534,12 @@ const toggleStore = (id) => {
 
 const selectAllStores = () => {
   selectedStores.value = stores.value.map(s => s.unique_store_id)
+}
+
+const getItemTotal = (product) => {
+  const priceAfterDiscount = product.price - product.total_discounts_value
+  const total = priceAfterDiscount * product.quantity
+  return total.toFixed(2)
 }
 
 const updateQuantity = async (product, newQty) => {

@@ -218,7 +218,8 @@ const fetchProducts = async (id, page = 1) => {
 
 // Actions
 const navigateToDetail = (id) => {
-  router.push({ name: 'Product-details', params: { id } })
+  const url = `/product-details/${id}`
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const goToPage = (page) => {

@@ -23,6 +23,8 @@
           v-for="result in searchResults.products"
           :key="'product-' + result.id"
           :to="{ name: 'Product-details', params: { id: result.id } }"
+          target="_blank"
+          rel="noopener noreferrer"
           @click="cleanUpState"
           class="flex items-center px-4 py-3 transition-all duration-300 cursor-pointer dropdown-item hover:bg-amber-50"
         >

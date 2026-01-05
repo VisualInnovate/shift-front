@@ -23,7 +23,7 @@
             v-for="pro in paginatedProducts"
             :key="pro.id"
             class="group cursor-pointer"
-            @click="router.push({ name: 'Product-details', params: { id: pro.id } })"
+            @click="openProduct(pro)"
           >
             <div class="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden h-full flex flex-col">
               <!-- Image Container -->
@@ -259,6 +259,11 @@ const toggleFavorite = async (product) => {
     product.is_wished = wasWished;
   }
 };
+
+const openProduct = (product) => {
+  const url = `/product-details/${product.id}`
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
 
 // Lifecycle
 onBeforeMount(() => {

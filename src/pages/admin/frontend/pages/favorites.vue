@@ -41,7 +41,7 @@
           v-for="pro in favorites"
           :key="pro.id + '-' + (pro.variant_id || '')"
           class="group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-3 transition-all duration-300 cursor-pointer"
-          @click="router.push({ name: 'Product-details', params: { id: pro.id } })"
+          @click="openProduct(pro)"
         >
           <!-- Image -->
           <div class="aspect-square bg-gray-100 relative overflow-hidden">
@@ -181,6 +181,11 @@ const extractPage = (url) => {
   if (!url) return 1
   const match = url.match(/page=(\d+)/)
   return match ? parseInt(match[1]) : 1
+}
+
+const openProduct = (product) => {
+  const url = `/product-details/${product.id}`
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 // Fetch Wishlist

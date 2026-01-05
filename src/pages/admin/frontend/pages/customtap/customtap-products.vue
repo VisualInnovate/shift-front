@@ -25,7 +25,7 @@
           v-for="pro in products"
           :key="pro.id"
           class="group cursor-pointer"
-          @click="router.push({ name: 'Product-details', params: { id: pro.id } })"
+          @click="openProduct(pro)"
         >
           <div class="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden flex flex-col h-full">
 
@@ -218,6 +218,11 @@ const addToCart = async (product) => {
   } catch (err) {
     alert(t('cart.error'))
   }
+}
+
+const openProduct = (product) => {
+  const url = `/product-details/${product.id}`
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const toggleFavorite = async (product) => {

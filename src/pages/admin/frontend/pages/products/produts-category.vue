@@ -119,7 +119,7 @@
             v-for="pro in paginatedProducts"
             :key="pro.id"
             class="group cursor-pointer bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
-            @click="router.push({ name: 'Product-details', params: { id: pro.id } })"
+            @click="openProduct(pro)"
           >
             <!-- Image -->
             <div class="relative aspect-square bg-gray-100 overflow-hidden">
@@ -377,6 +377,11 @@ const toggleFavorite = async (product) => {
 
 const toggleFilter = (key) => {
   filtersExpanded.value[key] = !filtersExpanded.value[key]
+}
+
+const openProduct = (product) => {
+  const url = `/product-details/${product.id}`
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const onPageChange = (e) => {

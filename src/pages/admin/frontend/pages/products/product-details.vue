@@ -167,6 +167,9 @@
                 class="px-5 py-3 text-2xl font-bold hover:bg-gray-100 disabled:opacity-50 transition"
               >+</button>
             </div>
+            <div class="ml-4 text-lg font-bold">
+              {{ t('product.total') || 'Total' }}: {{ totalPrice }} {{ $t("currencyLabel") }}
+            </div>
           </div>
 
           <!-- Add to Cart Button -->
@@ -336,26 +339,45 @@ const defaultPlaceholder = 'https://via.placeholder.com/600?text=No+Image'
 
 // ==================== PRICE COMPUTED PROPERTIES ====================
 const originalPrice = computed(() => {
+  if (selectedVariant.value && selectedVariant.value.price != null) {
+    return parseFloat(selectedVariant.value.price || 0).toFixed(2)
+  }
   const base = parseFloat(pro.value.base_price || 0)
   return base.toFixed(2)
 })
 
 const finalPrice = computed(() => {
+  if (selectedVariant.value && selectedVariant.value.price != null) {
+    const base = parseFloat(selectedVariant.value.price || 0)
+    const discount = parseFloat(selectedVariant.value.total_discounts_value || 0)
+    const price = Math.max(0, base - discount)
+    return price.toFixed(2)
+  }
+
   const base = parseFloat(pro.value.base_price || 0)
   const discount = parseFloat(pro.value.total_discounts_value || 0)
   const providedAfter = parseFloat(pro.value.base_price_after_discount || 0)
 
-  // Prefer provided base_price_after_discount if valid, else calculate
   const price = providedAfter > 0 ? providedAfter : Math.max(0, base - discount)
   return price.toFixed(2)
 })
 
 const hasDiscount = computed(() => {
+  if (selectedVariant.value && selectedVariant.value.price != null) {
+    const discount = parseFloat(selectedVariant.value.total_discounts_value || 0)
+    return discount > 0.01
+  }
   const discount = parseFloat(pro.value.total_discounts_value || 0)
   return discount > 0.01
 })
 
 const discountPercentage = computed(() => {
+  if (selectedVariant.value && selectedVariant.value.price != null) {
+    const base = parseFloat(selectedVariant.value.price || 0)
+    const discount = parseFloat(selectedVariant.value.total_discounts_value || 0)
+    if (base <= 0 || discount <= 0) return 0
+    return Math.round((discount / base) * 100)
+  }
   const base = parseFloat(pro.value.base_price || 0)
   const discount = parseFloat(pro.value.total_discounts_value || 0)
   if (base <= 0 || discount <= 0) return 0
@@ -400,6 +422,14 @@ const ratingDistribution = computed(() => {
 })
 
 const displayedReviews = computed(() => reviews.value.slice(0, 5))
+
+const perItemPrice = computed(() => {
+  return parseFloat(finalPrice.value || 0)
+})
+
+const totalPrice = computed(() => {
+  return (perItemPrice.value * (quantity.value || 1)).toFixed(2)
+})
 
 // Methods
 const changeImg = (url) => (currentImg.value = url)
@@ -572,7 +602,8 @@ const fetchProductData = async () => {
       } else {
         selectedVariant.value = {
           variant_id: null,
-          price: pro.value.base_price_after_discount || pro.value.base_price,
+          price: pro.value.base_price,
+          total_discounts_value: pro.value.total_discounts_value,
           image: null,
           isOutOfStock: pro.value.is_stock === 0,
           in_cart: pro.value.in_cart

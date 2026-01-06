@@ -190,19 +190,18 @@ const editDiscount = (id) => {
 
           <Column field="en_name" :header="t('product.nameEn')" :sortable="true">
               <template #body="slotProps">
-                {{ slotProps.data.products[0]?.name_en }}
+                {{ slotProps.data.variants[0]?.product?.name_en || slotProps.data.products[0]?.name_en }}
               </template>
             </Column>
-              <Column field="name_ar" :header="t('product.nameAr')" :sortable="true">
+            <Column field="name_ar" :header="t('product.nameAr')" :sortable="true">
               <template #body="slotProps">
-                {{ slotProps.data.products[0]?.name_ar }}
+                {{ slotProps.data.variants[0]?.product?.name_ar || slotProps.data.products[0]?.name_ar }}
               </template>
             </Column>
 
-
-            <Column field="discount_value" :header="t('product.basePrice')" :sortable="true">
+            <Column field="price" :header="t('product.basePrice')" :sortable="true">
               <template #body="slotProps">
-                {{ slotProps.data.discount_value }}
+                {{ slotProps.data.variants[0]?.price || slotProps.data.products[0]?.base_price || slotProps.data.discount_value }}
               </template>
             </Column>
 

@@ -320,7 +320,7 @@ onMounted(async () => {
         <label class="block text-sm font-medium text-gray-700">
           {{ t('discount.select_variant') }} <span class="text-gray-500">(اختياري)</span>
         </label>
-        {{ discountData.variant_id }}
+
         <Dropdown
           v-model="discountData.variant_id"
           :options="variants"

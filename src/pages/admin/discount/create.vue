@@ -29,21 +29,39 @@ const loading = ref(false);
 const errors = ref({});
 
 const discountData = ref({
-  type: 'product',          // fixed
-  products: null,           // **single** product id (null = nothing selected)
-  discount_type: 1,         // fixed – Fixed Amount
+  product_id: null,     // selected product
+  variant_id: null,     // selected variant (optional)
+  discount_type: 1,     // fixed amount
   discount_value: null,
   expires_at: null
 });
 
 // ──────────────────────────────────────────────────────────────
-//  Product dropdown (searchable)
+//  Products & Variants
 // ──────────────────────────────────────────────────────────────
-const products = ref([]);               // raw objects from API
-const productSearch = ref('');          // what the user typed
-const productLoading = ref(false);      // spinner inside Dropdown
+const products = ref([]);
+const productSearch = ref('');
+const productLoading = ref(false);
 
-/** Debounce helper – prevents a request on every keystroke */
+const selectedProduct = computed(() => {
+  return products.value.find(p => p.id === discountData.value.product_id);
+});
+
+const variants = computed(() => {
+  if (!selectedProduct.value || !selectedProduct.value.has_variants) return [];
+  return selectedProduct.value.variants || [];
+});
+
+const showVariantDropdown = computed(() => {
+  return selectedProduct.value && selectedProduct.value.has_variants && variants.value.length > 0;
+});
+
+// Reset variant when product changes
+watch(() => discountData.value.product_id, () => {
+  discountData.value.variant_id = null;
+});
+
+/** Debounce helper */
 const debounce = (fn, delay) => {
   let timer;
   return (...args) => {
@@ -52,17 +70,15 @@ const debounce = (fn, delay) => {
   };
 };
 
-/** Fetch products from the backend */
+/** Fetch products */
 const fetchProducts = async () => {
   productLoading.value = true;
   try {
-    const { data } = await axios.get('/api/product', {
+    const { data } = await axios.get('/api/discount/create/data', {
       params: {
-        // send only when the user typed something
         ...(productSearch.value ? { search: productSearch.value } : {})
       }
     });
-    // Laravel pagination → data.data.data
     products.value = data.data.data ?? [];
   } catch (err) {
     console.error(err);
@@ -77,27 +93,23 @@ const fetchProducts = async () => {
   }
 };
 
-/** Debounced version – called from the Dropdown @filter */
 const debouncedFetch = debounce(fetchProducts, 300);
 
-/** When the user types inside the Dropdown */
 const onProductFilter = (event) => {
   productSearch.value = event.value ?? '';
   debouncedFetch();
 };
 
-/** When the component mounts – load *all* products (empty search) */
 onMounted(() => {
   fetchProducts();
 });
 
-/** Re-fetch when language changes – we only need the label, not new data */
 watch(currentLanguage, () => {
-  // keep the same objects, just the UI label will change via computed `labelField`
+  // Labels update automatically via computed labelField
 });
 
 /* -----------------------------------------------------------------
-   Validation class – unchanged except the field name for the product
+   Validation
    ----------------------------------------------------------------- */
 class Validation {
   constructor(errorsRef, t) {
@@ -106,7 +118,7 @@ class Validation {
   }
 
   required(value, fieldName) {
-    if (value === null || value === undefined || (Array.isArray(value) && value.length === 0)) {
+    if (value === null || value === undefined) {
       this.errors.value[fieldName] = this.t('validation.requiredFields', {
         field: this.t(`discount.${fieldName}`)
       });
@@ -115,14 +127,14 @@ class Validation {
     return true;
   }
 
-  numericRange(value, fieldName, min, max) {
+  numericRange(value, fieldName, min) {
     if (value === null || value === undefined || isNaN(value)) {
       this.errors.value[fieldName] = this.t('validation.requiredFields', {
         field: this.t(`discount.${fieldName}`)
       });
       return false;
     }
-    if (min !== null && value < min) {
+    if (min !== undefined && value < min) {
       this.errors.value[fieldName] = this.t('validation.minValue', {
         field: this.t(`discount.${fieldName}`),
         min
@@ -144,8 +156,8 @@ const submitForm = async () => {
   errors.value = {};
   const validator = new Validation(errors, t);
 
-  validator.required(discountData.value.products, 'select_product');
-  validator.numericRange(discountData.value.discount_value, 'discount_value', 0, null);
+  validator.required(discountData.value.product_id, 'select_product');
+  validator.numericRange(discountData.value.discount_value, 'discount_value', 0);
   validator.required(discountData.value.expires_at, 'expiration_date');
 
   if (!validator.isValid()) {
@@ -155,9 +167,14 @@ const submitForm = async () => {
   }
 
   loading.value = true;
+
+  // Determine if we're discounting a variant or the whole product
+  const isVariantSelected = discountData.value.variant_id !== null;
+  const finalId = isVariantSelected ? discountData.value.variant_id : discountData.value.product_id;
+
   const payload = {
-    type: discountData.value.type,
-    ids: [discountData.value.products],               // **array with one id**
+    type: isVariantSelected ? 'variant' : 'product',
+    ids: [finalId],
     discount_type: discountData.value.discount_type,
     discount_value: discountData.value.discount_value,
     expires_at: moment(discountData.value.expires_at).format('YYYY-MM-DD')
@@ -197,12 +214,11 @@ const submitForm = async () => {
     </h1>
 
     <form @submit.prevent="submitForm" class="space-y-6">
-      <!-- hidden fixed fields -->
-      <input type="hidden" v-model="discountData.type" />
+      <!-- Hidden fixed field -->
       <input type="hidden" v-model="discountData.discount_type" />
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- ────── Product (searchable dropdown) ────── -->
+        <!-- Product Dropdown (Required) -->
         <div class="space-y-2">
           <label for="product_id" class="block text-sm font-medium text-gray-700">
             {{ t('discount.select_product') }} <span class="text-red-500">*</span>
@@ -210,7 +226,7 @@ const submitForm = async () => {
 
           <Dropdown
             id="product_id"
-            v-model="discountData.products"
+            v-model="discountData.product_id"
             :options="products"
             :optionLabel="labelField"
             optionValue="id"
@@ -227,18 +243,41 @@ const submitForm = async () => {
           </small>
         </div>
 
-        <!-- ────── Discount Value ────── -->
+        <!-- Variant Dropdown (Optional - appears only if product has variants) -->
+        <div v-if="showVariantDropdown" class="space-y-2">
+          <label for="variant_id" class="block text-sm font-medium text-gray-700">
+            {{ t('discount.select_variant') }} <span class="text-gray-400">(اختياري)</span>
+          </label>
+
+          <Dropdown
+            id="variant_id"
+            v-model="discountData.variant_id"
+            :options="variants"
+            optionLabel="sku"
+            optionValue="id"
+            :placeholder="t('discount.apply_to_all_variants')"
+            class="w-full"
+            clearable
+          />
+          <small class="text-xs text-gray-500">
+            {{ t('discount.variant_hint') }}
+          </small>
+        </div>
+
+        <!-- Discount Value -->
         <div class="space-y-2">
           <label for="discount_value" class="block text-sm font-medium text-gray-700">
             {{ t('discount.discount_value') }} ({{ t('discount.fixed_amount') }})
             <span class="text-red-500">*</span>
           </label>
 
-          <InputText
-          type="number"
+          <InputNumber
             id="discount_value"
             v-model="discountData.discount_value"
-
+            mode="decimal"
+            :minFractionDigits="2"
+            :maxFractionDigits="2"
+            :min="0"
             :placeholder="t('discount.enter_discount_value')"
             class="w-full"
             :class="{ 'p-invalid': errors.discount_value }"
@@ -248,7 +287,7 @@ const submitForm = async () => {
           </small>
         </div>
 
-        <!-- ────── Expiration Date ────── -->
+        <!-- Expiration Date -->
         <div class="space-y-2">
           <label for="expires_at" class="block text-sm font-medium text-gray-700">
             {{ t('discount.expiration_date') }} <span class="text-red-500">*</span>
@@ -270,14 +309,14 @@ const submitForm = async () => {
         </div>
       </div>
 
-      <!-- ────── Buttons ────── -->
-      <div class="pt-4 flex justify-center space-x-4">
+      <!-- Buttons -->
+      <div class="pt-6 flex justify-center gap-6">
         <Button
           type="button"
           :label="t('discount.cancel')"
           icon="pi pi-times"
           @click="router.go(-1)"
-          class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg shadow-md"
+          severity="secondary"
           :disabled="loading"
         />
         <Button
@@ -285,7 +324,7 @@ const submitForm = async () => {
           :label="t('discount.create_discount')"
           icon="pi pi-plus"
           :loading="loading"
-          class="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md"
+          class="px-8"
         />
       </div>
     </form>
@@ -295,36 +334,20 @@ const submitForm = async () => {
 </template>
 
 <style scoped>
-/* RTL spacing */
-[dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
-  margin-right: 1rem;
+[dir="rtl"] .gap-6 > * {
+  margin-right: 1.5rem;
   margin-left: 0;
 }
 
-/* Invalid border */
 .p-invalid {
   @apply border-red-500 !important;
 }
 
-/* Small error text */
 .p-error {
-  @apply text-red-600 text-xs;
+  @apply text-red-600 text-xs block mt-1;
 }
 
-/* Dropdown scrollbars */
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper) {
-  scrollbar-width: thin;
-  scrollbar-color: #3b82f6 #f1f1f1;
-}
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar) {
-  width: 6px;
-}
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar-track) {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar-thumb) {
-  background-color: #3b82f6;
-  border-radius: 3px;
+.text-gray-400 {
+  font-size: 0.875rem;
 }
 </style>

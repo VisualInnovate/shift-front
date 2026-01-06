@@ -5,13 +5,11 @@ import { useToast } from 'primevue/usetoast';
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import Dropdown from 'primevue/dropdown';
-import MultiSelect from 'primevue/multiselect';
 import InputNumber from 'primevue/inputnumber';
 import Calendar from 'primevue/calendar';
 import Button from 'primevue/button';
 import Toast from 'primevue/toast';
 import moment from 'moment';
-import { debounce } from 'lodash';
 
 // ──────────────────────────────────────────────────────────────
 // i18n & Helpers
@@ -25,127 +23,102 @@ const route = useRoute();
 const toast = useToast();
 const { t } = useI18n();
 
+const isEdit = computed(() => !!route.params.id);
+
 // ──────────────────────────────────────────────────────────────
 // Form State
 // ──────────────────────────────────────────────────────────────
 const loading = ref(false);
 const errors = ref({});
-const isEdit = computed(() => !!route.params.id);
 
 const discountData = ref({
-  type: 'category',           // 'category' | 'product'
-  ids: [],                    // category ids (when type=category)
-  products: [],               // product ids (when type=product)
-  discount_type: 1,           // 1 = fixed, 2 = percentage
+  type: 'product',            // will be 'product' or 'variant' (determined dynamically)
+  product_id: null,           // selected product
+  variant_id: null,           // selected variant (if applicable)
+  discount_type: 1,           // 1 = fixed amount
   discount_value: null,
   expires_at: null
 });
 
 // ──────────────────────────────────────────────────────────────
-// Data Sources
+// Products & Variants
 // ──────────────────────────────────────────────────────────────
-const categories = ref([]);
 const products = ref([]);
-const categorySearchQuery = ref('');
-const productSearchQuery = ref('');
-const categoryLoading = ref(false);
+const productSearch = ref('');
 const productLoading = ref(false);
 
-// ──────────────────────────────────────────────────────────────
-// Validation Class
-// ──────────────────────────────────────────────────────────────
-class Validation {
-  constructor(errorsRef, t) {
-    this.errors = errorsRef;
-    this.t = t;
-  }
+const selectedProduct = computed(() => {
+  return products.value.find(p => p.id === discountData.value.product_id);
+});
 
-  required(value, fieldName) {
-    if (!value || (Array.isArray(value) && value.length === 0)) {
-      this.errors.value[fieldName] = this.t('validation.requiredFields', { field: this.t(`discount.${fieldName}`) });
-      return false;
-    }
-    return true;
-  }
+const variants = computed(() => {
+  return selectedProduct.value?.variants || [];
+});
 
-  numericRange(value, fieldName, min, max) {
-    if (value === null || value === undefined || isNaN(value)) {
-      this.errors.value[fieldName] = this.t('validation.requiredFields', { field: this.t(`discount.${fieldName}`) });
-      return false;
-    }
-    if (min !== null && value < min) {
-      this.errors.value[fieldName] = this.t('validation.minValue', { field: this.t(`discount.${fieldName}`), min });
-      return false;
-    }
-    if (max !== null && value > max) {
-      this.errors.value[fieldName] = this.t('validation.maxValue', { field: this.t(`discount.${fieldName}`), max });
-      return false;
-    }
-    return true;
+// Watch variants and auto-select first variant if available
+watch(variants, (newVariants) => {
+  if (newVariants.length > 0 && !discountData.value.variant_id) {
+    discountData.value.variant_id = newVariants[0].id;
+  } else if (newVariants.length === 0) {
+    discountData.value.variant_id = null;
   }
+});
 
-  validDate(value, fieldName) {
-    if (!value || !(value instanceof Date) || isNaN(value.getTime())) {
-      this.errors.value[fieldName] = this.t('validation.invalidDate', { field: this.t(`discount.${fieldName}`) });
-      return false;
-    }
-    return true;
-  }
+const showVariantDropdown = computed(() => {
+  return selectedProduct.value && selectedProduct.value.has_variants === true;
+});
 
-  isValid() {
-    return Object.keys(this.errors.value).length === 0;
-  }
-}
-
-// ──────────────────────────────────────────────────────────────
-// Fetch Categories
-// ──────────────────────────────────────────────────────────────
-const fetchCategories = async () => {
-  categoryLoading.value = true;
-  try {
-    const { data } = await axios.get('/api/category', {
-      params: { search: categorySearchQuery.value || undefined }
-    });
-    categories.value = data.data?.data || [];
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    toast.add({ severity: 'error', summary: t('error'), detail: t('error.categoryLoad'), life: 3000 });
-  } finally {
-    categoryLoading.value = false;
-  }
+// Product label with price handling null
+const productLabel = (p) => {
+  const name = p[labelField.value];
+  const price = p.base_price ? p.base_price : 'N/A';
+  return `${name} - ${price}`;
 };
 
-const debouncedFetchCategories = debounce(fetchCategories, 300);
-const onCategoryFilter = (event) => {
-  categorySearchQuery.value = event.value;
-  debouncedFetchCategories();
+// Variant label with price handling null
+const variantLabel = (v) => {
+  const price = v.price ? v.price : 'N/A';
+  return `${v.sku} - ${price}`;
 };
 
+// Reset variant when product changes
+watch(() => discountData.value.product_id, () => {
+  discountData.value.variant_id = null;
+});
+
 // ──────────────────────────────────────────────────────────────
-// Fetch Products (only when type=product and categories selected)
+// Fetch Products (with search)
 // ──────────────────────────────────────────────────────────────
 const fetchProducts = async () => {
-
+  productLoading.value = true;
   try {
-    const { data } = await axios.get('/api/product', {
+    const { data } = await axios.get('/api/discount/create/data', {
       params: {
-        search: productSearchQuery.value || undefined,
-        category_ids: discountData.value.ids.join(',')
+        search: productSearch.value || undefined,
+        per_page: 100  // Load all products to handle edit mode selection
       }
     });
-    products.value = data.data?.data || [];
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    toast.add({ severity: 'error', summary: t('error'), detail: t('error.productLoad'), life: 3000 });
+    products.value = data.data.data ?? [];
+  } catch (err) {
+    console.error(err);
+    toast.add({
+      severity: 'error',
+      summary: t('error'),
+      detail: t('error.productLoad'),
+      life: 3000
+    });
   } finally {
     productLoading.value = false;
   }
 };
 
-const debouncedFetchProducts = debounce(fetchProducts, 300);
+let debounceTimer;
+
 const onProductFilter = (event) => {
-  productSearchQuery.value = event.value;
-  debouncedFetchProducts();
+  console.log('Product filter event:', event);
+  productSearch.value = event.value ?? '';
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(fetchProducts, 300);
 };
 
 // ──────────────────────────────────────────────────────────────
@@ -157,17 +130,35 @@ const loadDiscount = async () => {
     const { data } = await axios.get(`/api/discount/${route.params.id}`);
     const d = data.data;
 
+    // Reset form
     discountData.value = {
-      type: d.type,
-      ids: d.type === 'category' ? d.ids : [],
-      products:  d.products ,
+      type: d.type, // 'product' or 'variant'
+      product_id: null,
+      variant_id: null,
       discount_type: d.discount_type,
-      discount_value: d.discount_value ,
+      discount_value: parseFloat(d.discount_value),
       expires_at: d.expires_at ? new Date(d.expires_at) : null
     };
-    fetchProducts()
-    // Preload categories
 
+    if (d.type === 'product' && d.products.length > 0) {
+      discountData.value.product_id = d.products[0].id;
+    } else if (d.type === 'variant' && d.variants.length > 0) {
+      const variant = d.variants[0];
+      discountData.value.product_id = variant.product_id;
+      discountData.value.variant_id = variant.id;
+    }
+
+    // Load all products so the selected one appears
+    await fetchProducts();
+    console.log( d.type );
+    // If still not found, try searching by name
+    if ( d.type === 'product' && d.products.length > 0) {
+      productSearch.value = d.products[0][labelField.value];
+      await fetchProducts();
+    } else if ( d.type === 'variant' && d.variants.length > 0) {
+      productSearch.value = d.variants[0].product[labelField.value];
+      await fetchProducts();
+    }
 
   } catch (error) {
     console.error('Error loading discount:', error);
@@ -184,56 +175,75 @@ const loadDiscount = async () => {
 };
 
 // ──────────────────────────────────────────────────────────────
-// Watchers
+// Validation
 // ──────────────────────────────────────────────────────────────
-watch(() => discountData.value.type, (newType) => {
-  discountData.value.ids = [];
-  discountData.value.products = [];
-  products.value = [];
-  errors.value = {};
-});
-
-watch(() => discountData.value.ids, (newIds) => {
-  if (discountData.value.type === 'product') {
-    discountData.value.products = [];
-    if (newIds.length > 0) {
-      fetchProducts();
-    } else {
-      products.value = [];
-    }
+class Validation {
+  constructor(errorsRef, t) {
+    this.errors = errorsRef;
+    this.t = t;
   }
-}, { deep: true });
+
+  required(value, fieldName) {
+    if (value === null || value === undefined) {
+      this.errors.value[fieldName] = this.t('validation.requiredFields', {
+        field: this.t(`discount.${fieldName}`)
+      });
+      return false;
+    }
+    return true;
+  }
+
+  numericRange(value, fieldName, min, max = null) {
+    if (value === null || isNaN(value)) {
+      this.errors.value[fieldName] = this.t('validation.requiredFields', {
+        field: this.t(`discount.${fieldName}`)
+      });
+      return false;
+    }
+    if (min !== null && value < min) {
+      this.errors.value[fieldName] = this.t('validation.minValue', { field: this.t(`discount.${fieldName}`), min });
+      return false;
+    }
+    if (max !== null && value > max) {
+      this.errors.value[fieldName] = this.t('validation.maxValue', { field: this.t(`discount.${fieldName}`), max });
+      return false;
+    }
+    return true;
+  }
+
+  isValid() {
+    return Object.keys(this.errors.value).length === 0;
+  }
+}
 
 // ──────────────────────────────────────────────────────────────
-// Submit Form (Create / Update)
+// Submit (Create / Update)
 // ──────────────────────────────────────────────────────────────
 const submitForm = async () => {
   errors.value = {};
   const validator = new Validation(errors, t);
 
-  validator.required(discountData.value.type, 'type');
-
-
-
-  validator.required(discountData.value.discount_type, 'discount_type');
-  validator.numericRange(
-    discountData.value.discount_value,
-    'discount_value',
-    0,
-    discountData.value.discount_type === 2 ? 100 : null
-  );
-  validator.validDate(discountData.value.expires_at, 'expiration_date');
+  validator.required(discountData.value.product_id, 'select_product');
+  validator.required(discountData.value.discount_type, 'discount_method');
+  validator.numericRange(discountData.value.discount_value, 'discount_value', 0);
+  validator.required(discountData.value.expires_at, 'expiration_date');
 
   if (!validator.isValid()) {
-    const firstError = Object.values(errors.value)[0];
-    toast.add({ severity: 'error', summary: t('error'), detail: firstError, life: 3000 });
+    const msg = Object.values(errors.value).join(', ');
+    toast.add({ severity: 'error', summary: t('error'), detail: msg, life: 3000 });
     return;
   }
 
   loading.value = true;
+
+  // Determine final type and ID
+  const applyToVariant = discountData.value.variant_id !== null;
+  const finalType = applyToVariant ? 'variant' : 'product';
+  const finalId = applyToVariant ? discountData.value.variant_id : discountData.value.product_id;
+
   const payload = {
-    type: discountData.value.type,
-    ids: discountData.value.type === 'product' ? discountData.value.products : discountData.value.ids,
+    type: finalType,
+    ids: [finalId],
     discount_type: discountData.value.discount_type,
     discount_value: discountData.value.discount_value,
     expires_at: moment(discountData.value.expires_at).format('YYYY-MM-DD')
@@ -248,11 +258,11 @@ const submitForm = async () => {
       toast.add({ severity: 'success', summary: t('success'), detail: t('discount.created_successfully'), life: 3000 });
     }
     router.push({ name: 'discount' });
-  } catch (error) {
+  } catch (err) {
     toast.add({
       severity: 'error',
       summary: t('error'),
-      detail: error.response?.data?.message || t('error.saveError'),
+      detail: err.response?.data?.message || t('error.saveError'),
       life: 3000
     });
   } finally {
@@ -263,10 +273,10 @@ const submitForm = async () => {
 // ──────────────────────────────────────────────────────────────
 // Lifecycle
 // ──────────────────────────────────────────────────────────────
-onMounted(() => {
-  fetchCategories();
+onMounted(async () => {
+  await fetchProducts();
   if (isEdit.value) {
-    loadDiscount();
+    await loadDiscount();
   }
 });
 </script>
@@ -281,63 +291,22 @@ onMounted(() => {
       {{ isEdit ? t('discount.edit_discount') : t('discount.create_new_discount') }}
     </h1>
 
-    <form @submit.prevent="submitForm" class="space-y-6">
-      <!-- Type Selector -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-2 hidden">
-          <label class="block text-sm font-medium text-gray-700">
-            {{ t('discount.discount_type') }} <span class="text-red-500">*</span>
-          </label>
-          <Dropdown
-            v-model="discountData.type"
-            :options="[
-              { label: t('discount.category'), value: 'category' },
-              { label: t('discount.product'), value: 'product' }
-            ]"
-            optionLabel="label"
-            optionValue="value"
-            :placeholder="t('discount.select_type')"
-            class="w-full"
-            :class="{ 'p-invalid': errors.type }"
-          />
-          <small v-if="errors.type" class="p-error">{{ errors.type }}</small>
-        </div>
-
-        <!-- Discount Type (Fixed / Percentage) -->
-        <div class="space-y-2 hidden">
-          <label class="block text-sm font-medium text-gray-700">
-            {{ t('discount.discount_method') }} <span class="text-red-500">*</span>
-          </label>
-          <Dropdown
-            v-model="discountData.discount_type"
-            :options="[
-              { label: t('discount.fixed_amount'), value: 1 },
-              { label: t('discount.percentage'), value: 2 }
-            ]"
-            optionLabel="label"
-            optionValue="value"
-            :placeholder="t('discount.select_method')"
-            class="w-full"
-            :class="{ 'p-invalid': errors.discount_type }"
-          />
-          <small v-if="errors.discount_type" class="p-error">{{ errors.discount_type }}</small>
-        </div>
-      </div>
+    <form @submit.prevent="submitForm" class="space-y-8">
 
 
-      <!-- Products (Only when type = product) -->
-      <div v-if="discountData.type === 'product'" class="space-y-2">
+      <!-- Product Selection -->
+      <div class="space-y-2">
         <label class="block text-sm font-medium text-gray-700">
           {{ t('discount.select_product') }} <span class="text-red-500">*</span>
         </label>
         <Dropdown
-          v-model="discountData.products[0]"
+          v-model="discountData.product_id"
           :options="products"
-          :optionLabel="labelField"
+          :optionLabel="productLabel"
           optionValue="id"
           filter
           :filterPlaceholder="t('discount.searchProducts')"
-          :placeholder="t('discount.select_products')"
+          :placeholder="t('discount.select_product')"
           :loading="productLoading"
           class="w-full"
           :class="{ 'p-invalid': errors.select_product }"
@@ -346,8 +315,28 @@ onMounted(() => {
         <small v-if="errors.select_product" class="p-error">{{ errors.select_product }}</small>
       </div>
 
+      <!-- Variant Selection (if product has variants) -->
+      <div v-if="showVariantDropdown" class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">
+          {{ t('discount.select_variant') }} <span class="text-gray-500">(اختياري)</span>
+        </label>
+        {{ discountData.variant_id }}
+        <Dropdown
+          v-model="discountData.variant_id"
+          :options="variants"
+          :optionLabel="variantLabel"
+          optionValue="id"
+          :placeholder="t('discount.apply_to_whole_product')"
+          class="w-full"
+          clearable
+        />
+        <small class="text-xs text-gray-600">
+          {{ t('discount.variant_hint') || 'اتركه فارغاً لتطبيق الخصم على المنتج بأكمله (جميع المتغيرات)' }}
+        </small>
+      </div>
+
+      <!-- Discount Value & Expiration Date -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Discount Value -->
         <div class="space-y-2">
           <label class="block text-sm font-medium text-gray-700">
             {{ t('discount.discount_value') }}
@@ -355,9 +344,13 @@ onMounted(() => {
             <span v-else>(%)</span>
             <span class="text-red-500">*</span>
           </label>
-          <InputText
-          type="number"
-                    v-model="discountData.discount_value"
+          <InputNumber
+            v-model="discountData.discount_value"
+            mode="decimal"
+            :minFractionDigits="2"
+            :maxFractionDigits="2"
+            :min="0"
+            :max="discountData.discount_type === 2 ? 100 : null"
             :placeholder="t('discount.enter_discount_value')"
             class="w-full"
             :class="{ 'p-invalid': errors.discount_value }"
@@ -365,7 +358,6 @@ onMounted(() => {
           <small v-if="errors.discount_value" class="p-error">{{ errors.discount_value }}</small>
         </div>
 
-        <!-- Expiration Date -->
         <div class="space-y-2">
           <label class="block text-sm font-medium text-gray-700">
             {{ t('discount.expiration_date') }} <span class="text-red-500">*</span>
@@ -376,21 +368,21 @@ onMounted(() => {
             dateFormat="yy-mm-dd"
             :placeholder="t('discount.select_expiration_date')"
             class="w-full"
-            :class="{ 'p-invalid': errors.expiration_date }"
             showIcon
+            :class="{ 'p-invalid': errors.expiration_date }"
           />
           <small v-if="errors.expiration_date" class="p-error">{{ errors.expiration_date }}</small>
         </div>
       </div>
 
-      <!-- Buttons -->
-      <div class="pt-4 flex justify-center space-x-4">
+      <!-- Submit Buttons -->
+      <div class="pt-6 flex justify-center gap-6">
         <Button
           type="button"
           :label="t('discount.cancel')"
           icon="pi pi-times"
           @click="router.go(-1)"
-          class="px-6 py-3 bg-gray-200 hover:bg-gray-300 mx-2 text-gray-700 rounded-lg shadow-md"
+          severity="secondary"
           :disabled="loading"
         />
         <Button
@@ -398,7 +390,6 @@ onMounted(() => {
           :label="isEdit ? t('discount.update_discount') : t('discount.create_discount')"
           icon="pi pi-check"
           :loading="loading"
-          class="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md"
         />
       </div>
     </form>
@@ -409,36 +400,15 @@ onMounted(() => {
 
 <style scoped>
 .p-invalid {
-  @apply border-red-500 ring-red-500;
+  @apply border-red-500 !important;
 }
 
 .p-error {
-  @apply text-red-600 text-xs;
+  @apply text-red-600 text-xs block mt-1;
 }
 
-:deep(.p-multiselect-panel .p-multiselect-items-wrapper),
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper) {
-  scrollbar-width: thin;
-  scrollbar-color: #3b82f6 #f1f1f1;
-}
-
-:deep(.p-multiselect-panel .p-multiselect-items-wrapper::-webkit-scrollbar),
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar) {
-  @apply w-1.5;
-}
-
-:deep(.p-multiselect-panel .p-multiselect-items-wrapper::-webkit-scrollbar-track),
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar-track) {
-  @apply bg-gray-100 rounded;
-}
-
-:deep(.p-multiselect-panel .p-multiselect-items-wrapper::-webkit-scrollbar-thumb),
-:deep(.p-dropdown-panel .p-dropdown-items-wrapper::-webkit-scrollbar-thumb) {
-  @apply bg-blue-500 rounded;
-}
-
-[dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
-  margin-left: 1rem;
+[dir="rtl"] .gap-6 > * {
+  margin-left: 1.5rem;
   margin-right: 0;
 }
 </style>

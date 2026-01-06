@@ -1,4 +1,4 @@
-import { settings } from 'ionicons/icons'
+import { search, settings } from 'ionicons/icons'
 import Password from 'primevue/password'
 
 export default {
@@ -1481,6 +1481,12 @@ export default {
     "hidePassword": "إخفاء كلمة المرور"
   },
   discount: {
+    apply_to_all_variants: "تطبيق على جميع المتغيرات",
+    searchProducts: "ابحث عن منتج...",
+    select_variant: "اختر المتغير",
+    select_product_variant: "اختر متغير المنتج",
+    create_discount: "إنشاء خصم",
+    variant_hint: "يمكنك اختيار متغير منتج معين لتطبيق الخصم عليه. إذا لم يتم اختيار أي متغير، فسيتم تطبيق الخصم على جميع المتغيرات للمنتج المحدد.",
     edit_discount: "تعديل الخصم",
     select_category: "اختر الكاتكورجي",
     select_product: "اختر المنتجات",

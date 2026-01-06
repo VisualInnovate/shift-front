@@ -198,6 +198,11 @@ const editDiscount = (id) => {
                 {{ slotProps.data.variants[0]?.product?.name_ar || slotProps.data.products[0]?.name_ar }}
               </template>
             </Column>
+              <Column field="sku" :header="t('product.sku')" :sortable="true">
+              <template #body="slotProps">
+                {{ slotProps.data.variants[0]?.sku }}
+              </template>
+            </Column>
 
             <Column field="price" :header="t('product.basePrice')" :sortable="true">
               <template #body="slotProps">

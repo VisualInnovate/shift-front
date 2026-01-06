@@ -1238,6 +1238,7 @@ export default {
     "missingParams": "معرف المتجر مفقود."
   },
   "product": {
+    "sku": "رمز المتغير",
     "total": "الإجمالي",
       discountsFilter: "منتجات تحوي خصومات",
     availabilityFilter: "التوفر",

@@ -225,6 +225,12 @@ const submitForm = async () => {
 
   validator.required(discountData.value.product_id, 'select_product');
   validator.required(discountData.value.discount_type, 'discount_method');
+  
+  // Variant is required if product has variants
+  if (selectedProduct.value && selectedProduct.value.has_variants) {
+    validator.required(discountData.value.variant_id, 'select_variant');
+  }
+  
   validator.numericRange(discountData.value.discount_value, 'discount_value', 0);
   validator.required(discountData.value.expires_at, 'expiration_date');
 
@@ -315,10 +321,10 @@ onMounted(async () => {
         <small v-if="errors.select_product" class="p-error">{{ errors.select_product }}</small>
       </div>
 
-      <!-- Variant Selection (if product has variants) -->
+      <!-- Variant Selection (Required if product has variants) -->
       <div v-if="showVariantDropdown" class="space-y-2">
         <label class="block text-sm font-medium text-gray-700">
-          {{ t('discount.select_variant') }} <span class="text-gray-500">(اختياري)</span>
+          {{ t('discount.select_variant') }} <span class="text-red-500">*</span>
         </label>
 
         <Dropdown
@@ -326,13 +332,11 @@ onMounted(async () => {
           :options="variants"
           :optionLabel="variantLabel"
           optionValue="id"
-          :placeholder="t('discount.apply_to_whole_product')"
+          :placeholder="t('discount.select_variant')"
           class="w-full"
-          clearable
+          :class="{ 'p-invalid': errors.select_variant }"
         />
-        <small class="text-xs text-gray-600">
-          {{ t('discount.variant_hint') || 'اتركه فارغاً لتطبيق الخصم على المنتج بأكمله (جميع المتغيرات)' }}
-        </small>
+        <small v-if="errors.select_variant" class="p-error">{{ errors.select_variant }}</small>
       </div>
 
       <!-- Discount Value & Expiration Date -->

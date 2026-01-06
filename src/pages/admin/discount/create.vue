@@ -157,6 +157,12 @@ const submitForm = async () => {
   const validator = new Validation(errors, t);
 
   validator.required(discountData.value.product_id, 'select_product');
+  
+  // Variant is required if product has variants
+  if (selectedProduct.value && selectedProduct.value.has_variants) {
+    validator.required(discountData.value.variant_id, 'select_variant');
+  }
+  
   validator.numericRange(discountData.value.discount_value, 'discount_value', 0);
   validator.required(discountData.value.expires_at, 'expiration_date');
 
@@ -243,10 +249,10 @@ const submitForm = async () => {
           </small>
         </div>
 
-        <!-- Variant Dropdown (Optional - appears only if product has variants) -->
+        <!-- Variant Dropdown (Required if product has variants) -->
         <div v-if="showVariantDropdown" class="space-y-2">
           <label for="variant_id" class="block text-sm font-medium text-gray-700">
-            {{ t('discount.select_variant') }} <span class="text-gray-400">(اختياري)</span>
+            {{ t('discount.select_variant') }} <span class="text-red-500">*</span>
           </label>
 
           <Dropdown
@@ -255,12 +261,12 @@ const submitForm = async () => {
             :options="variants"
             optionLabel="sku"
             optionValue="id"
-            :placeholder="t('discount.apply_to_all_variants')"
+            :placeholder="t('discount.select_variant')"
             class="w-full"
-            clearable
+            :class="{ 'p-invalid': errors.select_variant }"
           />
-          <small class="text-xs text-gray-500">
-            {{ t('discount.variant_hint') }}
+          <small v-if="errors.select_variant" class="p-error">
+            {{ errors.select_variant }}
           </small>
         </div>
 

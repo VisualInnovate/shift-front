@@ -48,6 +48,23 @@ const priceUpdateDialog = ref(false)
 const selectedPriceFile = ref(null)
 const priceUpdateLoading = ref(false)
 
+// New Dialogs for additional imports
+const updateCodesDialog = ref(false)
+const selectedCodesFile = ref(null)
+const updateCodesLoading = ref(false)
+
+const updateCentroDialog = ref(false)
+const selectedCentroFile = ref(null)
+const updateCentroLoading = ref(false)
+
+const updateShiftmartDialog = ref(false)
+const selectedShiftmartFile = ref(null)
+const updateShiftmartLoading = ref(false)
+
+const updateShift7Dialog = ref(false)
+const selectedShift7File = ref(null)
+const updateShift7Loading = ref(false)
+
 // Filter Dialog
 const filterDialog = ref(false)
 
@@ -72,13 +89,17 @@ const exportMenu = ref(null)
 const importItems = ref([
   { label: t('importProducts'), icon: 'pi pi-download', command: () => { importDialog.value = true } },
   { label: t('product.import_product_characteristics'), icon: 'pi pi-table', command: () => { importDialog2.value = true } },
-  { label: t('updatePrice'), icon: 'pi pi-dollar', command: () => { priceUpdateDialog.value = true } }
+  { label: t('updatePrice'), icon: 'pi pi-dollar', command: () => { priceUpdateDialog.value = true } },
+  { label: t('UpdateCodes'), icon: 'pi pi-code', command: () => { updateCodesDialog.value = true } },
+  { label: t('UpdateInStockCentro'), icon: 'pi pi-box', command: () => { updateCentroDialog.value = true } },
+  { label: t('UpdateInStockShiftmart'), icon: 'pi pi-box', command: () => { updateShiftmartDialog.value = true } },
+  { label: t('UpdateInStockShift7'), icon: 'pi pi-box', command: () => { updateShift7Dialog.value = true } }
 ])
 
 // Export Menu Items
 const exportItems = ref([
-  { label: t('exportProducts'), icon: 'pi pi-upload', command: () => { exportCSV() } },
-  { label: t('product.export_prices_features'), icon: 'pi pi-file-export', command: () => { export_prices_featuresCSV() } }
+  { label: t('exportProducts'), icon: 'pi pi-upload', command: () => { exportxlsx() } },
+  { label: t('product.export_prices_features'), icon: 'pi pi-file-export', command: () => { export_prices_featuresxlsx() } }
 ])
 
 // Fetch functions
@@ -168,11 +189,15 @@ watch(appLanguage, () => {
   importItems.value = [
     { label: t('importProducts'), icon: 'pi pi-download', command: () => { importDialog.value = true } },
     { label: t('product.import_product_characteristics'), icon: 'pi pi-table', command: () => { importDialog2.value = true } },
-    { label: t('updatePrice'), icon: 'pi pi-dollar', command: () => { priceUpdateDialog.value = true } }
+    { label: t('updatePrice'), icon: 'pi pi-dollar', command: () => { priceUpdateDialog.value = true } },
+    { label: t('UpdateCodes'), icon: 'pi pi-code', command: () => { updateCodesDialog.value = true } },
+    { label: t('UpdateInStockCentro'), icon: 'pi pi-box', command: () => { updateCentroDialog.value = true } },
+    { label: t('UpdateInStockShiftmart'), icon: 'pi pi-box', command: () => { updateShiftmartDialog.value = true } },
+    { label: t('UpdateInStockShift7'), icon: 'pi pi-box', command: () => { updateShift7Dialog.value = true } }
   ]
   exportItems.value = [
-    { label: t('product.exportProducts'), icon: 'pi pi-upload', command: () => { exportCSV() } },
-    { label: t('product.export_prices_features'), icon: 'pi pi-file-export', command: () => { export_prices_featuresCSV() } }
+    { label: t('product.exportProducts'), icon: 'pi pi-upload', command: () => { exportxlsx() } },
+    { label: t('product.export_prices_features'), icon: 'pi pi-file-export', command: () => { export_prices_featuresxlsx() } }
   ]
 })
 
@@ -230,7 +255,7 @@ const deleteProduct = () => {
 }
 
 // Export
-const exportCSV = () => {
+const exportxlsx = () => {
   const params = new URLSearchParams({
     search: searchQuery.value || '',
     category_id: selectedCategory.value || '',
@@ -240,10 +265,10 @@ const exportCSV = () => {
   const url = `/api/export/products?${params.toString()}`
   axios.get(url, { responseType: 'blob' })
     .then((response) => {
-      const blob = new Blob([response.data], { type: 'text/csv' })
+      const blob = new Blob([response.data], { type: 'text/xlsx' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = 'products_export.csv'
+      link.download = 'products_export.xlsx'
       link.click()
       toast.add({ severity: 'success', summary: t('success'), detail: t('product.exportSuccess'), life: 3000 })
     })
@@ -252,7 +277,7 @@ const exportCSV = () => {
     })
 }
 
-const export_prices_featuresCSV = () => {
+const export_prices_featuresxlsx = () => {
   const params = new URLSearchParams({
     search: searchQuery.value || '',
     category_id: selectedCategory.value || '',
@@ -262,10 +287,10 @@ const export_prices_featuresCSV = () => {
   const url = `/api/export/variants?${params.toString()}`
   axios.get(url, { responseType: 'blob' })
     .then((response) => {
-      const blob = new Blob([response.data], { type: 'text/csv' })
+      const blob = new Blob([response.data], { type: 'text/xlsx' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = 'products_variants_export.csv'
+      link.download = 'products_variants_export.xlsx'
       link.click()
       toast.add({ severity: 'success', summary: t('success'), detail: t('product.exportSuccess'), life: 3000 })
     })
@@ -276,11 +301,11 @@ const export_prices_featuresCSV = () => {
 
 // Download examples
 const downloadExample = () => {
-  const csvContent = 'store_id,category_id,market_id,name_en,name_ar,sku,brand_id,sub_name_en,sub_name_ar,description_en,description_ar,base_price,cost_price,tax\n1,1,1,Demo Product,منتج تجريبي,SKU001,1,Sub Demo,تجريبي فرعي,Description,وصف,15.50,10.00,0.05'
-  const blob = new Blob([csvContent], { type: 'text/csv' })
+  const xlsxContent = 'store_id,category_id,market_id,name_en,name_ar,sku,brand_id,sub_name_en,sub_name_ar,description_en,description_ar,base_price,cost_price,tax\n1,1,1,Demo Product,منتج تجريبي,SKU001,1,Sub Demo,تجريبي فرعي,Description,وصف,15.50,10.00,0.05'
+  const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
-  link.download = 'product_import_example.csv'
+  link.download = 'product_import_example.xlsx'
   link.click()
 }
 
@@ -289,37 +314,54 @@ const downloadExample2 = () => {
     { product_id: 84, variant_id: 9, price: 2 },
     { product_id: 1650, variant_id: 10, price: 0 },
     { product_id: 22516, variant_id: 11, price: 0.03 },
-    { product_id: 22516, variant_id: 12, price: 0.33 },
-    { product_id: 37864, variant_id: 19, price: 10 },
-    { product_id: 37864, variant_id: 20, price: 9 },
-    { product_id: 37864, variant_id: 21, price: 10 },
-    { product_id: 37864, variant_id: 22, price: 9 },
-    { product_id: 55, variant_id: 25, price: 0.77 }
+
   ]
   const headers = ['product_id', 'variant_id', 'price']
-  const csvContent = [headers.join(','), ...data.map(row => `${row.product_id},${row.variant_id},${row.price}`)].join('\n')
-  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+  const xlsxContent = [headers.join(','), ...data.map(row => `${row.product_id},${row.variant_id},${row.price}`)].join('\n')
+  const blob = new Blob(['\uFEFF' + xlsxContent], { type: 'text/xlsx;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.setAttribute('download', 'products_template.csv')
+  link.setAttribute('download', 'products_template.xlsx')
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
 }
 
 const downloadPriceExample = () => {
-  const csvContent = 'id,price,cost_price\n1,16.00,10.50\n2,23.50,15.00'
-  const blob = new Blob([csvContent], { type: 'text/csv' })
+  const xlsxContent = 'id,price,cost_price\n1,16.00,10.50\n2,23.50,15.00'
+  const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
-  link.download = 'product_price_update_example.csv'
+  link.download = 'product_price_update_example.xlsx'
+  link.click()
+}
+
+const downloadCodesExample = () => {
+  const xlsxContent = 'product_id,code\n1,ABC123\n2,DEF456'
+  const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = 'product_codes_update_example.xlsx'
+  link.click()
+}
+
+const downloadInStockExample = () => {
+  const xlsxContent = 'code,stock\n68d40e782e3a1,1'
+  const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = 'product_in_stock_update_example.xlsx'
   link.click()
 }
 
 // File handling
 const onFileSelect = (event) => { selectedFile.value = event.files[0] }
 const onPriceFileSelect = (event) => { selectedPriceFile.value = event.files[0] }
+const onCodesFileSelect = (event) => { selectedCodesFile.value = event.files[0] }
+const onCentroFileSelect = (event) => { selectedCentroFile.value = event.files[0] }
+const onShiftmartFileSelect = (event) => { selectedShiftmartFile.value = event.files[0] }
+const onShift7FileSelect = (event) => { selectedShift7File.value = event.files[0] }
 
 // Imports
 const importProducts = () => {
@@ -368,6 +410,70 @@ const updatePrices = () => {
     })
     .catch(() => toast.add({ severity: 'error', detail: t('product.priceUpdateError'), life: 3000 }))
     .finally(() => priceUpdateLoading.value = false)
+}
+
+const updateCodes = () => {
+  if (!selectedCodesFile.value) return toast.add({ severity: 'error', detail: t('validation.fileRequired'), life: 3000 })
+  updateCodesLoading.value = true
+  const formData = new FormData()
+  formData.append('file', selectedCodesFile.value)
+  axios.post('/api/product/update/codes', formData)
+    .then(() => {
+      toast.add({ severity: 'success', detail: 'Codes updated successfully', life: 3000 })
+      fetchData()
+      updateCodesDialog.value = false
+      selectedCodesFile.value = null
+    })
+    .catch(() => toast.add({ severity: 'error', detail: 'Failed to update codes', life: 3000 }))
+    .finally(() => updateCodesLoading.value = false)
+}
+
+const updateInStockCentro = () => {
+  if (!selectedCentroFile.value) return toast.add({ severity: 'error', detail: t('validation.fileRequired'), life: 3000 })
+  updateCentroLoading.value = true
+  const formData = new FormData()
+  formData.append('file', selectedCentroFile.value)
+  axios.post('/api/product/update/in-stock/centro', formData)
+    .then(() => {
+      toast.add({ severity: 'success', detail: 'In-stock for Centro updated successfully', life: 3000 })
+      fetchData()
+      updateCentroDialog.value = false
+      selectedCentroFile.value = null
+    })
+    .catch(() => toast.add({ severity: 'error', detail: 'Failed to update in-stock for Centro', life: 3000 }))
+    .finally(() => updateCentroLoading.value = false)
+}
+
+const updateInStockShiftmart = () => {
+  if (!selectedShiftmartFile.value) return toast.add({ severity: 'error', detail: t('validation.fileRequired'), life: 3000 })
+  updateShiftmartLoading.value = true
+  const formData = new FormData()
+  formData.append('file', selectedShiftmartFile.value)
+  axios.post('/api/product/update/in-stock/shiftmart', formData)
+    .then(() => {
+      toast.add({ severity: 'success', detail: 'In-stock for Shiftmart updated successfully', life: 3000 })
+      fetchData()
+      updateShiftmartDialog.value = false
+      selectedShiftmartFile.value = null
+    })
+    .catch(() => toast.add({ severity: 'error', detail: 'Failed to update in-stock for Shiftmart', life: 3000 }))
+    .finally(() => updateShiftmartLoading.value = false)
+}
+
+const updateInStockShift7 = () => {
+  if (!selectedShift7File.value) return toast.add({ severity: 'error', detail: t('validation.fileRequired'), life: 3000 })
+  updateShift7Loading.value = true
+  const formData = new FormData()
+  formData.append('file', selectedShift7File.value)
+  axios.post('/api/product/update/in-stock/shift7', formData)
+    .then(() => {
+      toast.add({ severity: 'success', detail: 'In-stock for Shift7 updated successfully', life: 3000 })
+      fetchData()
+      updateShift7Dialog.value = false
+      selectedShift7File.value = null
+    })
+    .catch(() => toast.add({ severity: 'error', detail: 'Failed to update in-stock for Shift7', life: 3000 }))
+    .finally(() => updateShift7Loading.value = false)
 }
 
 // Toggles
@@ -649,6 +755,63 @@ onMounted(() => {
           <template #footer>
             <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text" @click="priceUpdateDialog = false; selectedPriceFile = null" />
             <Button :label="t('product.updatePriceButton')" icon="pi pi-check" :loading="priceUpdateLoading" :disabled="!selectedPriceFile" @click="updatePrices" />
+          </template>
+        </Dialog>
+
+        <!-- New Dialogs -->
+        <Dialog v-model:visible="updateCodesDialog" :style="{ width: '450px' }" header="Update Product Codes" :modal="true">
+          <div class="flex flex-column gap-3">
+            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined" @click="downloadCodesExample" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onCodesFileSelect" :maxFileSize="10000000" chooseLabel="Select File" />
+            <div v-if="selectedCodesFile" class="mt-2">
+              <p class="font-semibold">Selected File: {{ selectedCodesFile.name }}</p>
+            </div>
+          </div>
+          <template #footer>
+            <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="updateCodesDialog = false; selectedCodesFile = null" />
+            <Button label="Update Codes" icon="pi pi-check" :loading="updateCodesLoading" :disabled="!selectedCodesFile" @click="updateCodes" />
+          </template>
+        </Dialog>
+
+        <Dialog v-model:visible="updateCentroDialog" :style="{ width: '450px' }" header="Update In-Stock Centro" :modal="true">
+          <div class="flex flex-column gap-3">
+            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined" @click="downloadInStockExample" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onCentroFileSelect" :maxFileSize="10000000" chooseLabel="Select File" />
+            <div v-if="selectedCentroFile" class="mt-2">
+              <p class="font-semibold">Selected File: {{ selectedCentroFile.name }}</p>
+            </div>
+          </div>
+          <template #footer>
+            <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="updateCentroDialog = false; selectedCentroFile = null" />
+            <Button label="Update In-Stock" icon="pi pi-check" :loading="updateCentroLoading" :disabled="!selectedCentroFile" @click="updateInStockCentro" />
+          </template>
+        </Dialog>
+
+        <Dialog v-model:visible="updateShiftmartDialog" :style="{ width: '450px' }" header="Update In-Stock Shiftmart" :modal="true">
+          <div class="flex flex-column gap-3">
+            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined" @click="downloadInStockExample" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onShiftmartFileSelect" :maxFileSize="10000000" chooseLabel="Select File" />
+            <div v-if="selectedShiftmartFile" class="mt-2">
+              <p class="font-semibold">Selected File: {{ selectedShiftmartFile.name }}</p>
+            </div>
+          </div>
+          <template #footer>
+            <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="updateShiftmartDialog = false; selectedShiftmartFile = null" />
+            <Button label="Update In-Stock" icon="pi pi-check" :loading="updateShiftmartLoading" :disabled="!selectedShiftmartFile" @click="updateInStockShiftmart" />
+          </template>
+        </Dialog>
+
+        <Dialog v-model:visible="updateShift7Dialog" :style="{ width: '450px' }" header="Update In-Stock Shift7" :modal="true">
+          <div class="flex flex-column gap-3">
+            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined" @click="downloadInStockExample" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onShift7FileSelect" :maxFileSize="10000000" chooseLabel="Select File" />
+            <div v-if="selectedShift7File" class="mt-2">
+              <p class="font-semibold">Selected File: {{ selectedShift7File.name }}</p>
+            </div>
+          </div>
+          <template #footer>
+            <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="updateShift7Dialog = false; selectedShift7File = null" />
+            <Button label="Update In-Stock" icon="pi pi-check" :loading="updateShift7Loading" :disabled="!selectedShift7File" @click="updateInStockShift7" />
           </template>
         </Dialog>
       </div>

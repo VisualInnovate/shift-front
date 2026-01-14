@@ -1,5 +1,4 @@
-import { search, settings } from 'ionicons/icons'
-import Password from 'primevue/password'
+
 
 export default {
   id: "الفهرس",
@@ -21,6 +20,7 @@ export default {
   cancel: 'إلغاء',
   remove: 'إزالة',
   currencyLabel: "د.أ",
+
   navigation: {
     "invoices": "الفواتير",
     "inventory": "ادارة المخازن",
@@ -1238,6 +1238,7 @@ export default {
     "missingParams": "معرف المتجر مفقود."
   },
   "product": {
+    "code": "كود المنتج",
     "sku": "رمز المتغير",
     "total": "الإجمالي",
       discountsFilter: "منتجات تحوي خصومات",
@@ -1600,4 +1601,8 @@ export default {
     newpassH: 'أنشيء كلمة مرور جديدة',
     newpassP: 'من خلال انشاء كلمة سر قوية يمكنك الحفاظ علي امان معلوماتك الشخصية',
   },
+    UpdateCodes: 'تحديث كود المنتجات ',
+   UpdateInStockCentro: 'تحديث المنتجات  المخزون في سينترو',
+   UpdateInStockShiftmart: 'تحديث المنتجات  المخزون في شيفت مارت',
+   UpdateInStockShift7: 'تحديث المنتجات  المخزون في شيفت سيف',
 }

@@ -55,6 +55,7 @@ const productData = ref({
   base_price: null,
   cost_price: null,
   tax: 0,
+  code: '',           // ← add this line
   is_displayed: true,
   is_stock: true,
   variants: []
@@ -100,6 +101,7 @@ const fetchProduct = async () => {
       category_id: data.category_id,
       brand_id: data.brand_id,
       sku: data.sku || '',
+      code: data.code || '',           // ← add this line
       name_en: data.name_en,
       name_ar: data.name_ar,
       sub_name_en: data.sub_name_en || '',
@@ -370,6 +372,7 @@ const submitForm = async () => {
   formData.append('category_id', productData.value.category_id);
   if (productData.value.brand_id) formData.append('brand_id', productData.value.brand_id);
   formData.append('sku', productData.value.sku || '');
+  formData.append('code', productData.value.code || '');     // ← add this line
   formData.append('name_en', productData.value.name_en);
   formData.append('name_ar', productData.value.name_ar);
   formData.append('sub_name_en', productData.value.sub_name_en || '');
@@ -379,6 +382,7 @@ const submitForm = async () => {
   formData.append('tax', productData.value.tax);
   formData.append('is_displayed', productData.value.is_displayed ? 1 : 0);
   formData.append('is_stock', productData.value.is_stock ? 1 : 0);
+
   formData.append('base_price', productData.value.base_price);
   formData.append('cost_price', productData.value.cost_price || 0);
 
@@ -514,6 +518,18 @@ const submitForm = async () => {
             :class="{ 'p-invalid': !productData.name_en }"
           />
         </div>
+        <div class="space-y-2">
+        <label for="code" class="block text-sm font-medium text-gray-700">
+          {{ t('product.code') }}
+          <!-- No red * because it's optional -->
+        </label>
+        <InputText
+          id="code"
+          v-model="productData.code"
+          class="w-full"
+          placeholder="e.g. PROD-456 / supplier code"
+        />
+      </div>
 
         <!-- Arabic Name -->
         <div class="space-y-2">

@@ -225,12 +225,12 @@ const submitForm = async () => {
 
   validator.required(discountData.value.product_id, 'select_product');
   validator.required(discountData.value.discount_type, 'discount_method');
-  
+
   // Variant is required if product has variants
   if (selectedProduct.value && selectedProduct.value.has_variants) {
     validator.required(discountData.value.variant_id, 'select_variant');
   }
-  
+
   validator.numericRange(discountData.value.discount_value, 'discount_value', 0);
   validator.required(discountData.value.expires_at, 'expiration_date');
 

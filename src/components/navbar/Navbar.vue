@@ -8,6 +8,7 @@
           :color="colors.primary"
           @click="isSidebarMinimized = !isSidebarMinimized"
         />
+        <NotificationDropdown class="va-navbar__item"  />
         <router-link to="/">
           <vuestic-logo class="logo" />
         </router-link>
@@ -30,6 +31,7 @@
   import VaIconMenuCollapsed from '../icons/VaIconMenuCollapsed.vue'
   import AppNavbarActions from './components/AppNavbarActions.vue'
   import LocaleSelect from '../LocaleSelect.vue'
+import  NotificationDropdown  from './components/dropdowns/NotificationDropdown.vue'
 
   const GlobalStore = useGlobalStore()
   const { t } = useI18n()

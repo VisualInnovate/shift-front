@@ -43,6 +43,7 @@ const productData = ref({
   description_en: '',
   description_ar: '',
   base_price: null,
+  code: '',           // ← add this line
   cost_price: null,
   tax: 0,
   is_displayed: true,
@@ -297,7 +298,9 @@ const submitForm = async () => {
   formData.append('is_displayed', productData.value.is_displayed ? 1 : 0);
   formData.append('base_price', productData.value.base_price);
   formData.append('cost_price', productData.value.cost_price || 0);
-
+  if (productData.value.code) {
+    formData.append('code', productData.value.code);
+  }
   // Append main image
   formData.append('main_image', mainImage.value);
 
@@ -412,6 +415,19 @@ const submitForm = async () => {
             :class="{ 'p-invalid': !hasVariants && !productData.sku }"
           />
         </div>
+        <!-- Custom Code (optional) -->
+<div class="space-y-2">
+  <label for="code" class="block text-sm font-medium text-gray-700">
+    {{ t('product.code') }}
+    <!-- No * because it's not required -->
+  </label>
+  <InputText
+    id="code"
+    v-model="productData.code"
+    class="w-full"
+    placeholder="e.g. PROD-2025-001"
+  />
+</div>
 
         <!-- English Name -->
         <div class="space-y-2">

@@ -129,6 +129,7 @@ export default {
   "to": "إلى",
   "from": "من",
   "order": {
+    "unitPrice": "سعر الوحدة",
     "notes": "ملاحظات الطلب",
     "name": "اسم الزبون",
     "total": "الاجمالي ",

@@ -1633,5 +1633,5 @@ export default {
     UpdateCodes: 'تحديث كود المنتجات ',
    UpdateInStockCentro: 'تحديث المنتجات  المخزون في سينترو',
    UpdateInStockShiftmart: 'تحديث المنتجات  المخزون في شيفت مارت',
-   UpdateInStockShift7: 'تحديث المنتجات  المخزون في شيفت سيف',
+   UpdateInStockShift7: 'تحديث المنتجات  المخزون في شيفت مول',
 }

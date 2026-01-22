@@ -22,6 +22,7 @@ export default {
   currencyLabel: "د.أ",
 
   navigation: {
+    "shiftmartfile": "ملفات شيفت مارت",
     "invoices": "الفواتير",
     "inventory": "ادارة المخازن",
     "shipping": "إعدادات التوصيل",
@@ -90,6 +91,33 @@ export default {
     "loadError": "فشل تحميل إعدادات الشحن",
     "loadStoresError": "فشل تحميل المتاجر"
   },
+  "shiftmart": {
+    "title": "إدارة ملفات شيفت مارت",
+    "uploadFile": "رفع ملف جديد",
+    "chooseFile": "اختر ملف",
+    "download": "تحميل الملف",
+    "delete": "حذف الملف",
+    "id": "المعرف",
+    "createdAt": "تاريخ الإنشاء",
+    "noFiles": "لم يتم العثور على ملفات.",
+    "deleteConfirmTitle": "تأكيد الحذف",
+    "deleteConfirmMessage": "هل أنت متأكد من رغبتك في حذف هذا الملف؟ لا يمكن التراجع عن هذا الإجراء.",
+    "uploadSuccess": "تم رفع الملف بنجاح",
+    "uploadError": "فشل في رفع الملف",
+    "deleteSuccess": "تم حذف الملف بنجاح",
+    "deleteError": "فشل في حذف الملف",
+    "loadError": "حدث خطأ أثناء تحميل الملفات"
+  },
+  "actions": "الإجراءات",
+  "success": "نجاح",
+  "error": "خطأ",
+  "confirm": "تأكيد",
+  "cancel": "إلغاء",
+  "yes": "نعم",
+  "no": "لا",
+  "showing": "عرض",
+  "to": "إلى",
+  "from": "من أصل",
   user: {
     managementTitle: "ادارة المستخدمين",
     new: 'جديد',

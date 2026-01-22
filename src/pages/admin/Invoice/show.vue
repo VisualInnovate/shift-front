@@ -147,7 +147,9 @@
           <p><strong>{{ t('invoice.date') }}:</strong> {{ formatDate(invoice?.created_at) }}</p>
         </div>
         <div class="col-6 text-right">
-          <p><strong>{{ t('customer') }}:</strong> {{ invoice?.user?.name }}</p>
+          <p ><strong>{{ t('name') }}:</strong> {{ invoice?.user?.name }}</p>
+          <p v-if="invoice?.user?.phone"><strong>{{ t('user.phone') }}:</strong> {{ invoice?.user?.phone }}</p>
+          <p v-if="invoice?.user?.email"><strong>{{ t('user.email') }}:</strong> {{ invoice?.user?.email }}</p>
         </div>
       </div>
       <table class="w-full mt-6 border-collapse">

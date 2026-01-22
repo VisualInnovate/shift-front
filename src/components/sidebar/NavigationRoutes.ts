@@ -116,6 +116,12 @@ export default {
       disabled: true,
       children: [
         {
+          name: 'shiftmartfile',
+          displayName: 'navigation.shiftmartfile',
+          show: 'list stores',
+          meta: { icon: 'folder' }
+        },
+        {
           name: 'stores',
           displayName: 'navigation.stores',
           show: 'list stores',

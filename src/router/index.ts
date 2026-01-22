@@ -288,6 +288,11 @@ const routes: Array<RouteRecordRaw> = [
         path: 'Permission',
         component: () => import('../pages/admin/Permissions/index.vue'),
       },
+       {
+        name: 'shiftmartfile',
+        path: 'shiftmartfile',
+        component: () => import('../pages/admin/products/shiftmartfile/index.vue'),
+      },
       {
         name: 'statistics',
         path: 'users_management',

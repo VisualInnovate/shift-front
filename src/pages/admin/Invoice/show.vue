@@ -8,67 +8,68 @@
             <div>
               <h2 class="m-0">{{ t('invoice.details') }} #{{ invoice?.number }}</h2>
             </div>
-            <div>
+            <div class="flex gap-2">
               <Button
                 :label="t('print')"
                 icon="pi pi-print"
-                class="p-button-success mr-2"
+                class="p-button-success"
                 @click="printInvoice"
               />
-
+              <Button
+                :label="t('back')"
+                icon="pi pi-arrow-left"
+                class="p-button-secondary"
+                @click="goBack"
+              />
             </div>
           </div>
         </template>
 
         <template #content>
-          <!-- Loading -->
           <div v-if="loading" class="flex justify-content-center py-8">
             <ProgressSpinner />
           </div>
 
-          <!-- Invoice Content -->
           <div v-else-if="invoice" class="invoice-content" dir="auto">
-            <!-- Header -->
             <div class="grid mb-5">
-              <div class="col-6">
-                <h3 class="text-primary">{{ t('invoice.invoice') }}</h3>
-                <p><strong>{{ t('invoice.number') }}:</strong> {{ invoice.number }}</p>
-                <p><strong>{{ t('invoice.date') }}:</strong> {{ invoice.created_at}}</p>
+              <div class="col-12 md:col-6">
+                <h3 class="text-primary mb-3">{{ t('invoice.invoice') }}</h3>
+                <div class="invoice-info-item mb-2">
+                  <strong>{{ t('invoice.number') }}:</strong> {{ invoice.number }}
+                </div>
+                <div class="invoice-info-item mb-2">
+                  <strong>{{ t('invoice.date') }}:</strong> {{ formatDate(invoice.created_at) }}
+                </div>
+                <div class="invoice-info-item mb-2">
+                  <strong>{{ t('name') }}:</strong> {{ invoice.user?.name || '-' }}
+                </div>
               </div>
-              <div class="col-6 text-right">
-                <p><strong>{{ t('name') }}:</strong> {{ invoice.user?.name || '-' }}</p>
 
-              </div>
+
             </div>
 
             <Divider />
 
-            <!-- Items Table -->
             <h4 class="mb-3">{{ t('invoice.items') }}</h4>
-            <DataTable :value="invoice.items" responsiveLayout="scroll">
+            <DataTable :value="invoice.items" responsiveLayout="scroll" class="p-datatable-sm">
               <Column header="#" headerStyle="width: 3rem">
                 <template #body="slotProps">
                   {{ slotProps.index + 1 }}
                 </template>
               </Column>
 
-              <Column :header="t('product')">
+              <Column :header="t('navigation.products')">
                 <template #body="slotProps">
-                  <div class="flex align-items-center gap-3">
-
-                    <div>
-                      <div class="font-medium">
-                        {{ getProductName(slotProps.data.product) }}
-                      </div>
-                      <small class="text-500">
-                        {{ lang === 'ar' ? slotProps.data.product.sub_name_ar : slotProps.data.product.sub_name_en }}
-                      </small>
-                    </div>
+                  <div class="flex flex-column">
+                    <span class="font-medium">{{ getProductName(slotProps.data.product) }}</span>
+                    <small class="text-500">
+                      {{ lang === 'ar' ? slotProps.data.product.sub_name_ar : slotProps.data.product.sub_name_en }}
+                    </small>
                   </div>
                 </template>
               </Column>
 
-              <Column field="quantity" :header="t('quantity')" style="width: 100px; text-align: center" />
+              <Column field="quantity" :header="t('quantity')" class="text-center" style="width: 100px" />
 
               <Column :header="t('price')">
                 <template #body="slotProps">
@@ -78,118 +79,105 @@
 
               <Column :header="t('total')">
                 <template #body="slotProps">
-                  <strong>{{ formatCurrency(parseFloat(slotProps.data.price) * slotProps.data.quantity) }}</strong>
+                  <span class="font-bold">{{ formatCurrency(parseFloat(slotProps.data.price) * slotProps.data.quantity) }}</span>
                 </template>
               </Column>
             </DataTable>
 
             <Divider />
 
-            <!-- Summary -->
             <div class="grid">
-              <div class="col-12 md:col-6"></div>
-              <div class="col-12 md:col-6">
-                <div class="bg-gray-50 border-round p-4">
+              <div class="col-12 md:col-7"></div>
+              <div class="col-12 md:col-5">
+                <div class="surface-50 border-round p-4">
                   <div class="flex justify-content-between mb-2">
                     <span>{{ t('invoice.subTotal') }}</span>
-                    <strong>{{ formatCurrency(invoice.sub_total_price) }}</strong>
+                    <span class="font-medium">{{ formatCurrency(invoice.sub_total_price) }}</span>
                   </div>
                   <div class="flex justify-content-between mb-2">
                     <span>{{ t('invoice.tax') }}</span>
-                    <strong>{{ formatCurrency(invoice.tax_fee) }}</strong>
+                    <span class="font-medium">{{ formatCurrency(invoice.tax_fee) }}</span>
                   </div>
-                  <div class="flex justify-content-between mb-2">
-                    <span>{{ t('invoice.deliveryFee') }}</span>
-                    <strong>{{ formatCurrency(invoice.delivery_fee) }}</strong>
-                  </div>
-                  <div class="flex justify-content-between mb-2">
-                    <span>{{ t('invoice.serviceFee') }}</span>
-                    <strong>{{ formatCurrency(invoice.service_fee) }}</strong>
-                  </div>
-                  <div class="flex justify-content-between mb-2">
+                  <div class="flex justify-content-between mb-2 text-pink-500" v-if="invoice.coupon > 0">
                     <span>{{ t('invoice.coupon') }}</span>
-                    <strong>-{{ formatCurrency(invoice.coupon) }}</strong>
+                    <span>-{{ formatCurrency(invoice.coupon) }}</span>
                   </div>
 
-                  <Divider class="my-3" />
+                  <Divider />
 
-                  <div class="flex justify-content-between text-xl">
-                    <strong>{{ t('invoice.total') }}</strong>
-                    <strong class="text-primary">{{ formatCurrency(invoice.total_price) }}</strong>
+                  <div class="flex justify-content-between text-xl font-bold">
+                    <span>{{ t('invoice.total') }}</span>
+                    <span class="text-primary">{{ formatCurrency(invoice.total_price) }}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Footer Note -->
-            <div class="text-center mt-6 text-600">
+            <div class="text-center mt-6 text-500">
               <p>{{ t('invoice.thankYou') }}</p>
             </div>
           </div>
 
-          <!-- No Data -->
-          <div v-else class="text-center py-8 text-600">
-            <i class="pi pi-exclamation-triangle text-5xl mb-3"></i>
-            <p class="text-xl">{{ t('invoice.notFound') }}</p>
+          <div v-else class="text-center py-8">
+            <i class="pi pi-exclamation-circle text-5xl text-400 mb-3"></i>
+            <p class="text-xl text-600">{{ t('invoice.notFound') }}</p>
           </div>
         </template>
       </Card>
     </div>
   </div>
 
-  <!-- Print Window (Hidden) -->
   <div id="print-section" class="hidden">
-    <div class="p-8" dir="auto">
-      <h1 class="text-3xl font-bold text-center mb-6">{{ t('invoice.invoice') }} #{{ invoice?.number }}</h1>
-      <div class="grid">
-        <div class="col-6">
+    <div class="print-container" :dir="lang === 'ar' ? 'rtl' : 'ltr'">
+      <div class="header-grid">
+        <div class="info-col">
+          <h1 class="invoice-title">{{ t('invoice.invoice') }}</h1>
           <p><strong>{{ t('invoice.number') }}:</strong> {{ invoice?.number }}</p>
           <p><strong>{{ t('invoice.date') }}:</strong> {{ formatDate(invoice?.created_at) }}</p>
+          <p><strong>{{ t('name') }}:</strong> {{ invoice?.user?.name }}</p>
         </div>
-        <div class="col-6 text-right">
-          <p ><strong>{{ t('name') }}:</strong> {{ invoice?.user?.name }}</p>
-          <p v-if="invoice?.user?.phone"><strong>{{ t('user.phone') }}:</strong> {{ invoice?.user?.phone }}</p>
-          <p v-if="invoice?.user?.email"><strong>{{ t('user.email') }}:</strong> {{ invoice?.user?.email }}</p>
+        <div class="qr-col">
+          <div id="qr-code-print" class="qr-wrapper">
+             <qrcode-vue :value="qrValue" :size="120" level="H" render-as="canvas" />
+          </div>
         </div>
       </div>
-      <table class="w-full mt-6 border-collapse">
+
+      <table class="items-table">
         <thead>
-          <tr class="bg-gray-100">
-            <th class="border p-3 text-left">#</th>
-            <th class="border p-3 text-left">{{ t('product') }}</th>
-            <th class="border p-3 text-center">{{ t('quantity') }}</th>
-            <th class="border p-3 text-right">{{ t('price') }}</th>
-            <th class="border p-3 text-right">{{ t('total') }}</th>
+          <tr>
+            <th>#</th>
+            <th>{{ t('navigation.products') }}</th>
+            <th class="text-center">{{ t('quantity') }}</th>
+            <th class="text-right">{{ t('price') }}</th>
+            <th class="text-right">{{ t('total') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(item, i) in invoice?.items" :key="i">
-            <td class="border p-3">{{ i + 1 }}</td>
-            <td class="border p-3">{{ getProductName(item.product) }}</td>
-            <td class="border p-3 text-center">{{ item.quantity }}</td>
-            <td class="border p-3 text-right">{{ formatCurrency(item.price) }}</td>
-            <td class="border p-3 text-right font-bold">
-              {{ formatCurrency(parseFloat(item.price) * item.quantity) }}
-            </td>
+            <td>{{ i + 1 }}</td>
+            <td>{{ getProductName(item.product) }}</td>
+            <td class="text-center">{{ item.quantity }}</td>
+            <td class="text-right">{{ formatCurrency(item.price) }}</td>
+            <td class="text-right">{{ formatCurrency(parseFloat(item.price) * item.quantity) }}</td>
           </tr>
         </tbody>
       </table>
-      <div class="text-right mt-6 text-xl">
-        <p><strong>{{ t('invoice.total') }}:</strong> {{ formatCurrency(invoice?.total_price) }}</p>
-      </div>
-      <div class="text-center mt-8 text-gray-600">
-        <p>{{ t('invoice.thankYou') }}</p>
-      </div>
+
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
+import QrcodeVue from 'qrcode.vue'
+
+// UI Components
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
@@ -207,6 +195,11 @@ const invoice = ref(null)
 const loading = ref(true)
 const lang = localStorage.getItem('appLang') || 'en'
 
+// الرابط الذي يفتح عند مسح الكود
+const qrValue = computed(() => {
+  return `${window.location.origin}/order-details/${invoice.value?.order.number}`
+})
+
 const fetchInvoice = async () => {
   loading.value = true
   try {
@@ -214,83 +207,81 @@ const fetchInvoice = async () => {
     if (res.data?.is_success && res.data?.data) {
       invoice.value = res.data.data
     } else {
-      throw new Error(res.data?.message || 'No data')
+      throw new Error('No data')
     }
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: t('invoice.loadError') || 'Failed to load invoice',
-      life: 5000
-    })
+    toast.add({ severity: 'error', summary: t('error'), detail: t('invoice.loadError'), life: 3000 })
   } finally {
     loading.value = false
   }
 }
 
-const getProductName = (product) => {
-  return lang === 'ar' ? product.name_ar : product.name_en
-}
-
-const getProductImage = (product) => {
-  if (product.media?.[0]?.url) return product.media[0].url
-  return product.key_default_image || '/images/no-image.png'
-}
-
-const formatCurrency = (value) => {
-  return `${parseFloat(value || 0).toFixed(2)} ${t('currencyLabel')}`
-}
-
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString(lang === 'ar' ? 'ar' : 'en', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
+const getProductName = (p) => lang === 'ar' ? p.name_ar : p.name_en
+const formatCurrency = (v) => `${parseFloat(v || 0).toFixed(2)} ${t('currencyLabel')}`
+const formatDate = (d) => d ? new Date(d).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US') : ''
 
 const printInvoice = () => {
+  const qrCanvas = document.querySelector('#qr-code-print canvas')
+  const qrImage = qrCanvas ? qrCanvas.toDataURL("image/png") : ''
   const printContent = document.getElementById('print-section').innerHTML
   const win = window.open('', '', 'height=800,width=1000')
+
   win.document.write(`
     <html>
       <head>
-        <title>Invoice ${invoice.value?.number}</title>
+        <title>Invoice #${invoice.value?.number}</title>
         <style>
-          body { font-family: DejaVu Sans, sans-serif; direction: ${lang === 'ar' ? 'rtl' : 'ltr'}; }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { border: 1px solid #ddd; padding: 8px; }
-          th { background-color: #f4f4f4; }
+          body { font-family: 'Arial', sans-serif; margin: 0; padding: 30px; }
+          .print-container { width: 100%; max-width: 800px; margin: auto; }
+          .header-grid { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+          .invoice-title { color: #2563eb; margin: 0; font-size: 28px; }
+          .qr-wrapper img { border: 1px solid #eee; display: block; }
+          .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          .items-table th { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 10px; text-align: inherit; }
+          .items-table td { border: 1px solid #e5e7eb; padding: 10px; }
+          .summary-section { margin-top: 20px; display: flex; justify-content: flex-end; }
+          .summary-box { width: 250px; border-top: 2px solid #2563eb; padding-top: 10px; }
+          .summary-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; }
+          [dir="rtl"] { direction: rtl; }
           .text-right { text-align: right; }
+          .text-center { text-align: center; }
         </style>
       </head>
-      <body>${printContent}</body>
+      <body>
+        ${printContent}
+        <script>
+          const container = document.querySelector('.qr-wrapper');
+          if (container) container.innerHTML = '<img src="${qrImage}" width="120" height="120" />';
+        <\/script>
+      </body>
     </html>
   `)
   win.document.close()
-  win.focus()
-  setTimeout(() => win.print(), 500)
+  setTimeout(() => { win.focus(); win.print(); win.close(); }, 500)
 }
 
-const goBack = () => {
-  router.push({ name: 'invoices' }) // or 'orders'
-}
-
-onMounted(() => {
-  fetchInvoice()
-})
+const goBack = () => router.back()
+onMounted(fetchInvoice)
 </script>
 
 <style scoped>
-@media print {
-  .hidden {
-    display: block !important;
-  }
-  body > *:not(#print-section) {
-    display: none !important;
-  }
-  #print-section {
-    display: block !important;
-  }
+/* حل مشكلة تمدد الـ QR Code */
+.qr-container {
+  display: inline-block;
+  line-height: 0; /* يمنع المسافات الغريبة */
+  width: fit-content;
+}
+
+.qr-code-canvas {
+  display: block !important;
+  max-width: 100%;
+  height: 100px !important; /* يحافظ على التناسب */
+}
+
+.hidden { display: none; }
+
+.invoice-info-item {
+  font-size: 1.1rem;
+  color: #4b5563;
 }
 </style>

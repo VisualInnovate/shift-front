@@ -13,7 +13,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/:catchAll(.*)',
     redirect: { name: 'dashboard' },
   },
+ {
+        name: 'order-details',
+        path: '/order-details/:id',
+        component: () => import('../pages/admin/orders/Noauthshow.vue'),
 
+      },
      {
         name: 'terms-condition',
         path: '/terms-condition',

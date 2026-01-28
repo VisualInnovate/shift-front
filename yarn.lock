@@ -4631,6 +4631,11 @@ pusher-js@*, pusher-js@^8.4.0:
   dependencies:
     tweetnacl "^1.0.3"
 
+qrcode.vue@^3.6.0:
+  version "3.6.0"
+  resolved "https://registry.npmjs.org/qrcode.vue/-/qrcode.vue-3.6.0.tgz"
+  integrity sha512-vQcl2fyHYHMjDO1GguCldJxepq2izQjBkDEEu9NENgfVKP6mv/e2SU62WbqYHGwTgWXLhxZ1NCD1dAZKHQq1fg==
+
 queue-microtask@^1.2.2:
   version "1.2.3"
   resolved "https://registry.npmjs.org/queue-microtask/-/queue-microtask-1.2.3.tgz"

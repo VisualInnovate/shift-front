@@ -41,6 +41,7 @@ export const useAuthStore = defineStore('Auth', {
         const response = await axios.post('/api/login', {
           email: data.email,
           password: data.password,
+          user_type: 'admin',
         })
 
         if (response.data.data?.access_token) {

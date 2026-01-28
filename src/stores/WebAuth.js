@@ -52,14 +52,18 @@ export const useAuthStore = defineStore('Auth', {
       this.errors = [];
       try {
         const payload = data.type === 'phone'
-          ? { phone: `${data.countryCode}${data.phoneNumber}`, password: data.password }
-          : { email: data.email, password: data.password };
+          ? { phone: `${data.countryCode}${data.phoneNumber}`, user_type: 'user' }
+          : { email: data.email,user_type: 'user'};
         const response = await axios.post('/api/login', payload);
         if (response.data.is_success) {
           this.authenticatedweb = true;
           this.webToken = response.data.data.access_token;
           this.webUser = response.data.data.user;
-          this.router.push({ name: 'home' });
+          this.router.push({ name: 'otp' , params: { type: 'login' }, query: {
+            email: data.type === 'email' ? data.email : undefined,
+            phone: data.type === 'phone' ? `${data.countryCode}${data.phoneNumber}` : undefined,
+            otp_type: data.otp_type,
+          },});
           return { is_success: true, errors: null };
         }
         this.errors = ['Invalid credentials. Please try again.'];

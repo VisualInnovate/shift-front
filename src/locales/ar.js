@@ -4,6 +4,7 @@ export default {
   id: "الفهرس",
   users: 'المستخدمين',
   Settings: 'الاعدادات',
+  UpdateInStockToys: 'تحديث مخزون الألعاب',
   roles: 'الأدوار',
   apply: 'تطبيق',
   clearFilters: 'مسح الفلاتر',
@@ -1631,6 +1632,7 @@ export default {
     newpassP: 'من خلال انشاء كلمة سر قوية يمكنك الحفاظ علي امان معلوماتك الشخصية',
   },
     UpdateCodes: 'تحديث كود المنتجات ',
+
    UpdateInStockCentro: 'تحديث المنتجات  المخزون في سينترو',
    UpdateInStockShiftmart: 'تحديث المنتجات  المخزون في شيفت مارت',
    UpdateInStockShift7: 'تحديث المنتجات  المخزون في شيفت مول',

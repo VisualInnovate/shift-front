@@ -93,8 +93,31 @@ const importItems = ref([
   { label: t('UpdateCodes'), icon: 'pi pi-code', command: () => { updateCodesDialog.value = true } },
   { label: t('UpdateInStockCentro'), icon: 'pi pi-box', command: () => { updateCentroDialog.value = true } },
   { label: t('UpdateInStockShiftmart'), icon: 'pi pi-box', command: () => { updateShiftmartDialog.value = true } },
-  { label: t('UpdateInStockShift7'), icon: 'pi pi-box', command: () => { updateShift7Dialog.value = true } }
+  { label: t('UpdateInStockShift7'), icon: 'pi pi-box', command: () => { updateShift7Dialog.value = true } },
+  { label: t('UpdateInStockToys'), icon: 'pi pi-box', command: () => { triggerToysStockUpdate() } }
 ])
+const triggerToysStockUpdate = () => {
+ axios.post('/api/toys/updateInStock')
+   .then((res) => {
+     toast.add({
+       severity: 'success',
+       summary: 'Success',
+       detail: res.data?.message ,
+       life: 4000
+     })
+     fetchData()  // refresh list
+   })
+   .catch((err) => {
+     console.error(err)
+     toast.add({
+       severity: 'error',
+       summary: 'Error',
+       detail: err.response?.data?.message ,
+       life: 5000
+     })
+   })
+}
+
 
 // Export Menu Items
 const exportItems = ref([

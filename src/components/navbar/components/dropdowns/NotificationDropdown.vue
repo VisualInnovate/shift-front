@@ -177,7 +177,7 @@ async function loadNotifications(page = 1) {
 
 function mapNotification(item) {
   return {
-    id: item.id,
+    id: item.meta_data?.order_id || item.id || Math.floor(Math.random() * 100000),
     title: item.title || 'إشعار جديد',
     body: item.body || '',
     unread: item.is_seen === 0,
@@ -219,6 +219,7 @@ function playNotificationSound() {
 }
 
 async function markAsRead(msg, index) {
+  console.log('Notification clicked:', msg)
   router.push({ name: 'order-show', params: { id: msg.id } })
   if (!msg.unread) return
   try {

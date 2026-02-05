@@ -297,15 +297,23 @@ export const useAuthStore = defineStore('Auth', {
         this.loading = false;
       }
     },
-    async verifyEmail({ email, phone, otp }) {
+    async verifyEmail({otp_type, email, phone, otp }) {
+      console.log('Verifying email with data:', { otp_type });
       this.loading = true;
       this.errors = [];
       try {
         const payload = { email, phone, otp };
         const response = await axios.post('/api/verify-email', payload);
-        if (response.data.is_success) {
-          this.router.push({ name: 'authlog' });
-          return { is_success: true, errors: null };
+        if (response.data.is_success ) {
+
+            this.authenticatedweb = true;
+            this.webToken = response.data.data.access_token;
+            this.webUser = response.data.data.user;
+           this.router.push({ name: 'home' });
+
+
+
+
         }
         this.errors = ['Invalid OTP. Please try again.'];
         return { is_success: false, errors: this.errors };

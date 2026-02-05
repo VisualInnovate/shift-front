@@ -76,6 +76,12 @@
                   {{ formatCurrency(slotProps.data.price) }}
                 </template>
               </Column>
+               <Column :header="t('product.code')">
+                <template #body="slotProps">
+                  {{ slotProps.data.product?.code }}
+                </template>
+              </Column>
+
 
               <Column :header="t('total')">
                 <template #body="slotProps">
@@ -149,6 +155,7 @@
             <th>#</th>
             <th>{{ t('navigation.products') }}</th>
             <th class="text-center">{{ t('quantity') }}</th>
+            <th class="text-center">{{ t('product.code') }}</th>
             <th class="text-right">{{ t('price') }}</th>
             <th class="text-right">{{ t('total') }}</th>
           </tr>
@@ -158,6 +165,7 @@
             <td>{{ i + 1 }}</td>
             <td>{{ getProductName(item.product) }}</td>
             <td class="text-center">{{ item.quantity }}</td>
+            <td class="text-center">{{ item.product?.code }}</td>
             <td class="text-right">{{ formatCurrency(item.price) }}</td>
             <td class="text-right">{{ formatCurrency(parseFloat(item.price) * item.quantity) }}</td>
           </tr>

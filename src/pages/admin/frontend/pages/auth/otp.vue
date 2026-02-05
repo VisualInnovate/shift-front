@@ -126,6 +126,7 @@ const handleVerification = async () => {
     return;
   }
   const result = await authStore.verifyEmail({
+    otp_type: props.otp_type,
     email: props.email,
     phone: props.phone,
     otp,

@@ -250,6 +250,11 @@ const formatCurrency = (value) => {
                     <span class="font-semibold">{{ data.quantity }}</span>
                   </template>
                 </Column>
+                 <Column field="product.code" :header="t('product.code')" style="width: 8%">
+                  <template #body="{ data }">
+                    <span class="font-semibold">{{ data.product.code }}</span>
+                  </template>
+                </Column>
 
                 <Column :header="t('order.unitPrice')" style="width: 12%">
                   <template #body="{ data }">

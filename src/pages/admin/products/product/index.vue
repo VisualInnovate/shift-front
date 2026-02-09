@@ -370,13 +370,12 @@ const downloadCodesExample = () => {
 }
 
 const downloadInStockExample = () => {
-  const xlsxContent = 'code,stock\n68d40e782e3a1,1'
-  const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
   const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
+  link.href = '/product_in_stock_update_example.xlsx'
   link.download = 'product_in_stock_update_example.xlsx'
   link.click()
 }
+
 
 // File handling
 const onFileSelect = (event) => { selectedFile.value = event.files[0] }

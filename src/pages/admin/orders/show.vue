@@ -137,6 +137,7 @@ const formatCurrency = (value) => {
 </script>
 
 <template>
+
   <div class="grid">
     <div class="col-12">
       <div class="card p-4 shadow-2 border-round">

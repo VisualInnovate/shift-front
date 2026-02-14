@@ -1,4 +1,4 @@
-name: Deploy to cPanel via FTP
+name: Deploy to cPanel via SFTP
 
 on:
   push:
@@ -13,12 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+      - name: Deploy via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
           server: shift7store.com
-          username: shiftsto@shift7store.com
-          password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist/
-          server-dir: /home/shiftsto/public_html/
-          dangerous-clean-slate: true
+          username: shiftsto
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          local_path: ./dist/*
+          remote_path: /home/shiftsto/public_html
+          sftp_only: true

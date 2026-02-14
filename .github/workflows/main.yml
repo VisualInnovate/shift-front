@@ -13,13 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Deploy via SFTP
+      - name: Deploy via SFTP with Key
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
           server: shift7store.com
           username: shiftsto
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: 21
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
           local_path: ./dist/*
           remote_path: /home/shiftsto/public_html
           sftp_only: true

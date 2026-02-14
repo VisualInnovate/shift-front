@@ -13,15 +13,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Deploy via SCP with SSH Key
+      - name: Deploy via SCP with Password
         uses: appleboy/scp-action@v0.1.7
         with:
           host: shift7store.com
           username: shiftsto
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           source: "dist/*"
           target: /home/shiftsto/public_html
           strip_components: 1
           rm: true
-          

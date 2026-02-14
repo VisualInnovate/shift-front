@@ -1,4 +1,4 @@
-name: Deploy to cPanel via SSH
+name: Deploy to cPanel
 
 on:
   push:
@@ -10,12 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Deploy and Build on Server
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Deploy via SSH
+        uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-         rm: true
-            
+          host: shift7store.com
+          username: shiftsto
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          source: "dist/*"
+          target: /home/shiftsto/public_html
+          strip_components: 1
+          rm: true

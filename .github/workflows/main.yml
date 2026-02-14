@@ -24,3 +24,4 @@ jobs:
           target: /home/shiftsto/public_html
           strip_components: 1
           rm: true
+          

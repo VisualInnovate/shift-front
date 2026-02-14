@@ -25,3 +25,4 @@ jobs:
             rm -rf ${{ secrets.PUBLIC_PATH }}/*
             cp -r dist/* ${{ secrets.PUBLIC_PATH }}/
             echo "✅ Deployment completed successfully!"
+            

@@ -19,7 +19,7 @@ jobs:
           server: shift7store.com
           username: shiftsto
           password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
+          port: 21
           local_path: ./dist/*
           remote_path: /home/shiftsto/public_html
           sftp_only: true

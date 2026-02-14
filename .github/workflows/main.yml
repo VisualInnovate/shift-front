@@ -17,12 +17,5 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script: |
-            cd ${{ secrets.PROJECT_PATH }}
-            git pull origin main
-            npm install
-            npm run build
-            rm -rf ${{ secrets.PUBLIC_PATH }}/*
-            cp -r dist/* ${{ secrets.PUBLIC_PATH }}/
-            echo "✅ Deployment completed successfully!" 
+         rm: true
             

@@ -1,4 +1,4 @@
-name: Deploy to cPanel via SFTP
+name: Deploy to cPanel
 
 on:
   push:
@@ -13,13 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Deploy via SFTP with Key
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-        with:
-          server: shift7store.com
-          username: shiftsto
-          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          local_path: ./dist/*
-          remote_path: /home/shiftsto/public_html
-          sftp_only: true
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H shift7store.com >> ~/.ssh/known_hosts
+      
+      - name: Deploy files
+        run: |
+          rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" dist/ shiftsto@shift7store.com:/home/shiftsto/public_html/

@@ -12,12 +12,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
       - name: Install dependencies
-        run: npm i
+        run: npm ci
+      
       - name: Build project
         run: npm run build
-
-
       
       - name: Setup SSH Key
         run: |
@@ -26,4 +32,14 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H shift7store.com >> ~/.ssh/known_hosts
       
-     
+      - name: Deploy to cPanel via SSH
+        run: |
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            ./dist/ \
+            ${{ secrets.SSH_USER }}@shift7store.com:${{ secrets.DEPLOY_PATH }}
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f ~/.ssh/deploy_key

@@ -15,6 +15,7 @@
                 class="p-button-success"
                 @click="printInvoice"
               />
+
               <Button
                 :label="t('back')"
                 icon="pi pi-arrow-left"

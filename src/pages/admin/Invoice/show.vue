@@ -206,6 +206,7 @@
           </tr>
         </thead>
 
+
         <tbody>
           <tr v-for="(item, i) in invoice?.items" :key="i">
             <td>{{ i + 1 }}</td>

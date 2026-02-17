@@ -193,6 +193,7 @@
         </div>
       </div>
 
+
       <table class="items-table">
         <thead>
           <tr>
@@ -204,6 +205,7 @@
             <th class="text-right">{{ t('total') }}</th>
           </tr>
         </thead>
+
         <tbody>
           <tr v-for="(item, i) in invoice?.items" :key="i">
             <td>{{ i + 1 }}</td>

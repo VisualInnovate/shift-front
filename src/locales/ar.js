@@ -391,7 +391,10 @@ export default {
     permissionName: 'اسم الصلاحية',
     enterDescription: 'أدخل وصف الصلاحية...',
   },
+  viewOnMap: 'عرض على الخريطة',
   invoice: {
+
+    deliveryAddress: 'عنوان التوصيل',
     managementTitle: 'ادارة الفواتير',
     details: 'تفاصيل الفاتورة',
     invoice: 'الفاتورة',

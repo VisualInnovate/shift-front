@@ -157,10 +157,18 @@ const highlightMatch = (result) => {
   ];
 };
 
+const normalizeQuery = (q) =>
+  q
+    .trim()
+    .replace(/\s+/g, " ");
+
 const handleSearch = async () => {
   clearTimeout(searchTimeout);
+
   searchTimeout = setTimeout(async () => {
-    if (searchQuery.value.trim().length < 1) {
+    const q = normalizeQuery(searchQuery.value);
+
+    if (q.length < 1) {
       searchResults.value = { products: [], categories: [], brands: [] };
       showSearchResults.value = false;
       return;

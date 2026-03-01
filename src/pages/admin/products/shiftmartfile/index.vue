@@ -115,10 +115,34 @@ const deleteFile = () => {
 }
 
 // Download Logic
-const downloadFile = (id) => {
-  const url = `/api/shiftmartfile/${id}`
-  window.open(url, '_blank')
-}
+const downloadFile = async (id) => {
+  try {
+    const res = await axios.get(`/api/shiftmartfile/${id}`, {
+      responseType: "blob",
+    });
+
+    const disposition = res.headers?.["content-disposition"] || "";
+    const match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i);
+    const fileName = match ? decodeURIComponent(match[1]) : `excel_${id}.xlsx`;
+
+    const blob = new Blob([res.data], {
+      type: res.headers?.["content-type"] || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Download failed:", err);
+  }
+};
 
 // Upload Logic
 const openImportDialog = () => {

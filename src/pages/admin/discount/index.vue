@@ -34,9 +34,36 @@
   const to = ref(0)
   const links = ref([])
 
-  const exportCSV = () => {
-    dt.value.exportCSV()
-  }
+const exportCSV = () => {
+  axios.get('/api/export/discounts', {
+    responseType: 'blob'
+  })
+  .then((response) => {
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+
+    link.setAttribute('download', 'discounts.xlsx');  
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.add({
+      severity: 'success',
+      summary: t('success'),
+      detail: "File exported successfully",
+      life: 3000,
+    });
+  })
+  .catch(() => {
+    toast.add({
+      severity: 'error',
+      summary: t('error'),
+      detail: "Failed to export file",
+      life: 3000,
+    });
+  });
+}
 
   const confirmDelete = (id) => {
     delete_id.value = id
@@ -189,18 +216,16 @@
                 <InputText v-model="searchQuery" :placeholder="t('discount.search')" />
               </span>
               <Button
-  icon="pi pi-trash"
-  class="p-button-danger min-w-[8rem]"
-  :disabled="!selectedDiscounts || !selectedDiscounts.length"
-  @click="confirmBulkDelete"
->
-  <span>
-    {{ t('deleteSelected') }}
-    <span v-if="selectedDiscounts.length">
-      ({{ selectedDiscounts.length }})
-    </span>
-  </span>
-</Button>
+                icon="pi pi-trash"
+                class="p-button-danger min-w-[8rem]"
+                :disabled="!selectedDiscounts || !selectedDiscounts.length"
+                @click="confirmBulkDelete"
+              >
+                <span>
+                  {{ t('deleteSelected') }}
+                  <span v-if="selectedDiscounts.length"> ({{ selectedDiscounts.length }}) </span>
+                </span>
+              </Button>
               <Button
                 :label="t('discount.export')"
                 icon="pi pi-upload"
@@ -383,7 +408,8 @@
               :label="t('yes')"
               icon="pi pi-check"
               class="p-button-text p-button-danger"
-              @click="selectedDiscounts.length ? bulkDelete() : deleteDiscount()"            />
+              @click="selectedDiscounts.length ? bulkDelete() : deleteDiscount()"
+            />
           </template>
         </Dialog>
       </div>

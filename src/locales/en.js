@@ -1556,4 +1556,5 @@ export default {
     infoP:
       'Shop smarter with the Shift 7 mobile app. From cosmetics to electronics, everything you love is just a click away.',
   },
+  deleteSelected: "delete Selected"
 }

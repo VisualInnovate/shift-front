@@ -1,138 +1,176 @@
 <script setup>
-import { useToast } from 'primevue/usetoast'
-import { FilterMatchMode } from 'primevue/api'
-import { ref, onMounted, onBeforeMount, watch } from 'vue'
-import axios from "axios";
-import { useRouter } from "vue-router";
-import { useI18n } from 'vue-i18n'
+  import { useToast } from 'primevue/usetoast'
+  import { FilterMatchMode } from 'primevue/api'
+  import { ref, onMounted, onBeforeMount, watch } from 'vue'
+  import axios from 'axios'
+  import { useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
 
-const router = useRouter()
-const { t } = useI18n()
-const toast = useToast()
-const loading = ref(true)
-const delete_id = ref('')
-const discounts = ref(null)
-const deleteDialog = ref(false)
-const selectedDiscounts = ref(null)
-const dt = ref(null)
-const filters = ref({})
-const searchQuery = ref('')
-
-// Pagination variables
-const currentPage = ref(1)
-const totalRecords = ref(0)
-const rowsPerPage = ref(10)
-const totalPages = ref(0)
-const firstPageUrl = ref('')
-const lastPageUrl = ref('')
-const nextPageUrl = ref('')
-const prevPageUrl = ref('')
-const from = ref(0)
-const to = ref(0)
-const links = ref([])
-
-const exportCSV = () => {
-  dt.value.exportCSV()
-}
-
-const confirmDelete = (id) => {
-  delete_id.value = id
-  deleteDialog.value = true
-}
-
-const deleteDiscount = () => {
-  axios.delete(`/api/discount/${delete_id.value}`)
-    .then(() => {
-      fetchData()
-      deleteDialog.value = false
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: t('discount.deleteSuccess'),
-        life: 3000
-      })
-    })
-    .catch(() => {
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: t('discount.deleteError'),
-        life: 3000
-      })
-    })
-}
-
-const initFilters = () => {
-  filters.value = {
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  const router = useRouter()
+  const { t } = useI18n()
+  const toast = useToast()
+  const loading = ref(true)
+  const delete_id = ref('')
+  const discounts = ref(null)
+  const deleteDialog = ref(false)
+  const selectedDiscounts = ref([])
+  const dt = ref(null)
+  const filters = ref({})
+  const searchQuery = ref('')
+  const confirmBulkDelete = () => {
+    deleteDialog.value = true
   }
-}
 
-onBeforeMount(() => {
-  initFilters()
-})
+  // Pagination variables
+  const currentPage = ref(1)
+  const totalRecords = ref(0)
+  const rowsPerPage = ref(10)
+  const totalPages = ref(0)
+  const firstPageUrl = ref('')
+  const lastPageUrl = ref('')
+  const nextPageUrl = ref('')
+  const prevPageUrl = ref('')
+  const from = ref(0)
+  const to = ref(0)
+  const links = ref([])
 
-const fetchData = () => {
-  loading.value = true
-  axios.get("/api/discount", {
-    params: {
-      page: currentPage.value,
-      limit: rowsPerPage.value,
-      search: searchQuery.value
+  const exportCSV = () => {
+    dt.value.exportCSV()
+  }
+
+  const confirmDelete = (id) => {
+    delete_id.value = id
+    deleteDialog.value = true
+  }
+
+  const deleteDiscount = () => {
+    axios
+      .delete(`/api/discount/${delete_id.value}`)
+      .then(() => {
+        fetchData()
+        deleteDialog.value = false
+        toast.add({
+          severity: 'success',
+          summary: t('success'),
+          detail: t('discount.deleteSuccess'),
+          life: 3000,
+        })
+      })
+      .catch(() => {
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: t('discount.deleteError'),
+          life: 3000,
+        })
+      })
+  }
+
+  const initFilters = () => {
+    filters.value = {
+      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     }
-  }).then((res) => {
-    discounts.value = res.data.data.data
-    totalRecords.value = res.data.data.total
-    totalPages.value = res.data.data.last_page
-    firstPageUrl.value = res.data.data.first_page_url
-    lastPageUrl.value = res.data.data.last_page_url
-    nextPageUrl.value = res.data.data.next_page_url
-    prevPageUrl.value = res.data.data.prev_page_url
-    from.value = res.data.data.from
-    to.value = res.data.data.to
-    links.value = res.data.data.links
-    loading.value = false
-  }).catch(error => {
-    loading.value = false
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: t('discount.loadError'),
-      life: 3000
-    })
-    console.error("Error fetching discounts:", error)
+  }
+
+  onBeforeMount(() => {
+    initFilters()
   })
-}
 
-watch(searchQuery, (newVal) => {
-  currentPage.value = 1
-  fetchData()
-})
+  // Bulk Delete
 
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
+  const bulkDelete = () => {
+    const ids = selectedDiscounts.value.map((item) => item.id)
+
+    axios
+      .post('/api/discount/bulk-delete', {
+        ids: ids,
+      })
+      .then(() => {
+        toast.add({
+          severity: 'success',
+          summary: t('success'),
+          detail: t('discount.deleteSuccess'),
+          life: 3000,
+        })
+
+        selectedDiscounts.value = []
+        deleteDialog.value = false
+        fetchData()
+      })
+      .catch(() => {
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: t('discount.deleteError'),
+          life: 3000,
+        })
+      })
+  }
+
+  const fetchData = () => {
+    loading.value = true
+    axios
+      .get('/api/discount', {
+        params: {
+          page: currentPage.value,
+          limit: rowsPerPage.value,
+          search: searchQuery.value,
+        },
+      })
+      .then((res) => {
+        discounts.value = res.data.data.data
+        totalRecords.value = res.data.data.total
+        totalPages.value = res.data.data.last_page
+        firstPageUrl.value = res.data.data.first_page_url
+        lastPageUrl.value = res.data.data.last_page_url
+        nextPageUrl.value = res.data.data.next_page_url
+        prevPageUrl.value = res.data.data.prev_page_url
+        from.value = res.data.data.from
+        to.value = res.data.data.to
+        links.value = res.data.data.links
+        loading.value = false
+      })
+      .catch((error) => {
+        loading.value = false
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: t('discount.loadError'),
+          life: 3000,
+        })
+        console.error('Error fetching discounts:', error)
+      })
+  }
+
+  watch(searchQuery, (newVal) => {
+    currentPage.value = 1
+    fetchData()
+  })
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+      currentPage.value = page
+      fetchData()
+    }
+  }
+
+  const changeRowsPerPage = (rows) => {
+    rowsPerPage.value = rows.value
+    currentPage.value = 1
     fetchData()
   }
-}
 
-const changeRowsPerPage = (rows) => {
-  rowsPerPage.value = rows.value
-  currentPage.value = 1
-  fetchData()
-}
+  onMounted(() => {
+    fetchData()
+  })
 
-onMounted(() => {
-  fetchData()
-})
+  const openNew = () => {
+    router.push({ name: 'discount-create' })
+  }
 
-const openNew = () => {
-  router.push({ name: 'discount-create' })
-}
-
-const editDiscount = (id) => {
-  router.push({ name: 'discount-update', params: { id: id } })
-}
+  const editDiscount = (id) => {
+    router.push({ name: 'discount-update', params: { id: id } })
+  }
 </script>
 
 <template>
@@ -150,6 +188,19 @@ const editDiscount = (id) => {
                 <i class="pi pi-search" />
                 <InputText v-model="searchQuery" :placeholder="t('discount.search')" />
               </span>
+              <Button
+  icon="pi pi-trash"
+  class="p-button-danger min-w-[8rem]"
+  :disabled="!selectedDiscounts || !selectedDiscounts.length"
+  @click="confirmBulkDelete"
+>
+  <span>
+    {{ t('deleteSelected') }}
+    <span v-if="selectedDiscounts.length">
+      ({{ selectedDiscounts.length }})
+    </span>
+  </span>
+</Button>
               <Button
                 :label="t('discount.export')"
                 icon="pi pi-upload"
@@ -173,9 +224,10 @@ const editDiscount = (id) => {
         <div class="card shadow-1 surface-0">
           <DataTable
             ref="dt"
+            v-model:selection="selectedDiscounts"
             :value="discounts"
-            :loading="loading"
             data-key="id"
+            :loading="loading"
             :paginator="false"
             :rows="rowsPerPage"
             :filters="filters"
@@ -184,11 +236,10 @@ const editDiscount = (id) => {
             stripedRows
             showGridlines
             class="p-datatable-sm"
-            v-can="'list discounts'"
           >
             <Column selection-mode="multiple" header-style="width: 3rem"></Column>
 
-          <Column field="en_name" :header="t('product.nameEn')" :sortable="true">
+            <Column field="en_name" :header="t('product.nameEn')" :sortable="true">
               <template #body="slotProps">
                 {{ slotProps.data.variants[0]?.product?.name_en || slotProps.data.products[0]?.name_en }}
               </template>
@@ -198,7 +249,7 @@ const editDiscount = (id) => {
                 {{ slotProps.data.variants[0]?.product?.name_ar || slotProps.data.products[0]?.name_ar }}
               </template>
             </Column>
-              <Column field="sku" :header="t('product.sku')" :sortable="true">
+            <Column field="sku" :header="t('product.sku')" :sortable="true">
               <template #body="slotProps">
                 {{ slotProps.data.variants[0]?.sku }}
               </template>
@@ -206,7 +257,11 @@ const editDiscount = (id) => {
 
             <Column field="price" :header="t('product.basePrice')" :sortable="true">
               <template #body="slotProps">
-                {{ slotProps.data.variants[0]?.price || slotProps.data.products[0]?.base_price || slotProps.data.discount_value }}
+                {{
+                  slotProps.data.variants[0]?.price ||
+                  slotProps.data.products[0]?.base_price ||
+                  slotProps.data.discount_value
+                }}
               </template>
             </Column>
 
@@ -252,7 +307,9 @@ const editDiscount = (id) => {
           <!-- Custom Pagination -->
           <div class="p-paginator p-component p-unselectable-text p-paginator-bottom">
             <div class="p-paginator-left-content">
-              <span class="p-paginator-current">{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}</span>
+              <span class="p-paginator-current"
+                >{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}</span
+              >
             </div>
             <div class="p-paginator-right-content">
               <button
@@ -298,7 +355,7 @@ const editDiscount = (id) => {
               </button>
 
               <Dropdown
-              filter
+                filter
                 v-model="rowsPerPage"
                 :options="[5, 10, 20, 30]"
                 optionLabel=""
@@ -321,18 +378,12 @@ const editDiscount = (id) => {
             <span>{{ t('discount.deleteConfirmMessage') }}</span>
           </div>
           <template #footer>
-            <Button
-              :label="t('no')"
-              icon="pi pi-times"
-              class="p-button-text"
-              @click="deleteDialog = false"
-            />
+            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="deleteDialog = false" />
             <Button
               :label="t('yes')"
               icon="pi pi-check"
               class="p-button-text p-button-danger"
-              @click="deleteDiscount"
-            />
+              @click="selectedDiscounts.length ? bulkDelete() : deleteDiscount()"            />
           </template>
         </Dialog>
       </div>
@@ -341,31 +392,31 @@ const editDiscount = (id) => {
 </template>
 
 <style scoped lang="scss">
-/* Custom styles for better table display */
-:deep(.p-datatable) {
-  font-size: 0.9rem;
-}
-
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.5px;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr) {
-  transition: background-color 0.2s;
-}
-
-:deep(.p-datatable .p-datatable-tbody > tr:hover) {
-  background-color: var(--hoverColor);
-}
-
-/* Responsive adjustments */
-@media screen and (max-width: 960px) {
+  /* Custom styles for better table display */
   :deep(.p-datatable) {
-    overflow-x: auto;
-    display: block;
+    font-size: 0.9rem;
   }
-}
+
+  :deep(.p-datatable .p-datatable-thead > tr > th) {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+  }
+
+  :deep(.p-datatable .p-datatable-tbody > tr) {
+    transition: background-color 0.2s;
+  }
+
+  :deep(.p-datatable .p-datatable-tbody > tr:hover) {
+    background-color: var(--hoverColor);
+  }
+
+  /* Responsive adjustments */
+  @media screen and (max-width: 960px) {
+    :deep(.p-datatable) {
+      overflow-x: auto;
+      display: block;
+    }
+  }
 </style>

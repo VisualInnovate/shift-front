@@ -97,25 +97,25 @@ const importItems = ref([
   { label: t('UpdateInStockToys'), icon: 'pi pi-box', command: () => { triggerToysStockUpdate() } }
 ])
 const triggerToysStockUpdate = () => {
- axios.post('/api/toys/updateInStock')
-   .then((res) => {
-     toast.add({
-       severity: 'success',
-       summary: 'Success',
-       detail: res.data?.message ,
-       life: 4000
-     })
-     fetchData()  // refresh list
-   })
-   .catch((err) => {
-     console.error(err)
-     toast.add({
-       severity: 'error',
-       summary: 'Error',
-       detail: err.response?.data?.message ,
-       life: 5000
-     })
-   })
+  axios.post('/api/toys/updateInStock')
+    .then((res) => {
+      toast.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: res.data?.message,
+        life: 4000
+      })
+      fetchData()  // refresh list
+    })
+    .catch((err) => {
+      console.error(err)
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: err.response?.data?.message,
+        life: 5000
+      })
+    })
 }
 
 
@@ -332,23 +332,24 @@ const downloadExample = () => {
   link.click()
 }
 
-const downloadExample2 = () => {
-  const data = [
-    { product_id: 84, variant_id: 9, price: 2 },
-    { product_id: 1650, variant_id: 10, price: 0 },
-    { product_id: 22516, variant_id: 11, price: 0.03 },
+const downloadExample2 = async () => {
+  try {
+    const response = await fetch('/update_variant_template.csv')
+    const blob = await response.blob()
 
-  ]
-  const headers = ['product_id', 'variant_id', 'price']
-  const xlsxContent = [headers.join(','), ...data.map(row => `${row.product_id},${row.variant_id},${row.price}`)].join('\n')
-  const blob = new Blob(['\uFEFF' + xlsxContent], { type: 'text/xlsx;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', 'products_template.xlsx')
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'update_variant_template.csv')
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Download failed:', error)
+  }
 }
 
 const downloadPriceExample = () => {
@@ -556,15 +557,19 @@ onMounted(() => {
           </template>
           <template #end>
             <div class="flex flex-wrap gap-3 align-items-center">
-              <Button :label="t('filters')" icon="pi pi-filter" class="p-button-outlined" @click="filterDialog = true" />
+              <Button :label="t('filters')" icon="pi pi-filter" class="p-button-outlined"
+                @click="filterDialog = true" />
 
-              <Button :label="t('product.import')" icon="pi pi-download" class="p-button-outlined" @click="(e) => importMenu.toggle(e)" />
+              <Button :label="t('product.import')" icon="pi pi-download" class="p-button-outlined"
+                @click="(e) => importMenu.toggle(e)" />
               <Menu ref="importMenu" :model="importItems" :popup="true" />
 
-              <Button :label="t('product.export')" icon="pi pi-upload" class="p-button-outlined" @click="(e) => exportMenu.toggle(e)" />
+              <Button :label="t('product.export')" icon="pi pi-upload" class="p-button-outlined"
+                @click="(e) => exportMenu.toggle(e)" />
               <Menu ref="exportMenu" :model="exportItems" :popup="true" />
 
-              <Button v-can="'create products'" :label="t('product.new')" icon="pi pi-plus" class="p-button-success" @click="createNewProduct" />
+              <Button v-can="'create products'" :label="t('product.new')" icon="pi pi-plus" class="p-button-success"
+                @click="createNewProduct" />
             </div>
           </template>
         </Toolbar>
@@ -572,7 +577,8 @@ onMounted(() => {
         <Toast />
 
         <div class="card shadow-1 surface-0">
-          <DataTable :value="products" :loading="loading" data-key="id" responsive-layout="scroll" stripedRows showGridlines class="p-datatable-sm">
+          <DataTable :value="products" :loading="loading" data-key="id" responsive-layout="scroll" stripedRows
+            showGridlines class="p-datatable-sm">
             <Column field="id" :header="t('id')" :sortable="true" header-style="width:6%">
               <template #body="slotProps">{{ slotProps.data.id }}</template>
             </Column>
@@ -603,7 +609,8 @@ onMounted(() => {
                     :disabled="toggleLoading[slotProps.data.id]"
                     @update:model-value="toggleFreeShipping(slotProps.data)"
                     v-tooltip.top="slotProps.data.is_free_shipping === 1 ? t('product.freeShipping') : t('product.notFreeShipping')" />
-                  <ProgressSpinner v-if="toggleLoading[slotProps.data.id]" style="width:20px;height:20px" class="ml-2" strokeWidth="5" />
+                  <ProgressSpinner v-if="toggleLoading[slotProps.data.id]" style="width:20px;height:20px" class="ml-2"
+                    strokeWidth="5" />
                 </div>
               </template>
             </Column>
@@ -614,14 +621,17 @@ onMounted(() => {
                     :disabled="toggleBestSellerLoading[slotProps.data.id]"
                     @update:model-value="toggleBestSeller(slotProps.data)"
                     v-tooltip.top="slotProps.data.is_best_seller ? 'Best Seller' : 'Not Best Seller'" />
-                  <ProgressSpinner v-if="toggleBestSellerLoading[slotProps.data.id]" style="width:20px;height:20px" class="ml-2" strokeWidth="5" />
+                  <ProgressSpinner v-if="toggleBestSellerLoading[slotProps.data.id]" style="width:20px;height:20px"
+                    class="ml-2" strokeWidth="5" />
                 </div>
               </template>
             </Column>
             <Column :header="t('actions')">
               <template #body="slotProps">
-                <Button v-can="'edit products'" icon="pi pi-pencil" class="p-detail" @click="editProduct(slotProps.data.id)" v-tooltip.top="t('edit')" />
-                <Button v-can="'delete products'" icon="pi pi-trash" class="p-delete mx-2" @click="confirmDelete(slotProps.data.id)" v-tooltip.top="t('delete')" />
+                <Button v-can="'edit products'" icon="pi pi-pencil" class="p-detail"
+                  @click="editProduct(slotProps.data.id)" v-tooltip.top="t('edit')" />
+                <Button v-can="'delete products'" icon="pi pi-trash" class="p-delete mx-2"
+                  @click="confirmDelete(slotProps.data.id)" v-tooltip.top="t('delete')" />
               </template>
             </Column>
 
@@ -636,67 +646,43 @@ onMounted(() => {
           <!-- Custom Pagination -->
           <div class="p-paginator p-component p-unselectable-text p-paginator-bottom">
             <div class="p-paginator-left-content">
-              <span class="p-paginator-current">{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}</span>
+              <span class="p-paginator-current">{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{
+                totalRecords }}</span>
             </div>
             <div class="p-paginator-right-content">
-              <button
-                class="p-paginator-first p-paginator-element p-link"
-                :disabled="currentPage === 1"
-                @click="goToPage(1)"
-                aria-label="First page"
-              >
+              <button class="p-paginator-first p-paginator-element p-link" :disabled="currentPage === 1"
+                @click="goToPage(1)" aria-label="First page">
                 <span class="p-paginator-icon pi pi-angle-double-left"></span>
               </button>
-              <button
-                class="p-paginator-prev p-paginator-element p-link"
-                :disabled="!prevPageUrl"
-                @click="goToPage(currentPage - 1)"
-                aria-label="Previous page"
-              >
+              <button class="p-paginator-prev p-paginator-element p-link" :disabled="!prevPageUrl"
+                @click="goToPage(currentPage - 1)" aria-label="Previous page">
                 <span class="p-paginator-icon pi pi-angle-left"></span>
               </button>
               <template v-for="(link, index) in links" :key="index">
-                <button
-                  v-if="link.label && !isNaN(parseInt(link.label))"
-                  class="p-paginator-page p-paginator-element p-link"
-                  :class="{ 'p-highlight': link.active }"
-                  @click="goToPage(parseInt(link.label))"
-                  :aria-label="`Page ${link.label}`"
-                >
+                <button v-if="link.label && !isNaN(parseInt(link.label))"
+                  class="p-paginator-page p-paginator-element p-link" :class="{ 'p-highlight': link.active }"
+                  @click="goToPage(parseInt(link.label))" :aria-label="`Page ${link.label}`">
                   {{ link.label }}
                 </button>
                 <span v-else-if="link.label === '...'" class="p-paginator-dots">...</span>
               </template>
-              <button
-                class="p-paginator-next p-paginator-element p-link"
-                :disabled="!nextPageUrl"
-                @click="goToPage(currentPage + 1)"
-                aria-label="Next page"
-              >
+              <button class="p-paginator-next p-paginator-element p-link" :disabled="!nextPageUrl"
+                @click="goToPage(currentPage + 1)" aria-label="Next page">
                 <span class="p-paginator-icon pi pi-angle-right"></span>
               </button>
-              <button
-                class="p-paginator-last p-paginator-element p-link"
-                :disabled="currentPage === totalPages"
-                @click="goToPage(totalPages)"
-                aria-label="Last page"
-              >
+              <button class="p-paginator-last p-paginator-element p-link" :disabled="currentPage === totalPages"
+                @click="goToPage(totalPages)" aria-label="Last page">
                 <span class="p-paginator-icon pi pi-angle-double-right"></span>
               </button>
-              <Dropdown
-                v-model="rowsPerPage"
-                :options="[5, 10, 20, 30]"
-                @change="changeRowsPerPage"
-                class="ml-2"
-                style="width: 80px"
-                aria-label="Rows per page"
-              />
+              <Dropdown v-model="rowsPerPage" :options="[5, 10, 20, 30]" @change="changeRowsPerPage" class="ml-2"
+                style="width: 80px" aria-label="Rows per page" />
             </div>
           </div>
         </div>
 
         <!-- Filter Dialog -->
-        <Dialog v-model:visible="filterDialog" :header="t('filters')" :modal="true" :style="{ width: '90vw', maxWidth: '500px' }">
+        <Dialog v-model:visible="filterDialog" :header="t('filters')" :modal="true"
+          :style="{ width: '90vw', maxWidth: '500px' }">
           <div class=" space-y-4">
             <div>
               <label class="block text-900 font-medium mb-2">{{ t('product.categoryFilter') }}</label>
@@ -714,21 +700,25 @@ onMounted(() => {
                 :placeholder="t('product.marketFilter')" showClear filter @filter="onMarketFilter" class="w-full" />
             </div>
             <div>
-              <label class="block text-900 font-medium mb-2">{{ t('product.discountsFilter') || 'Has Discounts' }}</label>
+              <label class="block text-900 font-medium mb-2">{{ t('product.discountsFilter') || 'Has Discounts'
+              }}</label>
               <div class="flex align-items-center gap-3">
                 <InputSwitch v-model="hasDiscounts" :true-value="true" :false-value="false" />
 
-             </div>
+              </div>
             </div>
           </div>
           <template #footer>
-            <Button :label="t('clearFilters')" icon="pi pi-refresh" class="p-button-text p-button-secondary" @click="clearFilters(); filterDialog = false" />
-            <Button :label="t('apply')" icon="pi pi-check" @click="filterDialog = false; currentPage = 1; fetchData()" />
+            <Button :label="t('clearFilters')" icon="pi pi-refresh" class="p-button-text p-button-secondary"
+              @click="clearFilters(); filterDialog = false" />
+            <Button :label="t('apply')" icon="pi pi-check"
+              @click="filterDialog = false; currentPage = 1; fetchData()" />
           </template>
         </Dialog>
 
         <!-- Delete Dialog -->
-        <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" :header="t('product.deleteConfirmTitle')" :modal="true">
+        <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" :header="t('product.deleteConfirmTitle')"
+          :modal="true">
           <div class="flex align-items-center justify-content-center">
             <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem; color: var(--red-500)" />
             <span>{{ t('product.deleteConfirmMessage') }}</span>
@@ -740,100 +730,135 @@ onMounted(() => {
         </Dialog>
 
         <!-- Import Dialogs -->
-        <Dialog v-model:visible="importDialog" :style="{ width: '450px' }" :header="t('product.importTitle')" :modal="true">
+        <Dialog v-model:visible="importDialog" :style="{ width: '450px' }" :header="t('product.importTitle')"
+          :modal="true">
           <div class="flex flex-column gap-3">
-            <Button :label="t('product.downloadExample')" icon="pi pi-download" class="p-button-outlined" @click="downloadExample" />
-            <FileUpload mode="basic" :custom-upload="true" @select="onFileSelect" :maxFileSize="10000000" chooseLabel="Select File" />
+            <Button :label="t('product.downloadExample')" icon="pi pi-download" class="p-button-outlined"
+              @click="downloadExample" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onFileSelect" :maxFileSize="10000000"
+              chooseLabel="Select File" />
             <div v-if="selectedFile" class="mt-2">
               <p class="font-semibold">{{ t('selectedFile') }}: {{ selectedFile.name }}</p>
             </div>
           </div>
           <template #footer>
-            <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text" @click="importDialog = false; selectedFile = null" />
-            <Button :label="t('product.importButton')" icon="pi pi-check" :loading="importLoading" :disabled="!selectedFile" @click="importProducts" />
+            <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text"
+              @click="importDialog = false; selectedFile = null" />
+            <Button :label="t('product.importButton')" icon="pi pi-check" :loading="importLoading"
+              :disabled="!selectedFile" @click="importProducts" />
           </template>
         </Dialog>
 
-        <Dialog v-model:visible="importDialog2" :style="{ width: '450px' }" :header="t('product.import_product_characteristics')" :modal="true">
+        <Dialog v-model:visible="importDialog2" :style="{ width: '450px' }"
+          :header="t('product.import_product_characteristics')" :modal="true">
           <div class="flex flex-column gap-3">
-            <Button :label="t('product.downloadExample')" icon="pi pi-download" class="p-button-outlined" @click="downloadExample2" />
-            <FileUpload mode="basic" :custom-upload="true" @select="onFileSelect" :maxFileSize="10000000" chooseLabel="Select File" />
+            <Button :label="t('product.downloadExample')" icon="pi pi-download" class="p-button-outlined"
+              @click="downloadExample2" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onFileSelect" :maxFileSize="10000000"
+              chooseLabel="Select File" />
             <div v-if="selectedFile" class="mt-2">
               <p class="font-semibold">{{ t('selectedFile') }}: {{ selectedFile.name }}</p>
             </div>
           </div>
           <template #footer>
-            <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text" @click="importDialog2 = false; selectedFile = null" />
-            <Button :label="t('product.importButton')" icon="pi pi-check" :loading="importLoading" :disabled="!selectedFile" @click="importProductsCharacteristics" />
+            <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text"
+              @click="importDialog2 = false; selectedFile = null" />
+            <Button :label="t('product.importButton')" icon="pi pi-check" :loading="importLoading"
+              :disabled="!selectedFile" @click="importProductsCharacteristics" />
           </template>
         </Dialog>
 
         <!-- Price Update Dialog -->
-        <Dialog v-model:visible="priceUpdateDialog" :style="{ width: '450px' }" :header="t('product.updatePriceTitle')" :modal="true">
+        <Dialog v-model:visible="priceUpdateDialog" :style="{ width: '450px' }" :header="t('product.updatePriceTitle')"
+          :modal="true">
           <div class="flex flex-column gap-3">
-            <Button :label="t('product.downloadPriceExample')" icon="pi pi-download" class="p-button-outlined" @click="downloadPriceExample" />
-            <FileUpload mode="basic" :custom-upload="true" @select="onPriceFileSelect" :maxFileSize="10000000" chooseLabel="Select Price File" />
+            <Button :label="t('product.downloadPriceExample')" icon="pi pi-download" class="p-button-outlined"
+              @click="downloadPriceExample" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onPriceFileSelect" :maxFileSize="10000000"
+              chooseLabel="Select Price File" />
           </div>
           <template #footer>
-            <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text" @click="priceUpdateDialog = false; selectedPriceFile = null" />
-            <Button :label="t('product.updatePriceButton')" icon="pi pi-check" :loading="priceUpdateLoading" :disabled="!selectedPriceFile" @click="updatePrices" />
+            <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text"
+              @click="priceUpdateDialog = false; selectedPriceFile = null" />
+            <Button :label="t('product.updatePriceButton')" icon="pi pi-check" :loading="priceUpdateLoading"
+              :disabled="!selectedPriceFile" @click="updatePrices" />
           </template>
         </Dialog>
 
         <!-- New Dialogs -->
-        <Dialog v-model:visible="updateCodesDialog" :style="{ width: '450px' }" header="Update Product Codes" :modal="true">
+        <Dialog v-model:visible="updateCodesDialog" :style="{ width: '450px' }" header="Update Product Codes"
+          :modal="true">
           <div class="flex flex-column gap-3">
-            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined" @click="downloadCodesExample" />
-            <FileUpload mode="basic" :custom-upload="true" @select="onCodesFileSelect" :maxFileSize="10000000" chooseLabel="Select File" />
+            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined"
+              @click="downloadCodesExample" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onCodesFileSelect" :maxFileSize="10000000"
+              chooseLabel="Select File" />
             <div v-if="selectedCodesFile" class="mt-2">
               <p class="font-semibold">Selected File: {{ selectedCodesFile.name }}</p>
             </div>
           </div>
           <template #footer>
-            <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="updateCodesDialog = false; selectedCodesFile = null" />
-            <Button label="Update Codes" icon="pi pi-check" :loading="updateCodesLoading" :disabled="!selectedCodesFile" @click="updateCodes" />
+            <Button label="Cancel" icon="pi pi-times" class="p-button-text"
+              @click="updateCodesDialog = false; selectedCodesFile = null" />
+            <Button label="Update Codes" icon="pi pi-check" :loading="updateCodesLoading" :disabled="!selectedCodesFile"
+              @click="updateCodes" />
           </template>
         </Dialog>
 
-        <Dialog v-model:visible="updateCentroDialog" :style="{ width: '450px' }" header="Update In-Stock Centro" :modal="true">
+        <Dialog v-model:visible="updateCentroDialog" :style="{ width: '450px' }" header="Update In-Stock Centro"
+          :modal="true">
           <div class="flex flex-column gap-3">
-            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined" @click="downloadInStockExample" />
-            <FileUpload mode="basic" :custom-upload="true" @select="onCentroFileSelect" :maxFileSize="10000000" chooseLabel="Select File" />
+            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined"
+              @click="downloadInStockExample" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onCentroFileSelect" :maxFileSize="10000000"
+              chooseLabel="Select File" />
             <div v-if="selectedCentroFile" class="mt-2">
               <p class="font-semibold">Selected File: {{ selectedCentroFile.name }}</p>
             </div>
           </div>
           <template #footer>
-            <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="updateCentroDialog = false; selectedCentroFile = null" />
-            <Button label="Update In-Stock" icon="pi pi-check" :loading="updateCentroLoading" :disabled="!selectedCentroFile" @click="updateInStockCentro" />
+            <Button label="Cancel" icon="pi pi-times" class="p-button-text"
+              @click="updateCentroDialog = false; selectedCentroFile = null" />
+            <Button label="Update In-Stock" icon="pi pi-check" :loading="updateCentroLoading"
+              :disabled="!selectedCentroFile" @click="updateInStockCentro" />
           </template>
         </Dialog>
 
-        <Dialog v-model:visible="updateShiftmartDialog" :style="{ width: '450px' }" header="Update In-Stock Shiftmart" :modal="true">
+        <Dialog v-model:visible="updateShiftmartDialog" :style="{ width: '450px' }" header="Update In-Stock Shiftmart"
+          :modal="true">
           <div class="flex flex-column gap-3">
-            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined" @click="downloadInStockExample" />
-            <FileUpload mode="basic" :custom-upload="true" @select="onShiftmartFileSelect" :maxFileSize="10000000" chooseLabel="Select File" />
+            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined"
+              @click="downloadInStockExample" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onShiftmartFileSelect" :maxFileSize="10000000"
+              chooseLabel="Select File" />
             <div v-if="selectedShiftmartFile" class="mt-2">
               <p class="font-semibold">Selected File: {{ selectedShiftmartFile.name }}</p>
             </div>
           </div>
           <template #footer>
-            <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="updateShiftmartDialog = false; selectedShiftmartFile = null" />
-            <Button label="Update In-Stock" icon="pi pi-check" :loading="updateShiftmartLoading" :disabled="!selectedShiftmartFile" @click="updateInStockShiftmart" />
+            <Button label="Cancel" icon="pi pi-times" class="p-button-text"
+              @click="updateShiftmartDialog = false; selectedShiftmartFile = null" />
+            <Button label="Update In-Stock" icon="pi pi-check" :loading="updateShiftmartLoading"
+              :disabled="!selectedShiftmartFile" @click="updateInStockShiftmart" />
           </template>
         </Dialog>
 
-        <Dialog v-model:visible="updateShift7Dialog" :style="{ width: '450px' }" header="Update In-Stock Shift7" :modal="true">
+        <Dialog v-model:visible="updateShift7Dialog" :style="{ width: '450px' }" header="Update In-Stock Shift7"
+          :modal="true">
           <div class="flex flex-column gap-3">
-            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined" @click="downloadInStockExample" />
-            <FileUpload mode="basic" :custom-upload="true" @select="onShift7FileSelect" :maxFileSize="10000000" chooseLabel="Select File" />
+            <Button label="Download Example" icon="pi pi-download" class="p-button-outlined"
+              @click="downloadInStockExample" />
+            <FileUpload mode="basic" :custom-upload="true" @select="onShift7FileSelect" :maxFileSize="10000000"
+              chooseLabel="Select File" />
             <div v-if="selectedShift7File" class="mt-2">
               <p class="font-semibold">Selected File: {{ selectedShift7File.name }}</p>
             </div>
           </div>
           <template #footer>
-            <Button label="Cancel" icon="pi pi-times" class="p-button-text" @click="updateShift7Dialog = false; selectedShift7File = null" />
-            <Button label="Update In-Stock" icon="pi pi-check" :loading="updateShift7Loading" :disabled="!selectedShift7File" @click="updateInStockShift7" />
+            <Button label="Cancel" icon="pi pi-times" class="p-button-text"
+              @click="updateShift7Dialog = false; selectedShift7File = null" />
+            <Button label="Update In-Stock" icon="pi pi-check" :loading="updateShift7Loading"
+              :disabled="!selectedShift7File" @click="updateInStockShift7" />
           </template>
         </Dialog>
       </div>

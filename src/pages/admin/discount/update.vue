@@ -95,7 +95,7 @@ const fetchProducts = async () => {
     const { data } = await axios.get('/api/discount/create/data', {
       params: {
         search: productSearch.value || undefined,
-        per_page: 100  // Load all products to handle edit mode selection
+        limit: 100  // Load all products to handle edit mode selection
       }
     });
     products.value = data.data.data ?? [];

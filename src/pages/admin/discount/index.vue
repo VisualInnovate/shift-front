@@ -43,7 +43,7 @@ const exportCSV = () => {
     const link = document.createElement('a');
     link.href = url;
 
-    link.setAttribute('download', 'discounts.xlsx');  
+    link.setAttribute('download', 'discounts.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

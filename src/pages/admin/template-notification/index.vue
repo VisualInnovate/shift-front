@@ -67,7 +67,7 @@ const fetchData = () => {
   axios.get('/api/template-notification', {
     params: {
       page: currentPage.value,
-      per_page: rowsPerPage.value,
+      limit: rowsPerPage.value,
       search: searchQuery.value || undefined
     }
   })

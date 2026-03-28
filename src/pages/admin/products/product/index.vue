@@ -372,8 +372,8 @@ const downloadCodesExample = () => {
 
 const downloadInStockExample = () => {
   const link = document.createElement('a')
-  link.href = '/product_in_stock_update_example.csv'
-  link.download = 'product_in_stock_update_example.csv'
+  link.href = '/product_in_stock_update_example.xlsx'
+  link.download = 'product_in_stock_update_example.xlsx'
   link.click()
 }
 

@@ -383,8 +383,8 @@ const fetchItemsByType = async (type, query, formType) => {
     const { data } = await axios.get(endpoints[type], {
       params: {
         search: query || undefined,
-        limit: (tabDetails.value.details.find(d => d.id === editingDetail.value.id).ids).length,
-        whereInIds: JSON.stringify(tabDetails.value.details.find(d => d.id === editingDetail.value.id).ids).slice(1, -1),
+        limit: 100,
+        whereInIds: editingDetail.value != null ? JSON.stringify(tabDetails.value.details.find(d => d.id === editingDetail.value.id).ids).slice(1, -1) : undefined,
       },
     })
     itemsRef.value = data.data?.data || data.data || []

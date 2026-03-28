@@ -114,13 +114,14 @@ const fetchProduct = async () => {
       is_displayed: data.is_displayed === 1,
       is_stock: data.is_stock === 1,
       variants: data.variants?.map(variant => ({
-          id: variant.id,
-          sku: variant.sku || '',
-          price: variant.price,
-          attribute_value_ids: variant.attribute_values?.map(av => av.id) || [],
-          variant_image: null,
-          variant_image_preview: variant.media?.[0]?.url || null
-        })) || []
+        id: variant.id,
+        sku: variant.sku || '',
+        price: variant.price,
+        cost_price: variant.cost_price,
+        attribute_value_ids: variant.attribute_values?.map(av => av.id) || [],
+        variant_image: null,
+        variant_image_preview: variant.media?.[0]?.url || null
+      })) || []
     };
 
     hasVariants.value = !!data.has_variants;
@@ -433,7 +434,8 @@ const submitForm = async () => {
 </script>
 
 <template>
-  <div v-can="'update product inventories'" class="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-lg" :dir="isRTL ? 'rtl' : 'ltr'">
+  <div v-can="'update product inventories'" class="max-w-5xl mx-auto p-6 bg-white rounded-xl shadow-lg"
+    :dir="isRTL ? 'rtl' : 'ltr'">
     <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">{{ t('product.updateTitle') }}</h1>
 
     <form @submit.prevent="submitForm" class="space-y-6">
@@ -443,16 +445,8 @@ const submitForm = async () => {
           <label for="store_id" class="block text-sm font-medium text-gray-700">
             {{ t('product.store') }} <span class="text-red-500">*</span>
           </label>
-          <Dropdown
-            filter
-            id="store_id"
-            v-model="productData.store_id"
-            :options="stores"
-            :optionLabel="labelField"
-            optionValue="id"
-            class="w-full"
-            :class="{ 'p-invalid': !productData.store_id }"
-          />
+          <Dropdown filter id="store_id" v-model="productData.store_id" :options="stores" :optionLabel="labelField"
+            optionValue="id" class="w-full" :class="{ 'p-invalid': !productData.store_id }" />
         </div>
 
         <!-- Category Selection -->
@@ -460,18 +454,9 @@ const submitForm = async () => {
           <label for="category_id" class="block text-sm font-medium text-gray-700">
             {{ t('product.category') }} <span class="text-red-500">*</span>
           </label>
-          <Dropdown
-            filter
-            id="category_id"
-            v-model="productData.category_id"
-            :options="categories"
-            :optionLabel="labelField"
-            optionValue="id"
-            class="w-full"
-            :class="{ 'p-invalid': !productData.category_id }"
-            filterPlaceholder="Search categories"
-            @filter="onCategoryFilter"
-          />
+          <Dropdown filter id="category_id" v-model="productData.category_id" :options="categories"
+            :optionLabel="labelField" optionValue="id" class="w-full" :class="{ 'p-invalid': !productData.category_id }"
+            filterPlaceholder="Search categories" @filter="onCategoryFilter" />
         </div>
 
         <!-- Brand Selection -->
@@ -479,17 +464,8 @@ const submitForm = async () => {
           <label for="brand_id" class="block text-sm font-medium text-gray-700">
             {{ t('product.brand') }}
           </label>
-          <Dropdown
-            filter
-            id="brand_id"
-            v-model="productData.brand_id"
-            :options="brands"
-            :optionLabel="labelField"
-            optionValue="id"
-            class="w-full"
-            filterPlaceholder="Search brands"
-            @filter="onBrandFilter"
-          />
+          <Dropdown filter id="brand_id" v-model="productData.brand_id" :options="brands" :optionLabel="labelField"
+            optionValue="id" class="w-full" filterPlaceholder="Search brands" @filter="onBrandFilter" />
         </div>
 
         <!-- SKU - Required only if no variants -->
@@ -498,12 +474,8 @@ const submitForm = async () => {
             {{ t('product.sku') }}
             <span v-if="!hasVariants" class="text-red-500">*</span>
           </label>
-          <InputText
-            id="sku"
-            v-model="productData.sku"
-            class="w-full"
-            :class="{ 'p-invalid': !hasVariants && !productData.sku }"
-          />
+          <InputText id="sku" v-model="productData.sku" class="w-full"
+            :class="{ 'p-invalid': !hasVariants && !productData.sku }" />
         </div>
 
         <!-- English Name -->
@@ -511,38 +483,24 @@ const submitForm = async () => {
           <label for="name_en" class="block text-sm font-medium text-gray-700">
             {{ t('product.nameEn') }} <span class="text-red-500">*</span>
           </label>
-          <InputText
-            id="name_en"
-            v-model="productData.name_en"
-            class="w-full"
-            :class="{ 'p-invalid': !productData.name_en }"
-          />
+          <InputText id="name_en" v-model="productData.name_en" class="w-full"
+            :class="{ 'p-invalid': !productData.name_en }" />
         </div>
         <div class="space-y-2">
-        <label for="code" class="block text-sm font-medium text-gray-700">
-          {{ t('product.code') }}
-          <!-- No red * because it's optional -->
-        </label>
-        <InputText
-          id="code"
-          v-model="productData.code"
-          class="w-full"
-          placeholder="e.g. PROD-456 / supplier code"
-        />
-      </div>
+          <label for="code" class="block text-sm font-medium text-gray-700">
+            {{ t('product.code') }}
+            <!-- No red * because it's optional -->
+          </label>
+          <InputText id="code" v-model="productData.code" class="w-full" placeholder="e.g. PROD-456 / supplier code" />
+        </div>
 
         <!-- Arabic Name -->
         <div class="space-y-2">
           <label for="name_ar" class="block text-sm font-medium text-gray-700">
             {{ t('product.nameAr') }} <span class="text-red-500">*</span>
           </label>
-          <InputText
-            id="name_ar"
-            v-model="productData.name_ar"
-            dir="rtl"
-            class="w-full"
-            :class="{ 'p-invalid': !productData.name_ar }"
-          />
+          <InputText id="name_ar" v-model="productData.name_ar" dir="rtl" class="w-full"
+            :class="{ 'p-invalid': !productData.name_ar }" />
         </div>
 
         <!-- English Sub-Name -->
@@ -550,11 +508,7 @@ const submitForm = async () => {
           <label for="sub_name_en" class="block text-sm font-medium text-gray-700">
             {{ t('product.subNameEn') }}
           </label>
-          <InputText
-            id="sub_name_en"
-            v-model="productData.sub_name_en"
-            class="w-full"
-          />
+          <InputText id="sub_name_en" v-model="productData.sub_name_en" class="w-full" />
         </div>
 
         <!-- Arabic Sub-Name -->
@@ -562,12 +516,7 @@ const submitForm = async () => {
           <label for="sub_name_ar" class="block text-sm font-medium text-gray-700">
             {{ t('product.subNameAr') }}
           </label>
-          <InputText
-            id="sub_name_ar"
-            v-model="productData.sub_name_ar"
-            dir="rtl"
-            class="w-full"
-          />
+          <InputText id="sub_name_ar" v-model="productData.sub_name_ar" dir="rtl" class="w-full" />
         </div>
 
         <!-- English Description -->
@@ -575,12 +524,7 @@ const submitForm = async () => {
           <label for="description_en" class="block text-sm font-medium text-gray-700">
             {{ t('product.descriptionEn') }}
           </label>
-          <Textarea
-            id="description_en"
-            v-model="productData.description_en"
-            rows="4"
-            class="w-full"
-          />
+          <Textarea id="description_en" v-model="productData.description_en" rows="4" class="w-full" />
         </div>
 
         <!-- Arabic Description -->
@@ -588,13 +532,7 @@ const submitForm = async () => {
           <label for="description_ar" class="block text-sm font-medium text-gray-700">
             {{ t('product.descriptionAr') }}
           </label>
-          <Textarea
-            id="description_ar"
-            v-model="productData.description_ar"
-            rows="4"
-            dir="rtl"
-            class="w-full"
-          />
+          <Textarea id="description_ar" v-model="productData.description_ar" rows="4" dir="rtl" class="w-full" />
         </div>
 
         <!-- Base Price -->
@@ -602,14 +540,8 @@ const submitForm = async () => {
           <label for="base_price" class="block text-sm font-medium text-gray-700">
             {{ t('product.basePrice') }} <span class="text-red-500">*</span>
           </label>
-          <InputNumber
-            id="base_price"
-            v-model="productData.base_price"
-            mode="decimal"
-            :minFractionDigits="2"
-            class="w-full"
-            :class="{ 'p-invalid': !productData.base_price }"
-          />
+          <InputNumber id="base_price" v-model="productData.base_price" mode="decimal" :minFractionDigits="2"
+            class="w-full" :class="{ 'p-invalid': !productData.base_price }" />
         </div>
 
         <!-- Cost Price -->
@@ -617,13 +549,8 @@ const submitForm = async () => {
           <label for="cost_price" class="block text-sm font-medium text-gray-700">
             {{ t('product.costPrice') }}
           </label>
-          <InputNumber
-            id="cost_price"
-            v-model="productData.cost_price"
-            mode="decimal"
-            :minFractionDigits="2"
-            class="w-full"
-          />
+          <InputNumber id="cost_price" v-model="productData.cost_price" mode="decimal" :minFractionDigits="2"
+            class="w-full" />
         </div>
 
         <!-- Tax -->
@@ -631,15 +558,8 @@ const submitForm = async () => {
           <label for="tax" class="block text-sm font-medium text-gray-700">
             {{ t('product.tax') }} (%)
           </label>
-          <InputNumber
-            id="tax"
-            v-model="productData.tax"
-            mode="decimal"
-            :min="0"
-            :max="100"
-            :minFractionDigits="2"
-            class="w-full"
-          />
+          <InputNumber id="tax" v-model="productData.tax" mode="decimal" :min="0" :max="100" :minFractionDigits="2"
+            class="w-full" />
         </div>
 
         <!-- Display Status -->
@@ -647,10 +567,7 @@ const submitForm = async () => {
           <label for="is_displayed" class="block text-sm font-medium text-gray-700">
             {{ t('product.displayStatus') }}
           </label>
-          <InputSwitch
-            id="is_displayed"
-            v-model="productData.is_displayed"
-          />
+          <InputSwitch id="is_displayed" v-model="productData.is_displayed" />
         </div>
 
         <!-- Stock Status -->
@@ -658,22 +575,13 @@ const submitForm = async () => {
           <label for="is_stock" class="block text-sm font-medium text-gray-700">
             {{ t('product.stockStatus') }}
           </label>
-          <InputSwitch
-            id="is_stock"
-            v-model="productData.is_stock"
-          />
+          <InputSwitch id="is_stock" v-model="productData.is_stock" />
         </div>
 
         <!-- Variants Toggle -->
         <div class="md:col-span-2 space-y-2">
           <div class="flex items-center">
-            <Checkbox
-              v-model="hasVariants"
-              inputId="hasVariants"
-              :binary="true"
-              @click="toggleVariants"
-              class="mr-2"
-            />
+            <Checkbox v-model="hasVariants" inputId="hasVariants" :binary="true" @click="toggleVariants" class="mr-2" />
             <label for="hasVariants" class="text-sm font-medium text-gray-700">
               {{ t('product.hasVariants') }}
             </label>
@@ -686,26 +594,19 @@ const submitForm = async () => {
             <h3 class="text-lg font-semibold text-gray-800">{{ t('product.variants') }}</h3>
           </div>
 
-          <div v-for="(variant, index) in productData.variants" :key="index" class="p-4 border rounded-lg space-y-4 bg-gray-50">
+          <div v-for="(variant, index) in productData.variants" :key="index"
+            class="p-4 border rounded-lg space-y-4 bg-gray-50">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <!-- Attribute Values -->
               <div class="space-y-2 md:col-span-2">
                 <label :for="'attributes_' + index" class="block text-sm font-medium text-gray-700">
                   {{ t('product.attributes') }} <span class="text-red-500">*</span>
                 </label>
-                <MultiSelect
-                  :id="'attributes_' + index"
-                  v-model="variant.attribute_value_ids"
-                  :options="formattedAttributes"
-                  optionGroupLabel="label"
-                  optionGroupChildren="items"
-                  :optionLabel="labelField"
-                  optionValue="attribute_value_id"
-                  class="w-full"
+                <MultiSelect :id="'attributes_' + index" v-model="variant.attribute_value_ids"
+                  :options="formattedAttributes" optionGroupLabel="label" optionGroupChildren="items"
+                  :optionLabel="labelField" optionValue="attribute_value_id" class="w-full"
                   :class="{ 'p-invalid': !(variant.attribute_value_ids && variant.attribute_value_ids.length) }"
-                  :filter="true"
-                  display="chip"
-                />
+                  :filter="true" display="chip" />
               </div>
 
               <!-- SKU - NOT REQUIRED -->
@@ -713,11 +614,7 @@ const submitForm = async () => {
                 <label :for="'sku_' + index" class="block text-sm font-medium text-gray-700">
                   {{ t('product.sku') }}
                 </label>
-                <InputText
-                  :id="'sku_' + index"
-                  v-model="variant.sku"
-                  class="w-full"
-                />
+                <InputText :id="'sku_' + index" v-model="variant.sku" class="w-full" />
               </div>
 
               <!-- Price - REQUIRED -->
@@ -725,14 +622,17 @@ const submitForm = async () => {
                 <label :for="'price_' + index" class="block text-sm font-medium text-gray-700">
                   {{ t('product.price') }} <span class="text-red-500">*</span>
                 </label>
-                <InputNumber
-                  :id="'price_' + index"
-                  v-model="variant.price"
-                  mode="decimal"
-                  :minFractionDigits="2"
-                  class="w-full"
-                  :class="{ 'p-invalid': !variant.price }"
-                />
+                <InputNumber :id="'price_' + index" v-model="variant.price" mode="decimal" :minFractionDigits="2"
+                  class="w-full" :class="{ 'p-invalid': !variant.price }" />
+              </div>
+
+              <!-- Cost Price - REQUIRED -->
+              <div class="space-y-2">
+                <label :for="'price_' + index" class="block text-sm font-medium text-gray-700">
+                  {{ t('product.costPrice') }} <span class="text-red-500">*</span>
+                </label>
+                <InputNumber :id="'price_' + index" v-model="variant.cost_price" mode="decimal" :minFractionDigits="2"
+                  class="w-full" :class="{ 'p-invalid': !variant.price }" />
               </div>
 
               <!-- Variant Image Upload -->
@@ -740,35 +640,21 @@ const submitForm = async () => {
                 <label :for="'variant_image_' + index" class="block text-sm font-medium text-gray-700">
                   {{ t('product.variantImage') }}
                 </label>
-                <label
-                  :for="'variant_image_' + index"
-                  @dragover.prevent="isDragging = true"
-                  @dragleave="isDragging = false"
-                  @drop.prevent="onVariantImageUpload($event, index)"
-                  :class="{'border-blue-500 bg-blue-50': isDragging, 'border-gray-300': !isDragging}"
-                  class="cursor-pointer w-full rounded border-2 border-dashed transition-colors duration-300 block"
-                >
-                  <input
-                    type="file"
-                    :id="'variant_image_' + index"
-                    @change="onVariantImageUpload($event, index)"
-                    accept="image/*"
-                    class="hidden"
-                  />
+                <label :for="'variant_image_' + index" @dragover.prevent="isDragging = true"
+                  @dragleave="isDragging = false" @drop.prevent="onVariantImageUpload($event, index)"
+                  :class="{ 'border-blue-500 bg-blue-50': isDragging, 'border-gray-300': !isDragging }"
+                  class="cursor-pointer w-full rounded border-2 border-dashed transition-colors duration-300 block">
+                  <input type="file" :id="'variant_image_' + index" @change="onVariantImageUpload($event, index)"
+                    accept="image/*" class="hidden" />
                   <div v-if="variant.variant_image_preview" class="p-4">
                     <div class="relative group">
-                      <img
-                        :src="variant.variant_image_preview"
-                        alt="Variant Preview"
-                        class="w-full h-32 object-contain rounded-lg shadow-md"
-                      />
-                      <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
-                        <button
-                          type="button"
-                          @click.stop="removeVariantImage(index)"
+                      <img :src="variant.variant_image_preview" alt="Variant Preview"
+                        class="w-full h-32 object-contain rounded-lg shadow-md" />
+                      <div
+                        class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
+                        <button type="button" @click.stop="removeVariantImage(index)"
                           class="opacity-0 group-hover:opacity-100 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
-                          :title="t('product.deleteImage')"
-                        >
+                          :title="t('product.deleteImage')">
                           <i class="pi pi-trash text-sm"></i>
                         </button>
                       </div>
@@ -780,7 +666,8 @@ const submitForm = async () => {
                       <i class="pi pi-image text-blue-500 text-xl"></i>
                     </div>
                     <p class="text-xs text-center text-gray-600">
-                      <span class="text-blue-500 font-medium">{{ t('product.uploadClick') }}</span> {{ t('product.uploadDrag') }}
+                      <span class="text-blue-500 font-medium">{{ t('product.uploadClick') }}</span> {{
+                        t('product.uploadDrag') }}
                     </p>
                     <p class="text-xs text-gray-400">{{ t('product.imageFormat') }}</p>
                   </div>
@@ -789,24 +676,13 @@ const submitForm = async () => {
             </div>
 
             <div class="flex justify-end">
-              <Button
-                type="button"
-                icon="pi pi-trash"
-                class="p-button-danger p-button-sm"
-                @click="removeVariant(index)"
-                :disabled="productData.variants.length === 1"
-                :label="t('product.removeVariant')"
-              />
+              <Button type="button" icon="pi pi-trash" class="p-button-danger p-button-sm" @click="removeVariant(index)"
+                :disabled="productData.variants.length === 1" :label="t('product.removeVariant')" />
             </div>
           </div>
 
-          <Button
-            type="button"
-            :label="t('product.addVariant')"
-            icon="pi pi-plus"
-            class="p-button-outlined p-button-secondary"
-            @click="addVariant"
-          />
+          <Button type="button" :label="t('product.addVariant')" icon="pi pi-plus"
+            class="p-button-outlined p-button-secondary" @click="addVariant" />
         </div>
 
         <!-- Main Image Upload -->
@@ -814,35 +690,20 @@ const submitForm = async () => {
           <label class="block text-sm font-medium text-gray-700">
             {{ t('product.mainImage') }} <span class="text-red-500">*</span>
           </label>
-          <label
-            for="main_image_upload"
-            @dragover.prevent="isDragging = true"
-            @dragleave="isDragging = false"
+          <label for="main_image_upload" @dragover.prevent="isDragging = true" @dragleave="isDragging = false"
             @drop.prevent="onMainImageUpload"
-            :class="{'border-blue-500 bg-blue-50': isDragging, 'border-gray-300': !isDragging}"
-            class="cursor-pointer w-full rounded-xl border-2 border-dashed transition-colors duration-300 p-6 block"
-          >
-            <input
-              type="file"
-              id="main_image_upload"
-              @change="onMainImageUpload"
-              accept="image/*"
-              class="hidden"
-            />
+            :class="{ 'border-blue-500 bg-blue-50': isDragging, 'border-gray-300': !isDragging }"
+            class="cursor-pointer w-full rounded-xl border-2 border-dashed transition-colors duration-300 p-6 block">
+            <input type="file" id="main_image_upload" @change="onMainImageUpload" accept="image/*" class="hidden" />
             <div v-if="mainImagePreview" class="flex flex-col items-center">
               <div class="relative group">
-                <img
-                  :src="mainImagePreview"
-                  alt="Main Preview"
-                  class="w-full h-48 object-contain rounded-lg shadow-md"
-                />
-                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
-                  <button
-                    type="button"
-                    @click.stop="removeMainImage"
+                <img :src="mainImagePreview" alt="Main Preview"
+                  class="w-full h-48 object-contain rounded-lg shadow-md" />
+                <div
+                  class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
+                  <button type="button" @click.stop="removeMainImage"
                     class="opacity-0 group-hover:opacity-100 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
-                    :title="t('product.deleteImage')"
-                  >
+                    :title="t('product.deleteImage')">
                     <i class="pi pi-trash text-sm"></i>
                   </button>
                 </div>
@@ -854,7 +715,8 @@ const submitForm = async () => {
                 <i class="pi pi-image text-blue-500 text-2xl"></i>
               </div>
               <p class="text-sm text-center text-gray-600">
-                <span class="text-blue-500 font-medium">{{ t('product.uploadClick') }}</span> {{ t('product.uploadDrag') }}
+                <span class="text-blue-500 font-medium">{{ t('product.uploadClick') }}</span> {{ t('product.uploadDrag')
+                }}
               </p>
               <p class="text-xs text-gray-400">{{ t('product.imageFormat') }}</p>
             </div>
@@ -864,37 +726,21 @@ const submitForm = async () => {
         <!-- Additional Images Upload -->
         <div class="md:col-span-2 space-y-2">
           <label class="block text-sm font-medium text-gray-700">{{ t('product.additionalImages') }}</label>
-          <label
-            for="additional_images_upload"
-            @dragover.prevent="isDragging = true"
-            @dragleave="isDragging = false"
+          <label for="additional_images_upload" @dragover.prevent="isDragging = true" @dragleave="isDragging = false"
             @drop.prevent="onAdditionalImagesUpload"
-            :class="{'border-blue-500 bg-blue-50': isDragging, 'border-gray-300': !isDragging}"
-            class="cursor-pointer w-full rounded-xl border-2 border-dashed transition-colors duration-300 p-6 block"
-          >
-            <input
-              type="file"
-              id="additional_images_upload"
-              @change="onAdditionalImagesUpload"
-              accept="image/*"
-              multiple
-              class="hidden"
-            />
+            :class="{ 'border-blue-500 bg-blue-50': isDragging, 'border-gray-300': !isDragging }"
+            class="cursor-pointer w-full rounded-xl border-2 border-dashed transition-colors duration-300 p-6 block">
+            <input type="file" id="additional_images_upload" @change="onAdditionalImagesUpload" accept="image/*"
+              multiple class="hidden" />
             <div v-if="additionalImagePreviews.length > 0" class="space-y-4">
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 <div v-for="(preview, index) in additionalImagePreviews" :key="index" class="relative group">
-                  <img
-                    :src="preview"
-                    alt="Additional Preview"
-                    class="w-full h-32 object-cover rounded-lg shadow-md"
-                  />
-                  <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
-                    <button
-                      type="button"
-                      @click.stop="removeAdditionalImage(index)"
+                  <img :src="preview" alt="Additional Preview" class="w-full h-32 object-cover rounded-lg shadow-md" />
+                  <div
+                    class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
+                    <button type="button" @click.stop="removeAdditionalImage(index)"
                       class="opacity-0 group-hover:opacity-100 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
-                      :title="t('product.deleteImage')"
-                    >
+                      :title="t('product.deleteImage')">
                       <i class="pi pi-trash text-sm"></i>
                     </button>
                   </div>
@@ -907,7 +753,8 @@ const submitForm = async () => {
                 <i class="pi pi-images text-blue-500 text-2xl"></i>
               </div>
               <p class="text-sm text-center text-gray-600">
-                <span class="text-blue-500 font-medium">{{ t('product.uploadClick') }}</span> {{ t('product.uploadDrag') }}
+                <span class="text-blue-500 font-medium">{{ t('product.uploadClick') }}</span> {{ t('product.uploadDrag')
+                }}
               </p>
               <p class="text-xs text-gray-400">{{ t('product.imageFormat') }}</p>
             </div>
@@ -917,21 +764,10 @@ const submitForm = async () => {
 
       <!-- Submit Buttons -->
       <div class="pt-4 flex justify-center space-x-4">
-        <Button
-          type="button"
-          :label="t('product.cancelButton')"
-          icon="pi pi-times"
-          @click="router.go(-1)"
-          class="p-button-outlined mx-3 p-button-secondary"
-          :disabled="loading"
-        />
-        <Button
-          type="submit"
-          :label="t('product.updateButton')"
-          icon="pi pi-check"
-          :loading="loading"
-          class="p-button-success"
-        />
+        <Button type="button" :label="t('product.cancelButton')" icon="pi pi-times" @click="router.go(-1)"
+          class="p-button-outlined mx-3 p-button-secondary" :disabled="loading" />
+        <Button type="submit" :label="t('product.updateButton')" icon="pi pi-check" :loading="loading"
+          class="p-button-success" />
       </div>
     </form>
 
@@ -940,7 +776,11 @@ const submitForm = async () => {
 </template>
 
 <style scoped>
-.p-dropdown, .p-multiselect, .p-inputtext, .p-inputnumber, .p-inputtextarea {
+.p-dropdown,
+.p-multiselect,
+.p-inputtext,
+.p-inputnumber,
+.p-inputtextarea {
   width: 100%;
 }
 

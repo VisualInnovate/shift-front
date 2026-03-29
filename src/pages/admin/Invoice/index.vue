@@ -162,7 +162,7 @@ onMounted(() => {
 
           <Column field="number" :header="t('invoice.orderNumber')" sortable>
             <template #body="slotProps">
-              <strong>{{ slotProps.data.order.number }}</strong>
+              <strong>#{{ slotProps.data.order.id }}</strong>
             </template>
           </Column>
 

@@ -164,7 +164,7 @@
           <p><strong>{{ t('invoice.number') }}:</strong> {{ invoice?.number }}</p>
           <p><strong>{{ t('invoice.date') }}:</strong> {{ formatDate(invoice?.created_at) }}</p>
           <p><strong>{{ t('name') }}:</strong> {{ invoice?.user?.name || '-' }}</p>
-          <p><strong>{{ t('invoice.orderNumber') }}:</strong> {{ invoice?.order?.number || '-' }}</p>
+          <p><strong>{{ t('invoice.orderNumber') }}:</strong> #{{ invoice?.order?.id || '-' }}</p>
           <p><strong>{{ t('invoice.customerNumber') }}:</strong> {{ invoice?.user?.phone || '-' }}</p>
 
           <div v-if="invoice?.address">

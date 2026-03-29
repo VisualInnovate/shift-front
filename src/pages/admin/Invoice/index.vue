@@ -148,9 +148,27 @@ onMounted(() => {
 
 
 
+          <Column field="number" :header="t('invoice.customerName')" sortable>
+            <template #body="slotProps">
+              <strong>{{ slotProps.data.user.name }}</strong>
+            </template>
+          </Column>
+
           <Column field="number" :header="t('invoice.number')" sortable>
             <template #body="slotProps">
               <strong>{{ slotProps.data.number }}</strong>
+            </template>
+          </Column>
+
+          <Column field="number" :header="t('invoice.orderNumber')" sortable>
+            <template #body="slotProps">
+              <strong>{{ slotProps.data.order.number }}</strong>
+            </template>
+          </Column>
+
+          <Column field="number" :header="t('invoice.customerNumber')" sortable>
+            <template #body="slotProps">
+              <strong>{{ slotProps.data.user.phone }}</strong>
             </template>
           </Column>
 

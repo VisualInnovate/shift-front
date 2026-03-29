@@ -283,7 +283,8 @@ const exportxlsx = () => {
     search: searchQuery.value || '',
     category_id: selectedCategory.value || '',
     store_id: selectedStore.value || '',
-    market_id: selectedMarket.value || ''
+    market_id: selectedMarket.value || '',
+    has_discounts: hasDiscounts.value !== null ? hasDiscounts.value : undefined
   })
   const url = `/api/export/products?${params.toString()}`
   axios.get(url, { responseType: 'blob' })
@@ -701,7 +702,7 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-900 font-medium mb-2">{{ t('product.discountsFilter') || 'Has Discounts'
-              }}</label>
+                }}</label>
               <div class="flex align-items-center gap-3">
                 <InputSwitch v-model="hasDiscounts" :true-value="true" :false-value="false" />
 

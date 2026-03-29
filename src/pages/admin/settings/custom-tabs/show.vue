@@ -311,7 +311,7 @@ const isAddFormValid = computed(() => {
 const isEditFormValid = computed(() => {
   if (!editingDetail.value) return false
   const base =
-    editingDetail.value.name_en.trim() && editingDetail.value.name_ar.trim() && editingDetail.value.ids.length > 0
+    editingDetail.value.name_en.trim() && editingDetail.value.name_ar.trim()
   return editingDetail.value.type === 1 ? base && editingDetail.value.model_id : base
 })
 

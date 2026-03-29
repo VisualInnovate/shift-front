@@ -9,18 +9,8 @@
               <h2 class="m-0">{{ t('invoice.details') }} #{{ invoice?.number }}</h2>
             </div>
             <div class="flex gap-2">
-              <Button
-                :label="t('print')"
-                icon="pi pi-print"
-                class="p-button-success"
-                @click="printInvoice"
-              />
-              <Button
-                :label="t('back')"
-                icon="pi pi-arrow-left"
-                class="p-button-secondary"
-                @click="goBack"
-              />
+              <Button :label="t('print')" icon="pi pi-print" class="p-button-success" @click="printInvoice" />
+              <Button :label="t('back')" icon="pi pi-arrow-left" class="p-button-secondary" @click="goBack" />
             </div>
           </div>
         </template>
@@ -52,13 +42,9 @@
                       <strong>{{ t('invoice.deliveryAddress') || 'Delivery Address' }}:</strong>
                       {{ formatAddress(invoice.address) }}
                     </div>
-                    <Button
-                      v-if="hasCoordinates"
-                      icon="pi pi-map-marker"
-                      :label="t('viewOnMap') || 'View on Google Maps'"
-                      class="p-button-info p-button-outlined mt-2"
-                      @click="openGoogleMaps"
-                    />
+                    <Button v-if="hasCoordinates" icon="pi pi-map-marker"
+                      :label="t('viewOnMap') || 'View on Google Maps'" class="p-button-info p-button-outlined mt-2"
+                      @click="openGoogleMaps" />
                     <span v-else class="text-500 text-sm block mt-2">
                       {{ t('noLocationAvailable') || '(No coordinates available)' }}
                     </span>
@@ -111,7 +97,8 @@
 
               <Column :header="t('total')">
                 <template #body="slotProps">
-                  <span class="font-bold">{{ formatCurrency(parseFloat(slotProps.data.price) * slotProps.data.quantity) }}</span>
+                  <span class="font-bold">{{ formatCurrency(parseFloat(slotProps.data.price) * slotProps.data.quantity)
+                    }}</span>
                 </template>
               </Column>
             </DataTable>
@@ -176,6 +163,8 @@
           <p><strong>{{ t('invoice.number') }}:</strong> {{ invoice?.number }}</p>
           <p><strong>{{ t('invoice.date') }}:</strong> {{ formatDate(invoice?.created_at) }}</p>
           <p><strong>{{ t('name') }}:</strong> {{ invoice?.user?.name || '-' }}</p>
+          <p><strong>{{ t('invoice.orderNumber') }}:</strong> {{ invoice?.order?.number || '-' }}</p>
+          <p><strong>{{ t('invoice.customerNumber') }}:</strong> {{ invoice?.user?.phone || '-' }}</p>
 
           <div v-if="invoice?.address">
             <p><strong>{{ t('invoice.deliveryAddress') || 'Delivery Address' }}:</strong></p>
@@ -397,7 +386,9 @@ onMounted(fetchInvoice)
 </script>
 
 <style scoped>
-.hidden { display: none; }
+.hidden {
+  display: none;
+}
 
 .invoice-info-item {
   font-size: 1.05rem;

@@ -393,7 +393,9 @@ export default {
   },
   viewOnMap: 'عرض على الخريطة',
   invoice: {
-
+    customerNumber: 'رقم هاتف العميل',
+    orderNumber: 'رقم الطلب',
+    customerName: 'اسم العميل',
     deliveryAddress: 'عنوان التوصيل',
     managementTitle: 'ادارة الفواتير',
     details: 'تفاصيل الفاتورة',

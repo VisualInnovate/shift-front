@@ -163,6 +163,7 @@ export default {
   error: 'Error',
   success: 'Success',
   order: {
+    owner: 'Owner',
     detailTitle: 'Order Details',
     financialSummary: 'Financial Summary',
     generalInfo: 'General Information',

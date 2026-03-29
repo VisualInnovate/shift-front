@@ -155,11 +155,11 @@ const getStatusSeverity = (status) => {
               <span>{{ formatCurrency(orderData.sub_total_price) }}</span>
             </div>
             <div class="flex justify-between text-[#F3B913] font-medium">
-              <span>{{ t('deliveryFee') }}</span>
+              <span>{{ t('invoice.deliveryFee') }}</span>
               <span>{{ formatCurrency(orderData.delivery_fee) }}</span>
             </div>
             <div class="flex justify-between text-[#F3B913] font-medium">
-              <span>{{ t('serviceFee') }}</span>
+              <span>{{ t('invoice.serviceFee') }}</span>
               <span>{{ formatCurrency(orderData.service_fee) }}</span>
             </div>
             <div v-if="parseFloat(orderData.tax_fee) > 0" class="flex justify-between text-[#F3B913] font-medium">

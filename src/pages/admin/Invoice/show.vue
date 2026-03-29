@@ -33,6 +33,12 @@
                 <div class="invoice-info-item mb-2">
                   <strong>{{ t('name') }}:</strong> {{ invoice.user?.name || '-' }}
                 </div>
+                <div class="invoice-info-item mb-2">
+                  <strong>{{ t('invoice.orderNumber') }}:</strong> #{{ invoice.order?.id || '-' }}
+                </div>
+                <div class="invoice-info-item mb-2">
+                  <strong>{{ t('invoice.customerNumber') }}:</strong> {{ invoice.user?.phone || '-' }}
+                </div>
               </div>
 
               <div class="col-12 md:col-6">
@@ -119,11 +125,11 @@
                     <span class="font-medium">{{ formatCurrency(invoice.tax_fee) }}</span>
                   </div>
                   <div class="flex justify-content-between mb-2" v-if="parseFloat(invoice.service_fee) > 0">
-                    <span>{{ t('serviceFee') || 'Service Fee' }}</span>
+                    <span>{{ t('invoice.serviceFee') || 'Service Fee' }}</span>
                     <span class="font-medium">{{ formatCurrency(invoice.service_fee) }}</span>
                   </div>
                   <div class="flex justify-content-between mb-2" v-if="parseFloat(invoice.delivery_fee) > 0">
-                    <span>{{ t('deliveryFee') || 'Delivery Fee' }}</span>
+                    <span>{{ t('invoice.deliveryFee') || 'Delivery Fee' }}</span>
                     <span class="font-medium">{{ formatCurrency(invoice.delivery_fee) }}</span>
                   </div>
                   <div class="flex justify-content-between mb-2 text-pink-500" v-if="parseFloat(invoice.coupon) > 0">
@@ -220,11 +226,11 @@
             <span>{{ formatCurrency(invoice?.tax_fee) }}</span>
           </div>
           <div class="summary-row" v-if="parseFloat(invoice?.service_fee) > 0">
-            <span>{{ t('serviceFee') || 'Service Fee' }}</span>
+            <span>{{ t('invoice.serviceFee') || 'Service Fee' }}</span>
             <span>{{ formatCurrency(invoice?.service_fee) }}</span>
           </div>
           <div class="summary-row" v-if="parseFloat(invoice?.delivery_fee) > 0">
-            <span>{{ t('deliveryFee') || 'Delivery Fee' }}</span>
+            <span>{{ t('invoice.deliveryFee') || 'Delivery Fee' }}</span>
             <span>{{ formatCurrency(invoice?.delivery_fee) }}</span>
           </div>
           <div class="summary-row text-pink-600" v-if="parseFloat(invoice?.coupon) > 0">

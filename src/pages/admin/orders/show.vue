@@ -16,7 +16,7 @@ import Toast from 'primevue/toast'
 import Divider from 'primevue/divider'
 import Dialog from 'primevue/dialog'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
@@ -151,14 +151,8 @@ const formatCurrency = (value) => {
         <div v-else-if="orderData">
           <div class="flex justify-content-between align-items-center mb-5">
 
-            <Button
-              :label="t('order.generateInvoice')"
-              icon="pi pi-file-pdf"
-              @click="openGenerateInvoiceModal"
-              :loading="isGeneratingInvoice"
-              :disabled="orderData.has_invoice"
-              class="p-button-success"
-            />
+            <Button :label="t('order.generateInvoice')" icon="pi pi-file-pdf" @click="openGenerateInvoiceModal"
+              :loading="isGeneratingInvoice" :disabled="orderData.has_invoice" class="p-button-success" />
           </div>
 
           <Card class="mb-5">
@@ -166,7 +160,8 @@ const formatCurrency = (value) => {
               <div class="grid">
                 <div class="col-12 lg:col-6">
                   <div class="space-y-3 mb-5">
-                    <p><strong>{{ t('order.name') }}:</strong> {{ orderData.user?.name }}</p>
+                    <p><strong>{{ t('order.name') }}:</strong> {{ orderData.user?.name }}</p><hr>
+                    <p><strong>{{ t('order.owner') }}:</strong> {{ orderData.owner[locale] }}</p>
                     <p v-if="orderData.notes">
                       <strong>{{ t('order.notes') }}:</strong>
                       <span class="text-600">{{ orderData.notes }}</span>
@@ -179,7 +174,8 @@ const formatCurrency = (value) => {
                     {{ t('order.financialSummary') }}
                   </h4>
                   <div class="space-y-3">
-                    <p><strong>{{ t('order.subTotalPrice') }}:</strong> {{ formatCurrency(orderData.sub_total_price) }}</p>
+                    <p><strong>{{ t('order.subTotalPrice') }}:</strong> {{ formatCurrency(orderData.sub_total_price) }}
+                    </p>
                     <p><strong>{{ t('order.taxFee') }}:</strong> {{ formatCurrency(orderData.tax_fee) }}</p>
                     <p><strong>{{ t('order.serviceFee') }}:</strong> {{ formatCurrency(orderData.service_fee) }}</p>
                     <p><strong>{{ t('order.deliveryFee') }}:</strong> {{ formatCurrency(orderData.delivery_fee) }}</p>
@@ -199,11 +195,8 @@ const formatCurrency = (value) => {
                   <div class="space-y-3">
                     <p class="flex align-items-center gap-2">
                       <strong class="mb-2">{{ t('order.status') }}:</strong>
-                      <Tag
-                        :value="orderData.status === 0 ? t('order.pending') : t('order.completed')"
-                        :severity="orderData.status === 0 ? 'warning' : 'success'"
-                        rounded
-                      />
+                      <Tag :value="orderData.status === 0 ? t('order.pending') : t('order.completed')"
+                        :severity="orderData.status === 0 ? 'warning' : 'success'" rounded />
                     </p>
 
 
@@ -221,13 +214,8 @@ const formatCurrency = (value) => {
             </template>
 
             <template #content>
-              <DataTable
-                :value="orderData.order_items"
-                responsiveLayout="scroll"
-                stripedRows
-                showGridlines
-                class="p-datatable-sm"
-              >
+              <DataTable :value="orderData.order_items" responsiveLayout="scroll" stripedRows showGridlines
+                class="p-datatable-sm">
                 <Column :header="t('order.itemId')" style="width: 6%">
                   <template #body="{ data }">{{ data.id }}</template>
                 </Column>
@@ -237,10 +225,7 @@ const formatCurrency = (value) => {
                     <div class="font-medium">
                       {{ getProductName(data.product) }}
                     </div>
-                    <div
-                      v-if="data.variant"
-                      class="text-sm text-600 mt-1"
-                    >
+                    <div v-if="data.variant" class="text-sm text-600 mt-1">
                       {{ getVariantDisplay(data.variant) }}
                     </div>
                   </template>
@@ -251,7 +236,7 @@ const formatCurrency = (value) => {
                     <span class="font-semibold">{{ data.quantity }}</span>
                   </template>
                 </Column>
-                 <Column field="product.code" :header="t('product.code')" style="width: 8%">
+                <Column field="product.code" :header="t('product.code')" style="width: 8%">
                   <template #body="{ data }">
                     <span class="font-semibold">{{ data.product.code }}</span>
                   </template>
@@ -271,12 +256,8 @@ const formatCurrency = (value) => {
 
                 <Column :header="t('order.image')" style="width: 22%">
                   <template #body="{ data }">
-                    <img
-                      :src="getProductImage(data.product)"
-                      alt="Product"
-                      class="product-image shadow-2 border-round"
-                      @error="(e) => e.target.src = '/images/no-image.png'"
-                    />
+                    <img :src="getProductImage(data.product)" alt="Product" class="product-image shadow-2 border-round"
+                      @error="(e) => e.target.src = '/images/no-image.png'" />
                   </template>
                 </Column>
 
@@ -294,22 +275,12 @@ const formatCurrency = (value) => {
         <div v-else class="text-center py-8">
           <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4 opacity-70" />
           <p class="text-xl font-medium text-700">{{ t('order.notFound') }}</p>
-          <Button
-            :label="t('common.back')"
-            icon="pi pi-arrow-left"
-            @click="goBack"
-            class="mt-4 p-button-outlined"
-          />
+          <Button :label="t('common.back')" icon="pi pi-arrow-left" @click="goBack" class="mt-4 p-button-outlined" />
         </div>
 
         <!-- Confirmation Dialog -->
-        <Dialog
-          v-if="orderData"
-          v-model:visible="displayConfirmationModal"
-          :header="t('order.invoiceConfirmationTitle')"
-          :modal="true"
-          :style="{ width: '50vw' }"
-        >
+        <Dialog v-if="orderData" v-model:visible="displayConfirmationModal"
+          :header="t('order.invoiceConfirmationTitle')" :modal="true" :style="{ width: '50vw' }">
           <div class="p-fluid">
             <p class="mb-4 text-lg">
               {{ t('order.invoiceConfirmationMessage') }}
@@ -337,18 +308,10 @@ const formatCurrency = (value) => {
           </div>
 
           <template #footer>
-            <Button
-              :label="t('common.cancel')"
-              icon="pi pi-times"
-              @click="displayConfirmationModal = false"
-              class="p-button-text p-button-secondary"
-            />
-            <Button
-              :label="t('order.confirmGenerate')"
-              icon="pi pi-check"
-              @click="confirmAndGenerateInvoice"
-              class="p-button-success"
-            />
+            <Button :label="t('common.cancel')" icon="pi pi-times" @click="displayConfirmationModal = false"
+              class="p-button-text p-button-secondary" />
+            <Button :label="t('order.confirmGenerate')" icon="pi pi-check" @click="confirmAndGenerateInvoice"
+              class="p-button-success" />
           </template>
         </Dialog>
       </div>
@@ -364,7 +327,7 @@ const formatCurrency = (value) => {
   border: 1px solid var(--surface-300);
 }
 
-.space-y-3 > * + * {
+.space-y-3>*+* {
   margin-top: 0.75rem;
 }
 </style>

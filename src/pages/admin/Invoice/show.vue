@@ -85,7 +85,7 @@
 
               <Column :header="t('price')">
                 <template #body="slotProps">
-                  {{ formatCurrency(slotProps.data.price) }}
+                  {{ formatCurrency(slotProps.data.variant_id ? slotProps.data.variant.price : slotProps.data.price) }}
                 </template>
               </Column>
 
@@ -97,8 +97,9 @@
 
               <Column :header="t('total')">
                 <template #body="slotProps">
-                  <span class="font-bold">{{ formatCurrency(parseFloat(slotProps.data.price) * slotProps.data.quantity)
-                    }}</span>
+                  <span class="font-bold">{{ formatCurrency(parseFloat(slotProps.data.variant_id ?
+                    slotProps.data.variant.price : slotProps.data.price) * slotProps.data.quantity)
+                  }}</span>
                 </template>
               </Column>
             </DataTable>

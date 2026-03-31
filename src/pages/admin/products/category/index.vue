@@ -170,11 +170,11 @@ const exportCategories = () => {
     responseType: 'blob'
   })
     .then((response) => {
-      const blob = new Blob([response.data], { type: 'text/csv' })
+      const blob = new Blob([response.data], { type: 'text/xlsx' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', 'categories_export.csv')
+      link.setAttribute('download', 'categories_export.xlsx')
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -197,12 +197,12 @@ const downloadExample = () => {
     exampleData.value.map(row =>
       `"${row.id}","${row.arabic_name}","${row.english_name}","${row.Top_Parent}",`
     ).join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const blob = new Blob([csvContent], { type: 'text/xlsx;charset=utf-8;' })
   const link = document.createElement('a')
   if (link.download !== undefined) {
     const url = URL.createObjectURL(blob)
     link.setAttribute('href', url)
-    link.setAttribute('download', 'category_import_example.csv')
+    link.setAttribute('download', 'category_import_example.xlsx')
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()

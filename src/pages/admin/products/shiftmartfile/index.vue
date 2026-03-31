@@ -123,7 +123,7 @@ const downloadFile = async (id) => {
 
     const disposition = res.headers?.["content-disposition"] || "";
     const match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i);
-    const fileName = match ? decodeURIComponent(match[1]) : `excel_${id}.csv`;
+    const fileName = match ? decodeURIComponent(match[1]) : `excel_${id}.xlsx`;
 
     const blob = new Blob([res.data], {
       type: res.headers?.["content-type"] || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

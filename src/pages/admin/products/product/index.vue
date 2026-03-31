@@ -292,7 +292,7 @@ const exportxlsx = () => {
       const blob = new Blob([response.data], { type: 'text/xlsx' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = 'products_export.csv'
+      link.download = 'products_export.xlsx'
       link.click()
       toast.add({ severity: 'success', summary: t('success'), detail: t('product.exportSuccess'), life: 3000 })
     })
@@ -314,7 +314,7 @@ const export_prices_featuresxlsx = () => {
       const blob = new Blob([response.data], { type: 'text/xlsx' })
       const link = document.createElement('a')
       link.href = URL.createObjectURL(blob)
-      link.download = 'products_variants_export.csv'
+      link.download = 'products_variants_export.xlsx'
       link.click()
       toast.add({ severity: 'success', summary: t('success'), detail: t('product.exportSuccess'), life: 3000 })
     })
@@ -329,19 +329,19 @@ const downloadExample = () => {
   const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
-  link.download = 'product_import_example.csv'
+  link.download = 'product_import_example.xlsx'
   link.click()
 }
 
 const downloadExample2 = async () => {
   try {
-    const response = await fetch('/update_variant_template.csv')
+    const response = await fetch('/update_variant_template.xlsx')
     const blob = await response.blob()
 
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', 'update_variant_template.csv')
+    link.setAttribute('download', 'update_variant_template.xlsx')
 
     document.body.appendChild(link)
     link.click()
@@ -358,7 +358,7 @@ const downloadPriceExample = () => {
   const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
-  link.download = 'product_price_update_example.csv'
+  link.download = 'product_price_update_example.xlsx'
   link.click()
 }
 
@@ -367,7 +367,7 @@ const downloadCodesExample = () => {
   const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
   const link = document.createElement('a')
   link.href = URL.createObjectURL(blob)
-  link.download = 'product_codes_update_example.csv'
+  link.download = 'product_codes_update_example.xlsx'
   link.click()
 }
 

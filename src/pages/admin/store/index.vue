@@ -51,13 +51,13 @@ const exportStores = () => {
   })
     .then((response) => {
       // Create a blob from the response
-      const blob = new Blob([response.data], { type: 'text/csv' })
+      const blob = new Blob([response.data], { type: 'text/xlsx' })
       // Create a temporary URL for the blob
       const url = window.URL.createObjectURL(blob)
       // Create a temporary link element
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', 'stores_export.csv') // Set the file name
+      link.setAttribute('download', 'stores_export.xlsx') // Set the file name
       document.body.appendChild(link)
       link.click()
       // Clean up

@@ -69,11 +69,11 @@ const exportStores = () => {
     responseType: 'blob'
   })
     .then((response) => {
-      const blob = new Blob([response.data], { type: 'text/csv' })
+      const blob = new Blob([response.data], { type: 'text/xlsx' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', 'inventory_export.csv')
+      link.setAttribute('download', 'inventory_export.xlsx')
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)

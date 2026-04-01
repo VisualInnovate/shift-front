@@ -17,6 +17,7 @@ import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
 import InputSwitch from 'primevue/inputswitch'
 import Menu from 'primevue/menu'
+import { downloadFile } from '@/services/fileService'
 
 const router = useRouter()
 const toast = useToast()
@@ -324,58 +325,24 @@ const export_prices_featuresxlsx = () => {
 }
 
 // Download examples
-const downloadExample = () => {
-  const xlsxContent = 'store_id,category_id,market_id,name_en,name_ar,sku,brand_id,sub_name_en,sub_name_ar,description_en,description_ar,base_price,cost_price,tax\n1,1,1,Demo Product,منتج تجريبي,SKU001,1,Sub Demo,تجريبي فرعي,Description,وصف,15.50,10.00,0.05'
-  const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'product_import_example.xlsx'
-  link.click()
+const downloadExample = async () => {
+  await downloadFile('/api/export/example/product', 'product')
 }
 
 const downloadExample2 = async () => {
-  try {
-    const response = await fetch('/update_variant_template.xlsx')
-    const blob = await response.blob()
-
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', 'update_variant_template.xlsx')
-
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    URL.revokeObjectURL(url)
-  } catch (error) {
-    console.error('Download failed:', error)
-  }
+  await downloadFile('api/export/example/variant/price', 'variant_price')
 }
 
-const downloadPriceExample = () => {
-  const xlsxContent = 'id,price,cost_price\n1,16.00,10.50\n2,23.50,15.00'
-  const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'product_price_update_example.xlsx'
-  link.click()
+const downloadPriceExample = async () => {
+  await downloadFile('api/export/example/product/price', 'product_price')
 }
 
-const downloadCodesExample = () => {
-  const xlsxContent = 'product_id,code\n1,ABC123\n2,DEF456'
-  const blob = new Blob([xlsxContent], { type: 'text/xlsx' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'product_codes_update_example.xlsx'
-  link.click()
+const downloadCodesExample = async () => {
+  await downloadFile('api/export/example/product/code', 'product_code')
 }
 
-const downloadInStockExample = () => {
-  const link = document.createElement('a')
-  link.href = '/product_in_stock_update_example.xlsx'
-  link.download = 'product_in_stock_update_example.xlsx'
-  link.click()
+const downloadInStockExample = async () => {
+  await downloadFile('api/export/example/product/stock', 'product_in_stock')
 }
 
 

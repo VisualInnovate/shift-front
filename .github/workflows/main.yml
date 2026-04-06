@@ -18,12 +18,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Dependencies and Build Vue
-        run: |
-          npm i
-          npm run build
+      - name: Install Dependencies
+        run: npm install
 
-      - name: Clear old dist folder on server
+      - name: Build Vue App
+        run: npm run build
+
+      - name: Delete old dist folder on server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -31,16 +32,19 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || '22' }}
           script: |
-            rm -rf /home/${{ secrets.SSH_USER }}/public_html/shift-front/dist/*
-            echo "✅ تم مسح محتويات dist القديمة"
+            rm -rf /home/${{ secrets.SSH_USER }}/public_html/shift-front/dist
+            echo "✅ Old dist deleted"
+
+      - name: Install rsync
+        run: sudo apt-get update && sudo apt-get install -y rsync
 
       - name: Upload new dist folder
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || '22' }}
-          source: "dist/*"
-          target: "/home/${{ secrets.SSH_USER }}/public_html/shift-front"
-          strip_components: 0
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+      
+          rsync -avz \
+          -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -p ${{ secrets.SSH_PORT || '22' }}" \
+          dist/ \
+          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/public_html/shift-front/dist/

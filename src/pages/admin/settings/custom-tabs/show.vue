@@ -376,7 +376,7 @@ const fetchItemsByType = async (type, query, formType) => {
   const itemsRef = formType === 'new' ? availableItems : editAvailableItems
   const loadingRef = formType === 'new' ? loadingItems : editLoadingItems
 
-  const endpoints = { 2: '/api/product', 3: '/api/brand' }
+  const endpoints = { 2: '/api/product', 3: '/api/brand' } 
 
   loadingRef.value = true
   try {

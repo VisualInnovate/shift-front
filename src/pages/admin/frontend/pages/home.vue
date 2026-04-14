@@ -59,20 +59,20 @@ const router = useRouter()
 const route = useRoute()
 
 useHead({
-  title: 'Shift7 | عروض السيارات والإكسسوارات بأسعار تنافسية',
+  title: 'Shift7',
   meta: [
     {
       name: 'description',
       content: 'من فكرة بسيطة إلى تجربة متكاملة ... تطبيق يجمع كل ما تحتاجه العائلة في مكان واحد وبأسعار تنافسية',
     },
-    { property: 'og:title', content: 'Shift7 | عروض السيارات والإكسسوارات بأسعار تنافسية' },
+    { property: 'og:title', content: 'Shift7' },
     {
       property: 'og:description',
       content: 'من فكرة بسيطة إلى تجربة متكاملة ... تطبيق يجمع كل ما تحتاجه العائلة في مكان واحد وبأسعار تنافسية',
     },
     { property: 'og:url', content: 'https://www.shift7store.com/' },
     { property: 'og:type', content: 'website' },
-    { name: 'twitter:title', content: 'Shift7 | عروض السيارات والإكسسوارات بأسعار تنافسية' },
+    { name: 'twitter:title', content: 'Shift7' },
     {
       name: 'twitter:description',
       content: 'من فكرة بسيطة إلى تجربة متكاملة ... تطبيق يجمع كل ما تحتاجه العائلة في مكان واحد وبأسعار تنافسية',

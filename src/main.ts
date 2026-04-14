@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import { createHead } from '@unhead/vue'
 import i18n from "./plugins/i18n";
 import { createVuestic } from 'vuestic-ui'
 import { createGtm } from '@gtm-support/vue-gtm'
@@ -132,7 +133,9 @@ import axios from 'axios';
 // // @ts-ignore
 // import VueAxios from 'vue-axios'
 const app = createApp(App)
+const head = createHead()
 
+app.use(head)
 app.use(createPinia())
 app.use(stores)
 app.use(router)
@@ -267,19 +270,19 @@ if ('serviceWorker' in navigator) {
 app.use(PrimeVue)
 
 app.mount('#app')
-let k= document.getElementsByClassName("switcher")
+let k = document.getElementsByClassName("switcher")
 
-if( localStorage.appLang ==  'en' )
- document.body.dir ="ltr"
+if (localStorage.appLang == 'en')
+  document.body.dir = "ltr"
 else
-document.body.dir ="rtl"
+  document.body.dir = "rtl"
 
 // Scroll to top on route change
 router.afterEach(() => {
   window.scrollTo(0, 0);
 });
 
-app.directive('can', (el, binding, vnode) =>{
+app.directive('can', (el, binding, vnode) => {
   // console.log(JSON.parse(localStorage.getItem('permissions')))
 
 

@@ -4,26 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <script src="https://t.contentsquare.net/uxa/1e6d7edeb911f.js"></script>
     <!-- ============================================================
-         DEFAULT SEO — يُستخدم كـ fallback قبل تحميل @unhead/vue
-         كل صفحة ستُعيد تعريف هذه القيم عبر useHead()
+         ✅ ON-PAGE SEO — Title & Meta Description
     ============================================================ -->
     <title>Shift7</title>
 
     <meta
       name="description"
-      content="من فكرة بسيطة إلى تجربة متكاملة ... تطبيق يجمع كل ما تحتاجه العائلة في مكان واحد وبأسعار تنافسية"
+      content="من فكرة بسيطة إلى تجربة متكاملة ... تطبيق يجمع كل ما تحتاجه العائلة في مكان واحد وبأسعار تنافسية."
     />
 
     <meta
       name="keywords"
-      content="سيارات، إكسسوارات سيارات، عروض سيارات، Shift7، تسوق سيارات، قطع غيار، أفضل أسعار سيارات، تطبيق سيارات"
+      content="من فكرة بسيطة إلى تجربة متكاملة ... تطبيق يجمع كل ما تحتاجه العائلة في مكان واحد وبأسعار تنافسية"
     />
 
     <!-- ============================================================
-         TECHNICAL SEO
+         ✅ TECHNICAL SEO — Canonical, Robots, Language
     ============================================================ -->
-    <link rel="canonical" href="https://www.shift7store.com/" />
+    <link rel="canonical" href="https://www.shift7.com/" />
 
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
@@ -31,51 +31,52 @@
     <meta name="theme-color" content="#1a1a2e" />
 
     <!-- ============================================================
-         OPEN GRAPH — default values (useHead سيُعيد تعريفها per-page)
+         ✅ OPEN GRAPH — Facebook / LinkedIn / WhatsApp sharing
     ============================================================ -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Shift7" />
-    <meta property="og:url" content="https://www.shift7store.com/" />
+    <meta property="og:url" content="https://www.shift7.com/" />
     <meta property="og:title" content="Shift7" />
     <meta
       property="og:description"
-      content="من فكرة بسيطة إلى تجربة متكاملة ... تطبيق يجمع كل ما تحتاجه العائلة في مكان واحد وبأسعار تنافسية"
+      content="من فكرة بسيطة إلى تجربة متكاملة ... تطبيق يجمع كل ما تحتاجه العائلة في مكان واحد وبأسعار تنافسية."
     />
-    <meta property="og:image" content="https://www.shift7store.com/shiftlogo.png" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
-    <meta property="og:image:alt" content="Shift7" />
+    <meta property="og:image" content="https://www.shift7.com/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Shift7 - عروض السيارات والإكسسوارات" />
     <meta property="og:locale" content="ar_JO" />
 
     <!-- ============================================================
-         TWITTER CARD
+         ✅ TWITTER CARD
     ============================================================ -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Shift7App" />
     <meta name="twitter:title" content="Shift7" />
     <meta
       name="twitter:description"
-      content="من فكرة بسيطة إلى تجربة متكاملة ... تطبيق يجمع كل ما تحتاجه العائلة في مكان واحد وبأسعار تنافسية"
+      content="من فكرة بسيطة إلى تجربة متكاملة ... تطبيق يجمع كل ما تحتاجه العائلة في مكان واحد وبأسعار تنافسية."
     />
-    <meta name="twitter:image" content="https://www.shift7store.com/shiftlogo.png" />
+    <meta name="twitter:image" content="https://www.shift7.com/og-image.jpg" />
 
     <!-- ============================================================
-         MOBILE / PWA
+         ✅ MOBILE / PWA
     ============================================================ -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Shift7" />
+    <link rel="apple-touch-icon" href="./public/favicon.ico" />
+    <link rel="manifest" href="/manifest.webmanifest" />
 
     <!-- ============================================================
-         ICONS
+         ✅ FAVICON
     ============================================================ -->
-    <link rel="icon" type="image/png" href="public/favicon.ico" />
-    <link rel="shortcut icon" href="public/favicon.ico" />
-    <link rel="apple-touch-icon" href="public/favicon.ico" />
+    <link rel="icon" type="image/png" href="./public/favicon.ico" />
+    <link rel="shortcut icon" href="./public/favicon.ico" />
 
     <!-- ============================================================
-         PERFORMANCE
+         ✅ PERFORMANCE — Preconnect critical origins first
     ============================================================ -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -83,18 +84,85 @@
     <link rel="dns-prefetch" href="https://www.google-analytics.com" />
 
     <!-- ============================================================
-         FONTS
+         ✅ FONTS — Load only what you need (fewer requests = faster)
     ============================================================ -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
     <!-- ============================================================
-         STRUCTURED DATA — JSON-LD Schema.org
+         ✅ STRUCTURED DATA — JSON-LD Schema.org
+         Organization + WebSite + SearchAction
     ============================================================ -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://www.shift7.com/#organization",
+            "name": "Shift7",
+            "url": "https://www.shift7.com/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://www.shift7.com/public/favicon.ico",
+              "width": 512,
+              "height": 512
+            },
+            "description": "تطبيق Shift7 يجمع أفضل عروض السيارات والإكسسوارات بأسعار تنافسية في مكان واحد.",
+            "sameAs": [
+              "https://www.facebook.com/Shift7App",
+              "https://www.instagram.com/Shift7App",
+              "https://www.tiktok.com/@Shift7App"
+            ],
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "contactType": "customer service",
+              "availableLanguage": ["Arabic", "English"]
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://www.shift7.com/#website",
+            "url": "https://www.shift7.com/",
+            "name": "Shift7 | عروض السيارات والإكسسوارات",
+            "description": "أفضل عروض السيارات والإكسسوارات بأسعار منافسة",
+            "publisher": {
+              "@id": "https://www.shift7.com/#organization"
+            },
+            "inLanguage": "ar",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://www.shift7.com/search?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "MobileApplication",
+            "name": "Shift7",
+            "operatingSystem": "ANDROID, IOS",
+            "applicationCategory": "ShoppingApplication",
+            "description": "أفضل عروض السيارات والإكسسوارات بأسعار منافسة",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "JOD"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
+    <!-- Vue SPA mount point -->
     <div id="app"></div>
+
+    <!-- ============================================================
+        ✅ MAIN SCRIPT
+    ============================================================ -->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

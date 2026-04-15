@@ -1,5 +1,4 @@
 import { createApp } from 'vue'
-import { createHead } from '@unhead/vue'
 import i18n from "./plugins/i18n";
 import { createVuestic } from 'vuestic-ui'
 import { createGtm } from '@gtm-support/vue-gtm'
@@ -133,9 +132,7 @@ import axios from 'axios';
 // // @ts-ignore
 // import VueAxios from 'vue-axios'
 const app = createApp(App)
-const head = createHead()
 
-app.use(head)
 app.use(createPinia())
 app.use(stores)
 app.use(router)

@@ -300,7 +300,6 @@
 
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue'
-import { useHead } from '@unhead/vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
@@ -338,36 +337,6 @@ const selectedVariant = ref(null)
 
 const defaultPlaceholder = 'https://via.placeholder.com/600?text=No+Image'
 
-// ==================== SEO ====================
-useHead(computed(() => {
-  const isAr = locale.value === 'ar'
-  const name = isAr
-    ? (pro.value.name_ar || pro.value.name_en || '')
-    : (pro.value.name_en || pro.value.name_ar || '')
-  const description = isAr
-    ? (pro.value.description_ar || pro.value.description_en || '')
-    : (pro.value.description_en || pro.value.description_ar || '')
-  const image = pro.value.key_default_image || allImages.value[0]?.url || 'https://www.shift7store.com/shiftlogo.png'
-  const pageUrl = `https://www.shift7store.com/product-details/${route.params.id}`
-  const pageTitle = name ? `${name} | Shift7` : 'Shift7 | متجر السيارات والإكسسوارات'
-  const pageDescription = description.slice(0, 160) || 'تسوّق أفضل منتجات السيارات والإكسسوارات على Shift7.'
-
-  return {
-    title: pageTitle,
-    meta: [
-      { name: 'description', content: pageDescription },
-      { property: 'og:title', content: pageTitle },
-      { property: 'og:description', content: description.slice(0, 200) || pageDescription },
-      { property: 'og:image', content: image },
-      { property: 'og:url', content: pageUrl },
-      { property: 'og:type', content: 'product' },
-      { name: 'twitter:title', content: pageTitle },
-      { name: 'twitter:description', content: description.slice(0, 200) || pageDescription },
-      { name: 'twitter:image', content: image },
-    ],
-    link: [{ rel: 'canonical', href: pageUrl }],
-  }
-}))
 // ==================== PRICE COMPUTED PROPERTIES ====================
 const originalPrice = computed(() => {
   if (selectedVariant.value && selectedVariant.value.price != null) {

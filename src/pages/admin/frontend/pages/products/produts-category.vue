@@ -225,7 +225,6 @@
 
 <script setup>
 import { ref, computed, onBeforeMount, watch } from 'vue'
-import { useHead } from '@unhead/vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
@@ -244,37 +243,6 @@ locale.value = localStorage.getItem('appLang') || 'en'
 
 // State
 const isLoading = ref(true)
-const categoryName = ref('')
-
-// SEO
-useHead(computed(() => {
-  const isAr = locale.value === 'ar'
-  const name = categoryName.value
-  const pageTitle = name
-    ? `${name} | Shift7`
-    : (isAr ? 'تصفح المنتجات | Shift7' : 'Browse Products | Shift7')
-  const pageDescription = name
-    ? (isAr
-        ? `تسوّق منتجات ${name} بأفضل الأسعار على Shift7.`
-        : `Shop ${name} products at the best prices on Shift7.`)
-    : (isAr
-        ? 'تسوّق أفضل منتجات السيارات والإكسسوارات بأسعار تنافسية على Shift7.'
-        : 'Shop the best car accessories at competitive prices on Shift7.')
-  const pageUrl = `https://www.shift7store.com/category/${route.params.id}`
-
-  return {
-    title: pageTitle,
-    meta: [
-      { name: 'description', content: pageDescription },
-      { property: 'og:title', content: pageTitle },
-      { property: 'og:description', content: pageDescription },
-      { property: 'og:url', content: pageUrl },
-      { name: 'twitter:title', content: pageTitle },
-      { name: 'twitter:description', content: pageDescription },
-    ],
-    link: [{ rel: 'canonical', href: pageUrl }],
-  }
-}))
 const error = ref(null)
 const products = ref([])
 const currentPage = ref(1)
@@ -437,29 +405,12 @@ watch(locale, () => {
   fetchProducts()
 })
 
-// Fetch the category name for SEO title
-const fetchCategoryName = async () => {
-  if (!route.params.id) return
-  try {
-    const storeId = localStorage.getItem('defaultStoreId') || 4
-    const res = await axios.get(`/api/home/get-categories/${storeId}`)
-    const category = res.data.data.find((c) => String(c.id) === String(route.params.id))
-    if (category) {
-      categoryName.value = locale.value === 'ar'
-        ? (category.name_ar || category.name_en)
-        : (category.name_en || category.name_ar)
-    }
-  } catch {
-    // fallback to generic title — already handled by useHead computed
-  }
-}
-
 // Lifecycle
 onBeforeMount(() => {
+  // Pre-select current category if in category page
   if (route.params.id) {
     selectedFilters.value.category_ids = [route.params.id]
   }
-  fetchCategoryName()
   fetchBrands()
   fetchProducts()
 })

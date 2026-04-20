@@ -331,11 +331,12 @@ export const useAuthStore = defineStore('Auth', {
       }
     },
     async resendOtp({ email, phone, otp_type }) {
+      console.log('Resending OTP with data:', { email, phone, otp_type });
       this.loading = true;
       this.errors = [];
       try {
         const payload = { email, phone, otp_type };
-        const response = await axios.post('/api/resend-otp', payload);
+        const response = await axios.post('/api/login', payload);
         this.msg = response.data.message || 'OTP resent successfully.';
         return { is_success: true, errors: null };
       } catch (error) {

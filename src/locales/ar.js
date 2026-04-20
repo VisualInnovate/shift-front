@@ -233,6 +233,7 @@ export default {
 
   settings: {
     title: 'الإعدادات',
+    cartImage: 'صورة سلة التسوق',
     socialLinks: 'روابط التواصل الاجتماعي',
     email: 'البريد الإلكتروني للتواصل',
     privacyPolicy: 'سياسة الخصوصية',
@@ -509,6 +510,8 @@ export default {
     updated_successfully: 'تم تحديث الكوبون بنجاح',
   },
   dashboard: {
+    leastSellingProducts: 'المنتجات الأقل مبيعاً',
+    noRecentActivity: 'لا توجد أنشطة حديثة',
     title: 'لوحة التحكم',
     subtitle: 'مرحباً، هنا نظرة عامة على إحصائيات النظام',
     totalUsers: 'إجمالي المستخدمين',
@@ -1460,7 +1463,7 @@ export default {
   },
   otpVerification: {
     title: 'تحقق من حسابك',
-    otpSent: 'لقد أرسلنا رمزًا مكونًا من 6 أرقام إلى {otp_type} الخاص بك. يرجى إدخاله أدناه.',
+    otpSent: 'لقد أرسلنا رمزًا مكونًا من 6 أرقام إلى  الخاص بك. يرجى إدخاله أدناه.',
     otpDigit: 'رقم الرمز {number}',
     verify: 'تحقق',
     verifying: 'جارٍ التحقق...',

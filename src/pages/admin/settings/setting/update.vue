@@ -14,43 +14,93 @@ import Editor from 'primevue/editor'
 const { t } = useI18n()
 const route = useRoute()
 const toast = useToast()
+
 const isLoading = ref(false)
 const newNotificationEmail = ref('')
+
+// Cart Image Handling
+const cartImageFile = ref(null)
+const cartImagePreview = ref(null)
+const isDraggingCartImage = ref(false)
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// All fields including new social links
+// Form Data
 const formData = ref({
   order_tax: '',
   address: '',
   phone: '',
-  email: '',          // New: contact email
+  email: '',
   order_notification_emails: [],
-  facebook: '',       // New
-  instagram: '',      // New
-  youtube: '',        // New
-  snapchat: '',       // New
-  tiktok: '',         // New (optional but common)
-
+  facebook: '',
+  instagram: '',
+  youtube: '',
+  snapchat: '',
+  tiktok: '',
   privacy_policy_ar: '',
   privacy_policy_en: '',
   terms_conditions_ar: '',
   terms_conditions_en: '',
+  cart_image: '',           // Existing image URL from backend
 })
 
-const isValidEmail = email => emailPattern.test(email)
-const addNotificationEmail = () => {
-  const email = newNotificationEmail.value.trim()
+// ==================== Cart Image Handlers ====================
 
-  if (!email) {
+const handleCartImageDragOver = (e) => {
+  e.preventDefault()
+  isDraggingCartImage.value = true
+}
+
+const handleCartImageDragLeave = () => {
+  isDraggingCartImage.value = false
+}
+
+const handleCartImageDrop = (e) => {
+  e.preventDefault()
+  isDraggingCartImage.value = false
+  const file = e.dataTransfer?.files?.[0]
+  if (file) handleCartImageSelect(file)
+}
+
+const handleCartImageSelect = (file) => {
+  if (!file.type.match('image.*')) {
+    toast.add({
+      severity: 'error',
+      summary: t('error') || 'Error',
+      detail: 'Only image files are allowed (PNG, JPG, JPEG)',
+      life: 4000
+    })
     return
   }
+
+  cartImageFile.value = file
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    cartImagePreview.value = e.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+const removeCartImage = () => {
+  cartImageFile.value = null
+  cartImagePreview.value = null
+}
+
+// ==================== Notification Emails ====================
+
+const isValidEmail = (email) => emailPattern.test(email)
+
+const addNotificationEmail = () => {
+  const email = newNotificationEmail.value.trim()
+  if (!email) return
 
   if (!isValidEmail(email)) {
     toast.add({
       severity: 'warn',
-      summary: t('settings.invalidEmail') || 'Invalid email',
-      detail: t('settings.invalidEmailDetail') || 'Enter a valid email address',
-      life: 4000,
+      summary: t('settings.invalidEmail') || 'Invalid Email',
+      detail: t('settings.invalidEmailDetail') || 'Please enter a valid email address',
+      life: 4000
     })
     return
   }
@@ -58,9 +108,9 @@ const addNotificationEmail = () => {
   if (formData.value.order_notification_emails.includes(email)) {
     toast.add({
       severity: 'warn',
-      summary: t('settings.duplicateEmail') || 'Duplicate email',
+      summary: t('settings.duplicateEmail') || 'Duplicate Email',
       detail: t('settings.duplicateEmailDetail') || 'This email is already added',
-      life: 4000,
+      life: 4000
     })
     return
   }
@@ -69,11 +119,11 @@ const addNotificationEmail = () => {
   newNotificationEmail.value = ''
 }
 
-const removeNotificationEmail = index => {
+const removeNotificationEmail = (index) => {
   formData.value.order_notification_emails.splice(index, 1)
 }
 
-// Editor toolbar with alignment
+// Editor Configuration
 const editorOptions = {
   modules: {
     toolbar: [
@@ -87,7 +137,7 @@ const editorOptions = {
   },
 }
 
-// Fetch settings on mount
+// Fetch Settings
 onMounted(() => {
   fetchSettings()
 })
@@ -120,32 +170,26 @@ const fetchSettings = async () => {
         privacy_policy_en: 'privacy_policy_en',
         terms_conditions_ar: 'terms_conditions_ar',
         terms_conditions_en: 'terms_conditions_en',
+        cart_image: 'cart_image',
       }
 
       data.forEach(item => {
         const fieldKey = mapping[item.key]
-        if (fieldKey && formData.value.hasOwnProperty(fieldKey)) {
+        if (fieldKey && Object.prototype.hasOwnProperty.call(formData.value, fieldKey)) {
           if (fieldKey === 'order_notification_emails') {
-            if (Array.isArray(item.value)) {
-              formData.value[fieldKey] = item.value
-            } else {
-              try {
-                formData.value[fieldKey] = item.value ? JSON.parse(item.value) : []
-              } catch (error) {
-                formData.value[fieldKey] = item.value ? [item.value] : []
-              }
+            formData.value[fieldKey] = Array.isArray(item.value)
+              ? item.value
+              : (item.value ? JSON.parse(item.value) : [])
+          } else if (fieldKey === 'cart_image') {
+            console.log('Setting cart image URL from backend:', item.media[0].url)
+            formData.value.cart_image = item.value || ''
+            if (item.media[0]?.url) {
+              cartImagePreview.value = item.media[0]?.url
             }
           } else {
             formData.value[fieldKey] = item.value || ''
           }
         }
-      })
-
-      toast.add({
-        severity: 'success',
-        summary: t('quickBooks.success'),
-        detail: t('quickBooks.successContent'),
-        life: 3000,
       })
     }
   } catch (error) {
@@ -160,44 +204,40 @@ const fetchSettings = async () => {
   }
 }
 
-// Update settings – SAME FORMAT AS YOUR OLD CODE
+// Update Settings
 const updateSettings = async () => {
   isLoading.value = true
+
   try {
     const formDataToSend = new FormData()
 
-    // Exactly the same structure your backend expects
     const fields = [
-      'order_tax',
-      'address',
-      'phone',
-      'email',
-      'order_notification_emails',
-      'facebook',
-      'instagram',
-      'youtube',
-      'snapchat',
-      'tiktok',
-      'privacy_policy_ar',
-      'privacy_policy_en',
-      'terms_conditions_ar',
-      'terms_conditions_en',
+      'order_tax', 'address', 'phone', 'email', 'order_notification_emails',
+      'facebook', 'instagram', 'youtube', 'snapchat', 'tiktok',
+      'privacy_policy_ar', 'privacy_policy_en',
+      'terms_conditions_ar', 'terms_conditions_en',
+      'cart_image'
     ]
 
     fields.forEach((key, index) => {
       formDataToSend.append(`data[${index}][key]`, key)
-      const value = key === 'order_notification_emails'
-        ? JSON.stringify(formData.value.order_notification_emails || [])
-        : formData.value[key] || ''
+
+      let value = ''
+      if (key === 'order_notification_emails') {
+        value = JSON.stringify(formData.value.order_notification_emails || [])
+      } else if (key === 'cart_image') {
+        value = formData.value.cart_image || ''
+      } else {
+        value = formData.value[key] || ''
+      }
 
       formDataToSend.append(`data[${index}][value]`, value)
     })
 
-    // If you add file upload later for policies, you can append files here
-    // Example:
-    // if (formData.value.privacy_policy_ar_file) {
-    //   formDataToSend.append('privacy_policy_ar_file', formData.value.privacy_policy_ar_file)
-    // }
+    // Append new image file if selected
+    if (cartImageFile.value) {
+      formDataToSend.append('cart_image', cartImageFile.value)
+    }
 
     const response = await axios.post('api/setting', formDataToSend, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -211,8 +251,9 @@ const updateSettings = async () => {
         life: 4000,
       })
 
-      // Optional: refetch fresh data
+      // Refresh to get latest image URL
       await fetchSettings()
+      cartImageFile.value = null // Clear the uploaded file
     }
   } catch (error) {
     toast.add({
@@ -235,76 +276,70 @@ const updateSettings = async () => {
       </template>
 
       <template #content>
-        <!-- Loading -->
+        <!-- Loading Spinner -->
         <div v-if="isLoading" class="flex justify-center py-12">
           <ProgressSpinner style="width: 60px; height: 60px" />
         </div>
 
-        <!-- Form -->
+        <!-- Main Form -->
         <div v-else class="space-y-10">
 
-          <!-- Basic Info -->
+          <!-- Basic Information -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block mb-2 font-medium">{{ t('settings.order_tax') }}</label>
-              <InputText v-model="formData.order_tax" :placeholder="t('settings.order_taxPlaceholder')" class="w-full" />
+              <InputText v-model="formData.order_tax" class="w-full" />
             </div>
 
             <div>
               <label class="block mb-2 font-medium">{{ t('settings.phone') }}</label>
-              <InputText v-model="formData.phone" :placeholder="t('settings.phonePlaceholder')" class="w-full" />
+              <InputText v-model="formData.phone" class="w-full" />
             </div>
 
             <div>
               <label class="block mb-2 font-medium">{{ t('settings.email') }}</label>
-              <InputText v-model="formData.email" type="email" placeholder="contact@company.com" class="w-full" />
+              <InputText v-model="formData.email" type="email" class="w-full" />
             </div>
 
             <div class="md:col-span-2">
               <label class="block mb-2 font-medium">{{ t('settings.order_notification_emails') }}</label>
-              <div class="flex flex-col gap-3">
-                <div class="flex gap-2">
-                  <InputText
-                    v-model="newNotificationEmail"
-                    type="email"
-                    :placeholder="t('settings.order_notification_emailsPlaceholder')"
-                    class="flex-1"
-                  />
+              <div class="flex gap-2 mb-3">
+                <InputText
+                  v-model="newNotificationEmail"
+                  type="email"
+                  :placeholder="t('settings.order_notification_emailsPlaceholder')"
+                  class="flex-1"
+                />
+                <Button icon="pi pi-plus" @click="addNotificationEmail" />
+              </div>
+
+              <div class="space-y-2">
+                <div
+                  v-for="(email, index) in formData.order_notification_emails"
+                  :key="index"
+                  class="flex items-center justify-between px-4 py-2 bg-white border rounded-lg"
+                >
+                  <span>{{ email }}</span>
                   <Button
-                    icon="pi pi-plus"
-                    class="p-button-secondary"
-                    @click="addNotificationEmail"
+                    icon="pi pi-times"
+                    severity="danger"
+                    text
+                    @click="removeNotificationEmail(index)"
                   />
                 </div>
-
-                <div class="space-y-2">
-                  <div
-                    v-for="(email, index) in formData.order_notification_emails"
-                    :key="index"
-                    class="flex items-center justify-between gap-3 px-3 py-2 rounded border bg-white"
-                  >
-                    <span class="break-all">{{ email }}</span>
-                    <Button
-                      icon="pi pi-times"
-                      class="p-button-danger p-button-text"
-                      @click="removeNotificationEmail(index)"
-                    />
-                  </div>
-
-                  <p v-if="!formData.order_notification_emails.length" class="text-sm text-slate-500">
-                    {{ t('settings.order_notification_emailsEmpty') }}
-                  </p>
-                </div>
+                <p v-if="!formData.order_notification_emails.length" class="text-sm text-slate-500 italic">
+                  {{ t('settings.order_notification_emailsEmpty') }}
+                </p>
               </div>
             </div>
 
             <div class="md:col-span-2">
               <label class="block mb-2 font-medium">{{ t('settings.address') }}</label>
-              <InputText v-model="formData.address" :placeholder="t('settings.addressPlaceholder')" class="w-full" />
+              <InputText v-model="formData.address" class="w-full" />
             </div>
           </div>
 
-          <!-- Social Media Links -->
+          <!-- Social Media -->
           <div class="border-t pt-8">
             <h3 class="text-xl font-semibold mb-6 text-indigo-600">{{ t('settings.socialLinks') }}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -312,61 +347,124 @@ const updateSettings = async () => {
                 <label class="block mb-2 font-medium flex items-center gap-2">
                   <i class="pi pi-facebook text-blue-600"></i> Facebook
                 </label>
-                <InputText v-model="formData.facebook" placeholder="https://facebook.com/yourpage" class="w-full" />
+                <InputText v-model="formData.facebook" placeholder="https://facebook.com/..." class="w-full" />
               </div>
-
               <div>
                 <label class="block mb-2 font-medium flex items-center gap-2">
                   <i class="pi pi-instagram text-pink-600"></i> Instagram
                 </label>
-                <InputText v-model="formData.instagram" placeholder="https://instagram.com/yourhandle" class="w-full" />
+                <InputText v-model="formData.instagram" placeholder="https://instagram.com/..." class="w-full" />
               </div>
-
               <div>
                 <label class="block mb-2 font-medium flex items-center gap-2">
                   <i class="pi pi-youtube text-red-600"></i> YouTube
                 </label>
-                <InputText v-model="formData.youtube" placeholder="https://youtube.com/c/yourchannel" class="w-full" />
+                <InputText v-model="formData.youtube" placeholder="https://youtube.com/..." class="w-full" />
               </div>
-
               <div>
                 <label class="block mb-2 font-medium flex items-center gap-2">
-                  <i class="pi pi-snapchat text-yellow-400"></i> Snapchat
+                  <i class="pi pi-snapchat text-yellow-500"></i> Snapchat
                 </label>
-                <InputText v-model="formData.snapchat" placeholder="https://snapchat.com/add/username" class="w-full" />
+                <InputText v-model="formData.snapchat" placeholder="https://snapchat.com/..." class="w-full" />
               </div>
-
               <div class="md:col-span-2">
                 <label class="block mb-2 font-medium flex items-center gap-2">
-                  <i class="pi pi-tiktok text-black"></i> TikTok
+                  <i class="pi pi-tiktok"></i> TikTok
                 </label>
-                <InputText v-model="formData.tiktok" placeholder="https://tiktok.com/@yourusername" class="w-full" />
+                <InputText v-model="formData.tiktok" placeholder="https://tiktok.com/..." class="w-full" />
               </div>
+            </div>
+          </div>
+
+          <!-- Cart Image -->
+          <div class="border-t pt-8">
+            <h3 class="text-xl font-semibold mb-6 text-indigo-600">
+              {{ t('settings.cartImage') || 'Cart Image' }}
+            </h3>
+
+            <div class="max-w-md">
+              <label
+                @dragover.prevent="handleCartImageDragOver"
+                @dragleave="handleCartImageDragLeave"
+                @drop.prevent="handleCartImageDrop"
+                class="block border-2 border-dashed rounded-2xl p-6 transition-all cursor-pointer min-h-[280px]"
+                :class="{
+                  'border-indigo-500 bg-indigo-50': isDraggingCartImage,
+                  'border-gray-300 hover:border-gray-400': !isDraggingCartImage
+                }"
+              >
+                <input
+                  type="file"
+                  @change="e => handleCartImageSelect(e.target.files[0])"
+                  accept="image/*"
+                  class="hidden"
+                />
+
+                <!-- Image Preview -->
+                <div v-if="cartImagePreview" class="relative group">
+                  <img
+                    :src="cartImagePreview"
+                    alt="Cart Image Preview"
+                    class="w-full h-64 object-contain rounded-xl shadow-md"
+                  />
+                  <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center rounded-xl">
+                    <div class="flex gap-3">
+                      <Button
+                        type="button"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        rounded
+                        @click.stop="removeCartImage"
+                      />
+                      <label>
+                        <Button
+                          type="button"
+                          icon="pi pi-pencil"
+                          severity="secondary"
+                          rounded
+                        />
+                        <input
+                          type="file"
+                          @change="e => handleCartImageSelect(e.target.files[0])"
+                          accept="image/*"
+                          class="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Upload Placeholder -->
+                <div v-else class="flex flex-col items-center justify-center py-12 text-center">
+                  <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="pi pi-image text-indigo-600 text-4xl"></i>
+                  </div>
+                  <p class="font-medium text-gray-700">
+                    {{ t('brand.upload') || 'Click to upload' }}
+                    <span class="text-indigo-600">or drag & drop</span>
+                  </p>
+                  <p class="text-xs text-gray-400 mt-2">PNG, JPG, JPEG</p>
+                </div>
+              </label>
             </div>
           </div>
 
           <!-- Privacy Policy -->
           <div class="border-t pt-8">
             <h3 class="text-xl font-semibold mb-6 text-indigo-600">{{ t('settings.privacyPolicy') }}</h3>
-
             <div class="mb-10">
               <label class="block mb-3 font-medium text-lg">{{ t('settings.privacy_policy_ar') }}</label>
               <Editor
                 v-model="formData.privacy_policy_ar"
-                :placeholder="t('settings.privacy_policy_arPlaceholder')"
                 editorStyle="min-height: 320px"
-                :formats="['header', 'bold', 'italic', 'underline', 'list', 'bullet', 'link', 'align']"
                 :modules="editorOptions.modules"
               />
             </div>
-
             <div class="mb-10">
               <label class="block mb-3 font-medium text-lg">{{ t('settings.privacy_policy_en') }}</label>
               <Editor
                 v-model="formData.privacy_policy_en"
-                :placeholder="t('settings.privacy_policy_enPlaceholder')"
                 editorStyle="min-height: 320px"
-                :formats="['header', 'bold', 'italic', 'underline', 'list', 'bullet', 'link', 'align']"
                 :modules="editorOptions.modules"
               />
             </div>
@@ -375,25 +473,19 @@ const updateSettings = async () => {
           <!-- Terms & Conditions -->
           <div class="border-t pt-8">
             <h3 class="text-xl font-semibold mb-6 text-indigo-600">{{ t('settings.termsConditions') }}</h3>
-
             <div class="mb-10">
               <label class="block mb-3 font-medium text-lg">{{ t('settings.terms_conditions_ar') }}</label>
               <Editor
                 v-model="formData.terms_conditions_ar"
-                :placeholder="t('settings.terms_conditions_arPlaceholder')"
                 editorStyle="min-height: 320px"
-                :formats="['header', 'bold', 'italic', 'underline', 'list', 'bullet', 'link', 'align']"
                 :modules="editorOptions.modules"
               />
             </div>
-
             <div class="mb-10">
               <label class="block mb-3 font-medium text-lg">{{ t('settings.terms_conditions_en') }}</label>
               <Editor
                 v-model="formData.terms_conditions_en"
-                :placeholder="t('settings.terms_conditions_enPlaceholder')"
                 editorStyle="min-height: 320px"
-                :formats="['header', 'bold', 'italic', 'underline', 'list', 'bullet', 'link', 'align']"
                 :modules="editorOptions.modules"
               />
             </div>
@@ -405,10 +497,11 @@ const updateSettings = async () => {
               :label="t('settings.updateButton')"
               icon="pi pi-check"
               :loading="isLoading"
-              class="px-8 py-3 text-lg"
+              class="px-10 py-3 text-lg"
               @click="updateSettings"
             />
           </div>
+
         </div>
       </template>
     </Card>
@@ -420,14 +513,5 @@ const updateSettings = async () => {
   min-height: 320px;
   font-size: 1rem;
   line-height: 1.6;
-}
-
-:deep(.p-button) {
-  background: #6366f1;
-  border: none;
-}
-
-:deep(.p-button:hover) {
-  background: #4f46e5 !important;
 }
 </style>

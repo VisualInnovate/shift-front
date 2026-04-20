@@ -14,15 +14,6 @@
           <div>
             <p class="text-sm font-medium text-gray-500">{{ t('dashboard.totalUsers') }}</p>
             <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ data.total_users }}</h3>
-            <p class="text-sm mt-3 flex items-center">
-              <span class="text-green-500 font-medium flex items-center">
-                <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-                +5%
-              </span>
-              <span class="text-gray-500 mr-2">{{ t('dashboard.lastMonth') }}</span>
-            </p>
           </div>
           <div class="bg-blue-100 p-3 rounded-lg">
             <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,15 +29,6 @@
           <div>
             <p class="text-sm font-medium text-gray-500">{{ t('dashboard.totalProducts') }}</p>
             <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ data.total_products }}</h3>
-            <p class="text-sm mt-3 flex items-center">
-              <span class="text-green-500 font-medium flex items-center">
-                <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-                +10%
-              </span>
-              <span class="text-gray-500 mr-2">{{ t('dashboard.lastMonth') }}</span>
-            </p>
           </div>
           <div class="bg-green-100 p-3 rounded-lg">
             <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,16 +43,9 @@
         <div class="flex justify-between items-start">
           <div>
             <p class="text-sm font-medium text-gray-500">{{ t('dashboard.totalSales') }}</p>
-            <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ formatCurrency(data.total_sales) }}{{ $t("currencyLabel") }}</h3>
-            <p class="text-sm mt-3 flex items-center">
-              <span class="text-green-500 font-medium flex items-center">
-                <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-                +8%
-              </span>
-              <span class="text-gray-500 mr-2">{{ t('dashboard.lastMonth') }}</span>
-            </p>
+            <h3 class="text-3xl font-bold text-gray-800 mt-2">
+              {{ formatCurrency(data.total_sales) }}{{ $t("currencyLabel") }}
+            </h3>
           </div>
           <div class="bg-orange-100 p-3 rounded-lg">
             <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,15 +61,6 @@
           <div>
             <p class="text-sm font-medium text-gray-500">{{ t('dashboard.totalStores') }}</p>
             <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ data.total_stores }}</h3>
-            <p class="text-sm mt-3 flex items-center">
-              <span class="text-green-500 font-medium flex items-center">
-                <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-                +2%
-              </span>
-              <span class="text-gray-500 mr-2">{{ t('dashboard.lastMonth') }}</span>
-            </p>
           </div>
           <div class="bg-purple-100 p-3 rounded-lg">
             <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,74 +74,41 @@
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       <!-- Top Selling Products Chart -->
-      <div class="bg-white rounded-xl shadow-lg p-6 transform hover:scale-[1.01] transition-all duration-300">
-        <div class="flex justify-between items-center">
-          <h2 class="text-xl font-semibold text-gray-800">{{ t('dashboard.topSellingProducts') }}</h2>
-        </div>
-        <div class="relative ">
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ t('dashboard.topSellingProducts') }}</h2>
+        <div class="relative h-80">
           <canvas ref="topSellingChart"></canvas>
         </div>
       </div>
 
       <!-- Sales Summary Chart -->
-      <div class="bg-white rounded-xl shadow-lg p-6 transform hover:scale-[1.01] transition-all duration-300">
-        <h2 class="text-xl font-semibold text-gray-800 mb-6">{{ t('dashboard.salesSummary') }}</h2>
-        <div class="relative ">
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ t('dashboard.salesSummary') }}</h2>
+        <div class="relative h-80">
           <canvas ref="salesSummaryChart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Bottom Row -->
+    <!-- Least Selling Products + Recent Activity Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Recent Activity -->
-      <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-[1.01] transition-all duration-300">
-        <div class="p-6 border-b border-gray-100">
-          <h2 class="text-xl font-semibold text-gray-800">{{ t('dashboard.recentActivity') }}</h2>
-        </div>
-        <div class="overflow-y-auto max-h-96">
-          <div v-for="(activity, index) in recentActivities" :key="index" class="p-6 border-b border-gray-100 last:border-0 hover:bg-gray-50">
-            <div class="flex items-start">
-              <div :class="`p-3 rounded-lg ${activity.iconBg} ${activity.iconText} ml-4`">
-                <svg :class="`w-6 h-6`" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path :stroke-width="activity.iconWidth" :d="activity.iconPath" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </div>
-              <div class="flex-1">
-                <div class="flex justify-between items-start">
-                  <h3 class="text-base font-medium text-gray-800">{{ t(activity.title) }}</h3>
-                  <span class="text-xs text-gray-500">{{ activity.time }}</span>
-                </div>
-                <p class="text-sm text-gray-600 mt-1">{{ t(activity.description) }}</p>
-                <div v-if="activity.status" class="mt-2">
-                  <span :class="`px-2 py-1 text-xs font-medium rounded-full ${activity.statusClass}`">
-                    {{ t(activity.status) }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+      <!-- Least Selling Products -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ t('dashboard.leastSellingProducts') || 'Least Selling Products' }}</h2>
+        <div class="relative h-80">
+          <canvas ref="leastSellingChart"></canvas>
         </div>
       </div>
 
-      <!-- Monthly Summary -->
-      <div class="bg-white rounded-xl shadow-lg p-6 transform hover:scale-[1.01] transition-all duration-300">
-        <h2 class="text-xl font-semibold text-gray-800 mb-6">{{ t('dashboard.monthlySummary') }}</h2>
-        <div class="grid grid-cols-3 gap-4">
-          <div v-for="stat in monthlyStats" :key="stat.name" class="bg-gray-50 p-4 rounded-lg">
-            <p class="text-sm text-gray-500">{{ t(stat.name) }}</p>
-            <h3 class="text-xl font-bold text-gray-800 mt-1">{{ stat.value }}</h3>
-            <p class="text-xs mt-2 flex items-center">
-              <span :class="`font-medium ${stat.trend > 0 ? 'text-green-500' : 'text-red-500'}`">
-                <svg class="h-3 w-3 inline ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="stat.trend > 0 ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3'" />
-                </svg>
-                {{ Math.abs(stat.trend) }}%
-              </span>
-              <span class="text-gray-500 mr-2">{{ t('dashboard.lastMonth') }}</span>
-            </p>
-          </div>
+      <!-- Recent Activity (You can populate this later from API if needed) -->
+      <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-6 border-b border-gray-100">
+          <h2 class="text-xl font-semibold text-gray-800">{{ t('dashboard.recentActivity') }}</h2>
         </div>
+        <div class="p-6 text-center text-gray-500 py-12" v-if="recentActivities.length === 0">
+          {{ t('dashboard.noRecentActivity') || 'No recent activity yet' }}
+        </div>
+        <!-- Add activity items here when you have real data -->
       </div>
     </div>
   </div>
@@ -187,250 +120,161 @@ import { Chart, registerables } from 'chart.js';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 
-// Register Chart.js components
 Chart.register(...registerables);
 
-// Initialize i18n
 const { t } = useI18n();
 
-// Refs for chart instances
 const topSellingChart = ref<HTMLCanvasElement | null>(null);
 const salesSummaryChart = ref<HTMLCanvasElement | null>(null);
+const leastSellingChart = ref<HTMLCanvasElement | null>(null);
 
-// Data state
 const data = ref({
   total_users: 0,
-  total_categories: 0,
   total_products: 0,
   total_stores: 0,
-  total_orders: 0,
   total_sales: '0.00',
-  total_brands: 0,
-  total_coupons: 0,
-  discounted_coupons: 0,
-  total_reviews: 0,
-  top_selling_products: [] as Array<{
-    id: number;
-    name_ar: string;
-    name_en: string;
-    base_price: string;
-    order_item_count: number;
-  }>,
+  top_selling_products: [] as Array<any>,
   least_selling_products: [] as Array<any>,
+  sales_summary: {
+    months: [] as Array<{
+      month_name_ar: string;
+      month_name_en: string;
+      total_sales: number;
+    }>,
+  },
 });
 
-// Sample data for recent activities
-const recentActivities = ref([
+const recentActivities = ref([]); // Populate from API later if needed
 
-]);
-
-// Monthly stats
-const monthlyStats = ref([
-
-]);
-
-// Colors for charts
-const typeColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
-
-// Utility to format currency
-const formatCurrency = (value: string) => {
-  return `${parseFloat(value).toFixed(2)}`;
+const formatCurrency = (value: string | number) => {
+  return parseFloat(String(value)).toFixed(2);
 };
 
-// Fetch data from API
 const fetchData = async () => {
   try {
     const response = await axios.get('api/dashboard');
     data.value = response.data.data;
 
     // Top Selling Products Chart
-    if (topSellingChart.value) {
+    if (topSellingChart.value && data.value.top_selling_products.length) {
       new Chart(topSellingChart.value, {
         type: 'bar',
         data: {
-          labels: data.value.top_selling_products.map((product) => t('dashboard.language') === 'ar' ? product.name_ar : product.name_en),
-          datasets: [
-            {
-              label: t('dashboard.topSellingProducts'),
-              data: data.value.top_selling_products.map((product) => product.order_item_count),
-              backgroundColor: '#3B82F6',
-              borderRadius: 6,
-              borderSkipped: false,
-            },
-          ],
+          labels: data.value.top_selling_products.map(p =>
+            t('dashboard.language') === 'ar' ? p.name_ar : p.name_en
+          ),
+          datasets: [{
+            label: t('dashboard.topSellingProducts'),
+            data: data.value.top_selling_products.map(p => p.order_item_count),
+            backgroundColor: '#3B82F6',
+            borderRadius: 8,
+            borderSkipped: false,
+          }],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false,
-            },
-            tooltip: {
-              backgroundColor: '#1F2937',
-              titleFont: { size: 14, weight: 'bold' },
-              bodyFont: { size: 12 },
-              padding: 12,
-              cornerRadius: 8,
-              displayColors: false,
-            },
-          },
+          plugins: { legend: { display: false } },
           scales: {
-            y: {
-              beginAtZero: true,
-              grid: {
-                drawBorder: false,
-                color: 'rgba(0, 0, 0, 0.05)',
-              },
-              ticks: {
-                padding: 12,
-              },
-            },
-            x: {
-              grid: {
-                display: false,
-              },
-              ticks: {
-                padding: 12,
-                maxRotation: 45,
-                minRotation: 45,
-              },
-            },
-          },
-          interaction: {
-            intersect: false,
-            mode: 'index',
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 45 } },
           },
         },
       });
     }
 
-    // Sales Summary Chart
-    if (salesSummaryChart.value) {
+    // Sales Summary Chart (Real Data)
+    if (salesSummaryChart.value && data.value.sales_summary?.months?.length) {
+      const months = data.value.sales_summary.months;
       new Chart(salesSummaryChart.value, {
         type: 'line',
         data: {
-          labels: [
-            t('dashboard.months.january'),
-            t('dashboard.months.february'),
-            t('dashboard.months.march'),
-            t('dashboard.months.april'),
-            t('dashboard.months.may'),
-            t('dashboard.months.june'),
-            t('dashboard.months.july'),
-            t('dashboard.months.august'),
-            t('dashboard.months.september'),
-            t('dashboard.months.october'),
-            t('dashboard.months.november'),
-            t('dashboard.months.december'),
-          ],
-          datasets: [
-            {
-              label: t('dashboard.sales'),
-              data: [15000, 16000, 17000, 16500, 18000, 19000, parseFloat(data.value.total_sales), 19500, 18500, 17500, 16500, 15500],
-              borderColor: '#10B981',
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-              borderWidth: 3,
-              tension: 0.3,
-              fill: true,
-              pointBackgroundColor: '#fff',
-              pointBorderColor: '#10B981',
-              pointBorderWidth: 2,
-              pointRadius: 4,
-              pointHoverRadius: 6,
-            },
-          ],
+          labels: months.map(m => t('dashboard.language') === 'ar' ? m.month_name_ar : m.month_name_en),
+          datasets: [{
+            label: t('dashboard.sales'),
+            data: months.map(m => m.total_sales),
+            borderColor: '#10B981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#10B981',
+            pointRadius: 4,
+          }],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: {
-              display: false,
-            },
+            legend: { display: false },
             tooltip: {
-              backgroundColor: '#1F2937',
-              titleFont: { size: 14, weight: 'bold' },
-              bodyFont: { size: 12 },
-              padding: 12,
-              cornerRadius: 8,
-              displayColors: false,
               callbacks: {
-                label: function (context) {
-                  return `${context.dataset.label}: $${context.raw.toLocaleString()}`;
-                },
-              },
-            },
+                label: (ctx) => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}${ $t("currencyLabel") }`
+              }
+            }
           },
           scales: {
             y: {
               beginAtZero: true,
-              grid: {
-                drawBorder: false,
-                color: 'rgba(0, 0, 0, 0.05)',
-              },
-              ticks: {
-                padding: 12,
-                callback: function (value) {
-                  return `$${value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`;
-                },
-              },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+              ticks: { callback: (v) => `$${Number(v).toLocaleString()}` }
             },
-            x: {
-              grid: {
-                display: false,
-              },
-              ticks: {
-                padding: 12,
-              },
-            },
-          },
-          interaction: {
-            intersect: false,
-            mode: 'index',
+            x: { grid: { display: false } },
           },
         },
       });
     }
+
+    // Least Selling Products Chart
+    if (leastSellingChart.value && data.value.least_selling_products.length) {
+      new Chart(leastSellingChart.value, {
+        type: 'bar',
+        data: {
+          labels: data.value.least_selling_products.map(p =>
+            t('dashboard.language') === 'ar' ? p.name_ar : p.name_en
+          ),
+          datasets: [{
+            label: t('dashboard.leastSellingProducts') || 'Least Selling',
+            data: data.value.least_selling_products.map(p => p.order_item_count || 1),
+            backgroundColor: '#EF4444',
+            borderRadius: 8,
+          }],
+        },
+        options: {
+          indexAxis: 'y', // Horizontal bar
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            y: { grid: { display: false } },
+          },
+        },
+      });
+    }
+
   } catch (error) {
-    console.error(t('dashboard.errorFetchingData'), error);
+    console.error('Error fetching dashboard data:', error);
   }
 };
 
-// Initialize charts
 onMounted(() => {
   fetchData();
 });
 </script>
 
 <style scoped>
-/* Custom scrollbar for activity feed */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
-
 ::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.5);
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-track {
-  background-color: rgba(156, 163, 175, 0.1);
-}
-
-/* Animation for cards */
-.card-enter-active,
-.card-leave-active {
-  transition: all 0.4s ease;
-}
-
-.card-enter-from,
-.card-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-/* RTL adjustments */
+/* RTL Support */
 .text-right {
   text-align: right;
 }

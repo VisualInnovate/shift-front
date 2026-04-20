@@ -15,6 +15,8 @@ const { t } = useI18n()
 const route = useRoute()
 const toast = useToast()
 const isLoading = ref(false)
+const newNotificationEmail = ref('')
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // All fields including new social links
 const formData = ref({
@@ -22,6 +24,7 @@ const formData = ref({
   address: '',
   phone: '',
   email: '',          // New: contact email
+  order_notification_emails: [],
   facebook: '',       // New
   instagram: '',      // New
   youtube: '',        // New
@@ -33,6 +36,42 @@ const formData = ref({
   terms_conditions_ar: '',
   terms_conditions_en: '',
 })
+
+const isValidEmail = email => emailPattern.test(email)
+const addNotificationEmail = () => {
+  const email = newNotificationEmail.value.trim()
+
+  if (!email) {
+    return
+  }
+
+  if (!isValidEmail(email)) {
+    toast.add({
+      severity: 'warn',
+      summary: t('settings.invalidEmail') || 'Invalid email',
+      detail: t('settings.invalidEmailDetail') || 'Enter a valid email address',
+      life: 4000,
+    })
+    return
+  }
+
+  if (formData.value.order_notification_emails.includes(email)) {
+    toast.add({
+      severity: 'warn',
+      summary: t('settings.duplicateEmail') || 'Duplicate email',
+      detail: t('settings.duplicateEmailDetail') || 'This email is already added',
+      life: 4000,
+    })
+    return
+  }
+
+  formData.value.order_notification_emails.push(email)
+  newNotificationEmail.value = ''
+}
+
+const removeNotificationEmail = index => {
+  formData.value.order_notification_emails.splice(index, 1)
+}
 
 // Editor toolbar with alignment
 const editorOptions = {
@@ -71,6 +110,7 @@ const fetchSettings = async () => {
         address: 'address',
         phone: 'phone',
         email: 'email',
+        order_notification_emails: 'order_notification_emails',
         facebook: 'facebook',
         instagram: 'instagram',
         youtube: 'youtube',
@@ -85,7 +125,19 @@ const fetchSettings = async () => {
       data.forEach(item => {
         const fieldKey = mapping[item.key]
         if (fieldKey && formData.value.hasOwnProperty(fieldKey)) {
-          formData.value[fieldKey] = item.value || ''
+          if (fieldKey === 'order_notification_emails') {
+            if (Array.isArray(item.value)) {
+              formData.value[fieldKey] = item.value
+            } else {
+              try {
+                formData.value[fieldKey] = item.value ? JSON.parse(item.value) : []
+              } catch (error) {
+                formData.value[fieldKey] = item.value ? [item.value] : []
+              }
+            }
+          } else {
+            formData.value[fieldKey] = item.value || ''
+          }
         }
       })
 
@@ -120,6 +172,7 @@ const updateSettings = async () => {
       'address',
       'phone',
       'email',
+      'order_notification_emails',
       'facebook',
       'instagram',
       'youtube',
@@ -133,7 +186,11 @@ const updateSettings = async () => {
 
     fields.forEach((key, index) => {
       formDataToSend.append(`data[${index}][key]`, key)
-      formDataToSend.append(`data[${index}][value]`, formData.value[key] || '')
+      const value = key === 'order_notification_emails'
+        ? JSON.stringify(formData.value.order_notification_emails || [])
+        : formData.value[key] || ''
+
+      formDataToSend.append(`data[${index}][value]`, value)
     })
 
     // If you add file upload later for policies, you can append files here
@@ -201,6 +258,44 @@ const updateSettings = async () => {
             <div>
               <label class="block mb-2 font-medium">{{ t('settings.email') }}</label>
               <InputText v-model="formData.email" type="email" placeholder="contact@company.com" class="w-full" />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block mb-2 font-medium">{{ t('settings.order_notification_emails') }}</label>
+              <div class="flex flex-col gap-3">
+                <div class="flex gap-2">
+                  <InputText
+                    v-model="newNotificationEmail"
+                    type="email"
+                    :placeholder="t('settings.order_notification_emailsPlaceholder')"
+                    class="flex-1"
+                  />
+                  <Button
+                    icon="pi pi-plus"
+                    class="p-button-secondary"
+                    @click="addNotificationEmail"
+                  />
+                </div>
+
+                <div class="space-y-2">
+                  <div
+                    v-for="(email, index) in formData.order_notification_emails"
+                    :key="index"
+                    class="flex items-center justify-between gap-3 px-3 py-2 rounded border bg-white"
+                  >
+                    <span class="break-all">{{ email }}</span>
+                    <Button
+                      icon="pi pi-times"
+                      class="p-button-danger p-button-text"
+                      @click="removeNotificationEmail(index)"
+                    />
+                  </div>
+
+                  <p v-if="!formData.order_notification_emails.length" class="text-sm text-slate-500">
+                    {{ t('settings.order_notification_emailsEmpty') }}
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div class="md:col-span-2">

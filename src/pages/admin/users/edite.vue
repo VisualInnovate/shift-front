@@ -163,7 +163,7 @@ onMounted(() => {
             :options="[
               { label: 'Admin', value: 1 },
               { label: 'customer', value: 2},
-              { label: 'User', value: 2 }
+              { label: 'User', value: 3 }
             ]"
             optionLabel="label"
             optionValue="value"
@@ -261,7 +261,7 @@ onMounted(() => {
 
 
 
-                      
+
                     </div>
                   </div>
                 </div>

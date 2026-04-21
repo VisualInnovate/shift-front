@@ -133,6 +133,12 @@ export const useAuthStore = defineStore('Auth', {
       }
     },
     async handleLogout() {
+      axios.post('/api/logout', {}, {
+        headers: { Authorization: `Bearer ${this.webToken}` },
+      }).catch(() => {
+        clearAllData()
+        // Handle logout error if needed, but proceed to clear data regardless
+      });
       this.webUser = {};
       this.webToken = null;
       this.authenticatedweb = false;
@@ -332,6 +338,7 @@ export const useAuthStore = defineStore('Auth', {
       }
     },
     clearAllData() {
+
       this.webUser = {};
       this.webToken = null;
       this.authenticatedweb = false;

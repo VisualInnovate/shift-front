@@ -131,14 +131,14 @@ export const useAuthStore = defineStore('Auth', {
       }
     },
     async handleLogout() {
-      try {
-        await axios.post('/api/logout')
-      } catch (error) {
-        console.error('Logout error:', error)
-      } finally {
-        this.resetAuthStore()
-        this.router.push({ name: 'Login' })
-      }
+      console.log('Logging out user:', this.token)
+       axios.post('/api/logout', {}, {
+        headers: { Authorization: `Bearer ${this.token}` },
+      }).catch(() => {
+        resetAuthStore()
+        // Handle logout error if needed, but proceed to clear data regardless
+      });
+
     },
     async forgotPassword(data) {
       try {

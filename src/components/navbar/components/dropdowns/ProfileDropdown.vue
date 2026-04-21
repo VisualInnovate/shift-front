@@ -55,16 +55,9 @@
 
   const isShown = ref(false)
   const logout = () => {
-    authStore.resetAuthStore()
+    authStore.handleLogout()
         router.push({ name: 'login' })
-    axios
-      .post('/api/logout')
-      .then((res) => {
-        console.log(res.data)
-        authStore.resetAuthStore()
-        router.push({ name: 'login' })
-      })
-      .catch(() => {})
+
   }
 </script>
 

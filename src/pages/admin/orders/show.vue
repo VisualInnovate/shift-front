@@ -131,6 +131,12 @@ const getVariantDisplay = (variant) => {
     .join(' • ')
 }
 
+// format Date
+const formatDate = (dateString) => {
+  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+  return new Date(dateString).toLocaleDateString(undefined, options)
+}
+
 const formatCurrency = (value) => {
   return `${parseFloat(value).toFixed(2)} ${t('currencyLabel')}`
 }
@@ -160,7 +166,10 @@ const formatCurrency = (value) => {
               <div class="grid">
                 <div class="col-12 lg:col-6">
                   <div class="space-y-3 mb-5">
-                    <p><strong>{{ t('order.name') }}:</strong> {{ orderData.user?.name }}</p><hr>
+                    <p><strong>{{ t('order.name') }}:</strong> {{ orderData.user?.name }}</p>
+                    <hr>
+                    <p><strong>{{ t('order.createdAt') }}:</strong> {{ formatDate(orderData.created_at) }}</p>
+                    <hr>
                     <p><strong>{{ t('order.owner') }}:</strong> {{ orderData.owner[locale] }}</p>
                     <p v-if="orderData.notes">
                       <strong>{{ t('order.notes') }}:</strong>

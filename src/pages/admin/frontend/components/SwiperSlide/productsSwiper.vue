@@ -50,6 +50,9 @@
             <img
               :src="pro.img || '/placeholder-image.jpg'"
               :alt="pro.name"
+              width="300"
+              height="300"
+              loading="lazy"
               class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
             />
 

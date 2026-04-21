@@ -32,6 +32,7 @@
                     <img
                       :src="getStoreImage(store)"
                       alt="Store Logo"
+                      loading="lazy"
                       class="max-w-[90%] max-h-full transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
@@ -99,6 +100,7 @@
                   <img
                     :src="getStoreImage(store)"
                     alt="Store Logo"
+                    loading="lazy"
                     class="max-w-full max-h-full transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>

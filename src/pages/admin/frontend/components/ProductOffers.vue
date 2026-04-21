@@ -16,7 +16,7 @@
 <script setup>
 import { onBeforeMount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
+import axios, { cachedGet } from '@/axios'
 import { useI18n } from 'vue-i18n'
 import productsSwiper from '../components/SwiperSlide/productsSwiper.vue'
 
@@ -79,7 +79,7 @@ const buildEndpoint = (base) => {
 
 const fetchExclusiveOffers = async () => {
   try {
-    const response = await axios.get(buildEndpoint('exclusive-offers'))
+    const response = await cachedGet(buildEndpoint('exclusive-offers'))
     const data = response.data.data.data || []
 
     exclusive_offers.value = {
@@ -94,7 +94,7 @@ const fetchExclusiveOffers = async () => {
 
 const fetchBestSeller = async () => {
   try {
-    const response = await axios.get(buildEndpoint('best-sellers'))
+    const response = await cachedGet(buildEndpoint('best-sellers'))
     const data = response.data.data.data || []
 
     Best_seller.value = {
@@ -109,7 +109,7 @@ const fetchBestSeller = async () => {
 
 const fetchNewArrivals = async () => {
   try {
-    const response = await axios.get(buildEndpoint('new-arrivals'))
+    const response = await cachedGet(buildEndpoint('new-arrivals'))
     const data = response.data.data.data || []
 
     New_arrival.value = {
@@ -124,10 +124,10 @@ const fetchNewArrivals = async () => {
 
 const loaddata = async () => {
   try {
-    await axios.get(`api/home/get-categories/${stor_id.value}`)
-    await axios.get('api/home/get-media-link')
-  } catch (error) {
-    console.error('Error loading additional data:', error)
+    await cachedGet(`api/home/get-categories/${stor_id.value}`)
+    await cachedGet('api/home/get-media-link')
+  } catch {
+    // silent
   }
 }
 
@@ -154,8 +154,6 @@ watch(() => route.params.id, (newId) => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
-
 .pro:first-child {
   margin-left: 1rem;
 }

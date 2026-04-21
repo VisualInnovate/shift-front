@@ -50,7 +50,7 @@
 <script setup>
   import { onBeforeMount, ref, computed } from 'vue'
   import ProductOffers from '../components/ProductOffers.vue'
-  import axios from 'axios'
+  import axios, { cachedGet } from '@/axios'
   import { Swiper, SwiperSlide } from 'swiper/vue'
   import { Autoplay, Navigation } from 'swiper/modules'
   import { useRouter, useRoute } from 'vue-router'
@@ -97,8 +97,7 @@
   })
 const loaddata = async () => {
     try {
-      // Fetch categories
-      const categoryResponse = await axios.get(`api/home/get-categories/${stor_id.value}`)
+      const categoryResponse = await cachedGet(`api/home/get-categories/${stor_id.value}`)
       categoryResponse.data.data.forEach((category) => {
         titels.value[category.id] = {
           name: localStorage.getItem('appLang') == 'en' ? category.name_en : category.name_ar || category.name_en,
@@ -107,14 +106,12 @@ const loaddata = async () => {
         }
       })
 
-      // Fetch banner slider images
-      const bannerResponse = await axios.get('api/home/get-media-link')
+      const bannerResponse = await cachedGet('api/home/get-media-link')
       banners_slider.value = bannerResponse.data.data.map((item) => ({
         url: item.url,
         id: item.id,
       }))
 
-      // Fetch store images
       if (Stor.value.media?.length > 0) {
         storimg.value = {
           store_image: Stor.value.media.find((img) => img.name == 'store_image')?.url,
@@ -125,8 +122,8 @@ const loaddata = async () => {
           main_banner_image: Stor.value.media.find((img) => img.name == 'main_banner_image')?.url,
         }
       }
-    } catch (error) {
-      console.error('Error fetching data:', error)
+    } catch {
+      // silent
     }
   }
   const linkTo = (d) =>
@@ -144,8 +141,6 @@ loaddata()
 </script>
 
 <style scoped>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
-
   .produt-img {
     background-image: url(../imges/img1.png);
   }

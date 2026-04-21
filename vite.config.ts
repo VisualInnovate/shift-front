@@ -43,4 +43,25 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('primevue') || id.includes('primeicons')) return 'primevue'
+            if (id.includes('@amcharts')) return 'amcharts'
+            if (id.includes('leaflet') || id.includes('maplibre') || id.includes('yandex')) return 'maps'
+            if (id.includes('chart.js') || id.includes('chartjs')) return 'charts'
+            if (id.includes('swiper')) return 'swiper'
+            if (id.includes('filepond')) return 'filepond'
+            if (id.includes('pusher')) return 'pusher'
+            if (id.includes('vue-i18n') || id.includes('@intlify')) return 'i18n'
+            if (id.includes('vuestic-ui')) return 'vuestic'
+            return 'vendor'
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
 })

@@ -36,7 +36,7 @@
                         peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50
                          flex items-center gap-4">
               <div class="w-12 h-12 rounded-lg bg-gray-50 p-1 overflow-hidden flex-shrink-0 border border-gray-100 transition-transform group-hover:scale-105">
-                <img :src="avail.image" :alt="avail.name" class="w-full h-full object-contain" />
+                <img :src="avail.image" :alt="avail.name" loading="lazy" width="48" height="48" class="w-full h-full object-contain" />
               </div>
               <div class="flex flex-col">
                 <span class="font-bold text-gray-900 leading-tight">{{ avail.name }}</span>

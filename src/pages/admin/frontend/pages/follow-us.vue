@@ -51,7 +51,7 @@ const { t } = useI18n()
             </div>
           </div>
           <div>
-            <img src="../../../../assets/landingpage.png" alt="Follow Us" class="w-full max-h-[300px] rounded-md" />
+            <img src="../../../../assets/landingpage.png" alt="Follow Us" loading="lazy" width="1200" height="300" class="w-full max-h-[300px] rounded-md" />
           </div>
         </div>
       </header>

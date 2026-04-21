@@ -8,11 +8,14 @@ axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.headers.common['local'] = localStorage.getItem('appLang') || 'en';
 
+// Simple in-memory cache: url → { data, expiresAt }
+const cache = new Map();
+const CACHE_TTL = 30_000; // 30 seconds
+
 // Request interceptor
 axios.interceptors.request.use((config) => {
   try {
     const currentRoute = router.currentRoute.value;
-    console.log(currentRoute);
     let token = null;
     if (currentRoute.path.startsWith('/admin')) {
       token = localStorage.getItem('token');
@@ -25,7 +28,7 @@ axios.interceptors.request.use((config) => {
         const parsedToken = JSON.parse(token);
         config.headers = config.headers || {};
         config.headers.Authorization = `Bearer ${parsedToken}`;
-      } catch (error) {
+      } catch {
         config.headers = config.headers || {};
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -34,8 +37,8 @@ axios.interceptors.request.use((config) => {
     config.headers = config.headers || {};
     config.headers.Accept = 'application/json';
     config.headers['Content-Type'] = 'application/json';
-  } catch (error) {
-    console.error('Request interceptor error:', error);
+  } catch {
+    // silent
   }
 
   return config;
@@ -43,10 +46,16 @@ axios.interceptors.request.use((config) => {
 
 // Response interceptor
 axios.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Cache only GET requests that succeeded
+    if (response.config.method === 'get' && response.config.url) {
+      const key = response.config.baseURL + response.config.url;
+      cache.set(key, { data: response.data, expiresAt: Date.now() + CACHE_TTL });
+    }
+    return response;
+  },
   (error) => {
-    // Initialize authStore inside the interceptor
-    const authStore = useAuthStore(); // This will work if called during runtime
+    const authStore = useAuthStore();
     if (error.response?.status === 401) {
       const currentRoute = router.currentRoute.value;
       if (currentRoute.path.startsWith('/admin')) {
@@ -60,19 +69,21 @@ axios.interceptors.response.use(
       router.push({ name: 'home' });
     }
 
-    // Enhanced error logging
-    if (error.response) {
-      console.error('API Error:', {
-        status: error.response.status,
-        data: error.response.data,
-        url: error.config?.url,
-      });
-    } else {
-      console.error('API Error:', error.message);
-    }
-
     return Promise.reject(error);
   }
 );
+
+/**
+ * Cached GET — returns cached response within TTL, otherwise fetches fresh.
+ * Usage: cachedGet('/api/home/get-categories/')
+ */
+export function cachedGet(url, config = {}) {
+  const key = (axios.defaults.baseURL || '') + url;
+  const cached = cache.get(key);
+  if (cached && Date.now() < cached.expiresAt) {
+    return Promise.resolve({ data: cached.data });
+  }
+  return axios.get(url, config);
+}
 
 export default axios;

@@ -25,6 +25,9 @@
     <img
       :src="pro.img"
       alt=""
+      width="300"
+      height="300"
+      loading="lazy"
       class="w-full object-contain aspect-[3/4] sm:aspect-[4/5] lg:aspect-[1/1] rounded-t-lg"
     />
     <p

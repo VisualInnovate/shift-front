@@ -84,10 +84,17 @@
     <link rel="dns-prefetch" href="https://www.google-analytics.com" />
 
     <!-- ============================================================
-         ✅ FONTS — Load only what you need (fewer requests = faster)
+         ✅ FONTS — All fonts consolidated here (single request)
     ============================================================ -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;700&display=swap" rel="stylesheet" />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Kufi+Arabic:wght@400;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@400;700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Kufi+Arabic:wght@400;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@400;700&display=swap" />
+    </noscript>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
     <!-- ============================================================

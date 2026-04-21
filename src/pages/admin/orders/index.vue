@@ -190,6 +190,12 @@ const viewOrder = (id) => {
   router.push({ name: 'order-show', params: { id } })
 }
 
+// format Date
+const formatDate = (dateString) => {
+  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+  return new Date(dateString).toLocaleDateString(undefined, options)
+}
+
 // Lifecycle hooks
 onBeforeMount(() => {
   initFilters()
@@ -215,13 +221,8 @@ onMounted(() => {
                 <i class="pi pi-search" />
                 <InputText v-model="searchQuery" :placeholder="t('order.search')" />
               </span>
-              <Button
-                :label="t('order.export')"
-                icon="pi pi-upload"
-                class="p-export"
-                v-can="'export orders'"
-                @click="exportCSV"
-              />
+              <Button :label="t('order.export')" icon="pi pi-upload" class="p-export" v-can="'export orders'"
+                @click="exportCSV" />
             </div>
           </template>
         </Toolbar>
@@ -229,21 +230,9 @@ onMounted(() => {
         <Toast />
 
         <div class="card shadow-1 surface-0">
-          <DataTable
-            ref="dt"
-            :value="orders"
-            :loading="loading"
-            data-key="id"
-            :paginator="false"
-            :rows="rowsPerPage"
-            :filters="filters"
-            :totalRecords="totalRecords"
-            responsive-layout="scroll"
-            stripedRows
-            showGridlines
-            class="p-datatable-sm"
-            v-can="'list orders'"
-          >
+          <DataTable ref="dt" :value="orders" :loading="loading" data-key="id" :paginator="false" :rows="rowsPerPage"
+            :filters="filters" :totalRecords="totalRecords" responsive-layout="scroll" stripedRows showGridlines
+            class="p-datatable-sm" v-can="'list orders'">
             <Column selection-mode="multiple" header-style="width: 3rem"></Column>
 
             <Column field="id" :header="t('order.id')" :sortable="true" header-style="width:10%; min-width:6rem;">
@@ -256,7 +245,7 @@ onMounted(() => {
 
 
 
-       <Column field="data.user.name" :header="t('order.name')" :sortable="true">
+            <Column field="data.user.name" :header="t('order.name')" :sortable="true">
               <template #body="slotProps">
                 {{ slotProps.data.user?.name }}
               </template>
@@ -269,46 +258,32 @@ onMounted(() => {
 
             <Column field="status" :header="t('order.status')" :sortable="true">
               <template #body="slotProps">
-                <Tag
-                  :value="slotProps.data.status === 0 ? t('order.pending') :
-                         slotProps.data.status === 1 ? t('order.completed') : t('order.rejected')"
-                  :severity="slotProps.data.status === 0 ? 'warning' :
-                             slotProps.data.status === 1 ? 'success' : 'danger'"
-                />
+                <Tag :value="slotProps.data.status === 0 ? t('order.pending') :
+                  slotProps.data.status === 1 ? t('order.completed') : t('order.rejected')" :severity="slotProps.data.status === 0 ? 'warning' :
+                    slotProps.data.status === 1 ? 'success' : 'danger'" />
               </template>
             </Column>
-
+            <Column field="created_at" :header="t('order.createdAt')" :sortable="true">
+              <template #body="slotProps">
+                {{ formatDate(slotProps.data.created_at) }}
+              </template>
+            </Column>
             <Column :header="t('actions')" header-style="min-width:14rem;">
               <template #body="slotProps">
                 <div class="flex gap-2">
                   <!-- View Button -->
-                  <Button
-                    v-can="'show orders'"
-                    icon="pi pi-eye"
-                    class="p-button-rounded p-detail p-button-sm"
-                    @click="viewOrder(slotProps.data.id)"
-                    v-tooltip.top="t('view')"
-                  />
+                  <Button v-can="'show orders'" icon="pi pi-eye" class="p-button-rounded p-detail p-button-sm"
+                    @click="viewOrder(slotProps.data.id)" v-tooltip.top="t('view')" />
 
                   <!-- Accept Button (only if pending) -->
-                  <Button
-                    v-if="slotProps.data.status === 0"
-                    v-can="'update orders'"
-                    icon="pi pi-check"
-                    class="p-button-rounded p-detail p-button-sm"
-                    @click="changeOrderStatus(slotProps.data.id, 1)"
-                    v-tooltip.top="t('order.accept')"
-                  />
+                  <Button v-if="slotProps.data.status === 0" v-can="'update orders'" icon="pi pi-check"
+                    class="p-button-rounded p-detail p-button-sm" @click="changeOrderStatus(slotProps.data.id, 1)"
+                    v-tooltip.top="t('order.accept')" />
 
                   <!-- Reject Button (only if pending) -->
-                  <Button
-                    v-if="slotProps.data.status === 0"
-                    v-can="'update orders'"
-                    icon="pi pi-times"
-                    class="p-button-rounded p-delete"
-                    @click="changeOrderStatus(slotProps.data.id, 2, true)"
-                    v-tooltip.top="t('order.reject')"
-                  />
+                  <Button v-if="slotProps.data.status === 0" v-can="'update orders'" icon="pi pi-times"
+                    class="p-button-rounded p-delete" @click="changeOrderStatus(slotProps.data.id, 2, true)"
+                    v-tooltip.top="t('order.reject')" />
                 </div>
               </template>
             </Column>
@@ -335,115 +310,65 @@ onMounted(() => {
               </span>
             </div>
             <div class="p-paginator-right-content flex align-items-center gap-3">
-              <button
-                class="p-paginator-first p-paginator-element p-link"
-                :disabled="currentPage === 1"
-                @click="goToPage(1)"
-              >
+              <button class="p-paginator-first p-paginator-element p-link" :disabled="currentPage === 1"
+                @click="goToPage(1)">
                 <span class="p-paginator-icon pi pi-angle-double-left"></span>
               </button>
-              <button
-                class="p-paginator-prev p-paginator-element p-link"
-                :disabled="currentPage === 1"
-                @click="goToPage(currentPage - 1)"
-              >
+              <button class="p-paginator-prev p-paginator-element p-link" :disabled="currentPage === 1"
+                @click="goToPage(currentPage - 1)">
                 <span class="p-paginator-icon pi pi-angle-left"></span>
               </button>
 
               <template v-for="(link, index) in links" :key="index">
-                <button
-                  v-if="link.label && !isNaN(parseInt(link.label))"
-                  class="p-paginator-page p-paginator-element p-link"
-                  :class="{ 'p-highlight': link.active }"
-                  @click="goToPage(parseInt(link.label))"
-                >
+                <button v-if="link.label && !isNaN(parseInt(link.label))"
+                  class="p-paginator-page p-paginator-element p-link" :class="{ 'p-highlight': link.active }"
+                  @click="goToPage(parseInt(link.label))">
                   {{ link.label }}
                 </button>
                 <span v-else-if="link.label === '...'" class="p-paginator-dots">...</span>
               </template>
 
-              <button
-                class="p-paginator-next p-paginator-element p-link"
-                :disabled="currentPage === totalPages"
-                @click="goToPage(currentPage + 1)"
-              >
+              <button class="p-paginator-next p-paginator-element p-link" :disabled="currentPage === totalPages"
+                @click="goToPage(currentPage + 1)">
                 <span class="p-paginator-icon pi pi-angle-right"></span>
               </button>
-              <button
-                class="p-paginator-last p-paginator-element p-link"
-                :disabled="currentPage === totalPages"
-                @click="goToPage(totalPages)"
-              >
+              <button class="p-paginator-last p-paginator-element p-link" :disabled="currentPage === totalPages"
+                @click="goToPage(totalPages)">
                 <span class="p-paginator-icon pi pi-angle-double-right"></span>
               </button>
 
-              <Dropdown
-                v-model="rowsPerPage"
-                :options="[5, 10, 20, 30, 50]"
-                @change="changeRowsPerPage"
-                class="ml-3"
-                style="width: 80px"
-              />
+              <Dropdown v-model="rowsPerPage" :options="[5, 10, 20, 30, 50]" @change="changeRowsPerPage" class="ml-3"
+                style="width: 80px" />
             </div>
           </div>
         </div>
 
         <!-- Reject Confirmation Dialog -->
-        <Dialog
-          v-model:visible="rejectDialog"
-          :style="{ width: '450px' }"
-          :header="t('order.rejectConfirmTitle')"
-          :modal="true"
-          :closable="false"
-        >
+        <Dialog v-model:visible="rejectDialog" :style="{ width: '450px' }" :header="t('order.rejectConfirmTitle')"
+          :modal="true" :closable="false">
           <div class="flex align-items-center justify-content-center gap-3">
             <i class="pi pi-exclamation-triangle" style="font-size: 2.5rem; color: var(--red-500)" />
             <span>{{ t('order.rejectConfirmMessage') }}</span>
           </div>
           <template #footer>
-            <Button
-              :label="t('no')"
-              icon="pi pi-times"
-              class="p-button-text"
-              @click="rejectDialog = false"
-            />
-            <Button
-              :label="t('yesReject')"
-              icon="pi pi-check"
-              class="p-button-danger"
-              @click="confirmReject"
-            />
+            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="rejectDialog = false" />
+            <Button :label="t('yesReject')" icon="pi pi-check" class="p-button-danger" @click="confirmReject" />
           </template>
         </Dialog>
 
         <!-- Delete Confirmation Dialog -->
-        <Dialog
-          v-model:visible="deleteDialog"
-          :style="{ width: '450px' }"
-          :header="t('order.deleteConfirmTitle')"
-          :modal="true"
-        >
+        <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" :header="t('order.deleteConfirmTitle')"
+          :modal="true">
           <div class="flex align-items-center justify-content-center">
             <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem; color: var(--red-500)" />
             <span>{{ t('order.deleteConfirmMessage') }}</span>
           </div>
           <template #footer>
-            <Button
-              :label="t('no')"
-              icon="pi pi-times"
-              class="p-button-text"
-              @click="deleteDialog = false"
-            />
-            <Button
-              :label="t('yes')"
-              icon="pi pi-check"
-              class="p-button-text p-button-danger"
-              @click="deleteOrder"
-            />
+            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="deleteDialog = false" />
+            <Button :label="t('yes')" icon="pi pi-check" class="p-button-text p-button-danger" @click="deleteOrder" />
           </template>
         </Dialog>
       </div>
     </div>
   </div>
 </template>
-

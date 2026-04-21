@@ -164,6 +164,7 @@ export default {
   success: 'Success',
   order: {
     owner: 'Owner',
+    createdAt: 'Created At',
     detailTitle: 'Order Details',
     financialSummary: 'Financial Summary',
     generalInfo: 'General Information',

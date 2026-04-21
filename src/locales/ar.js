@@ -157,6 +157,7 @@ export default {
   from: 'من',
   order: {
     owner: "الاونر",
+    createdAt: 'تاريخ الطلب',
     unitPrice: 'سعر الوحدة',
     notes: 'ملاحظات الطلب',
     name: 'اسم الزبون',

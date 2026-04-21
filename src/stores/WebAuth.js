@@ -245,27 +245,6 @@ export const useAuthStore = defineStore('Auth', {
         this.loading = false;
       }
     },
-    async handleGoogleLogin({ token }) {
-      this.loading = true;
-      this.errors = [];
-      try {
-        const response = await axios.post('/api/google-login', { token });
-        if (response.data.data?.access_token) {
-          this.webToken = response.data.data.access_token;
-          this.webUser = response.data.data.user;
-          this.role = response.data.data.user.role || '';
-          this.router.push({ name: 'Home' });
-          return { is_success: true, errors: null };
-        }
-        this.errors = ['Google login failed. Please try again.'];
-        return { is_success: false, errors: this.errors };
-      } catch (error) {
-        this.errors = [error.response?.data?.message || 'Google login failed.'];
-        return { is_success: false, errors: this.errors };
-      } finally {
-        this.loading = false;
-      }
-    },
     async verifyOtp({ email, phone, otp }) {
       this.loading = true;
       this.errors = [];

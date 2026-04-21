@@ -69,27 +69,6 @@
         <div class="flex-grow border-t border-gray-300"></div>
       </div>
 
-      <button @click="handleGoogleLogin"
-        class="w-full py-3 bg-white border border-gray-300 rounded-xl shadow-sm hover:shadow-md flex items-center justify-center space-x-2"
-        :disabled="authStore.loading" :aria-label="t('login.googleLogin')">
-        <svg xmlns="http://www.w3.org/2000/svg" aria-label="Google" role="img" viewBox="0 0 512 512" width="34px"
-          height="34px" fill="#000000">
-          <path
-            d="M488 261.2c0-14.7-1.4-29.1-4.1-43.1H256v82.2h135.5c-5.7 29.8-22.3 55.4-46.1 73.1v53.4h68.8c40.3-37.1 63.5-91.8 63.5-165.6z"
-            fill="#4285f4"></path>
-          <path
-            d="M256 496c69.8 0 128.4-22.9 171.2-62.5l-68.8-53.4c-19.1 13.5-44.5 21.6-76.4 21.6-58.6 0-108.4-39.6-126.3-92.4H68.8v53.4C106.8 447.2 176.6 496 256 496z"
-            fill="#34a853"></path>
-          <path
-            d="M129.7 302.5c-3.1-9.2-4.9-19-4.9-29.2s1.8-19.9 4.9-29.2V190H68.8c-10.2 20.3-15.8 43.8-15.8 68.8s5.6 48.5 15.8 68.8L129.7 302.5z"
-            fill="#fbbc04"></path>
-          <path
-            d="M256 106.8c34.8 0 65.9 12 90.3 35.5l61.2-61.2c-38.3-36.4-88.6-58.1-151.5-58.1-79.4 0-149.2 48.8-187.2 122.8l61.2 47.5c17.9-52.8 67.7-92.4 126.3-92.4z"
-            fill="#ea4335"></path>
-        </svg>
-        <span class="text-gray-700 font-semibold">{{ t('login.googleLogin') }}</span>
-      </button>
-
       <div class="mt-8 text-center text-sm text-gray-500">
         {{ t('login.noAccount') }}
         <a @click="router.push({ name: 'register' })"
@@ -160,14 +139,6 @@ const handleLogin = async () => {
     : { type: 'email', email: email.value };
 
   const result = await authStore.handleLogin(data);
-  if (!result.is_success) {
-    errors.value = result.errors;
-  }
-};
-
-const handleGoogleLogin = async () => {
-  errors.value = [];
-  const result = await authStore.handleGoogleLogin({});
   if (!result.is_success) {
     errors.value = result.errors;
   }

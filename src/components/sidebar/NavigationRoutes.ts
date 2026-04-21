@@ -174,14 +174,6 @@ export default {
       },
     },
     {
-      name: 'shipping-update',
-      displayName: 'navigation.shipping',
-      show: ['list shipping-settings'],
-      meta: {
-        icon: 'local_shipping',
-      },
-    },
-    {
       name: 'setting',
       displayName: 'navigation.settings',
       show: ['list address'],
@@ -195,6 +187,14 @@ export default {
           displayName: 'navigation.setting',
           show: 'list categories',
           meta: { icon: 'settings_applications' }
+        },
+        {
+          name: 'shipping-update',
+          displayName: 'navigation.shipping',
+          show: ['list shipping-settings'],
+          meta: {
+            icon: 'local_shipping',
+          },
         },
         // {
         //   name: 'connect',

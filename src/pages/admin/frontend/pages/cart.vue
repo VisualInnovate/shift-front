@@ -1,4 +1,7 @@
 <template>
+  <div class="mt-4 flex justify-center items-center w-full">
+    <img :src="cartImage" alt="Cart Image" class="max-w-6xl" loading="lazy">
+  </div>
   <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 font-inter">
     <div class="flex lg:flex-row flex-col gap-10">
       <section class="flex-1 bg-white rounded-2xl shadow-lg p-6">
@@ -11,26 +14,18 @@
           <div class="mb-8">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ t('cart.selectStore') }}</h3>
             <div class="flex flex-wrap gap-3">
-              <button
-                v-for="store in stores"
-                :key="store.unique_store_id"
-                @click="toggleStore(store.unique_store_id)"
-                class="px-5 py-3 rounded-lg text-sm font-medium transition-all"
-                :class="selectedStores.includes(store.unique_store_id)
+              <button v-for="store in stores" :key="store.unique_store_id" @click="toggleStore(store.unique_store_id)"
+                class="px-5 py-3 rounded-lg text-sm font-medium transition-all" :class="selectedStores.includes(store.unique_store_id)
                   ? 'bg-yellow-600 text-white shadow-md'
-                  : 'bg-amber-50 text-yellow-700 hover:bg-amber-100'"
-              >
+                  : 'bg-amber-50 text-yellow-700 hover:bg-amber-100'">
                 {{ store.display_name }}
                 <span v-if="store.market_name" class="text-xs block opacity-80">
                   ({{ store.market_name }})
                 </span>
               </button>
 
-              <button
-                v-if="stores.length > 1"
-                @click="selectAllStores"
-                class="px-5 py-3 rounded-lg text-sm font-medium bg-amber-50 text-yellow-700 hover:bg-amber-100 transition-all"
-              >
+              <button v-if="stores.length > 1" @click="selectAllStores"
+                class="px-5 py-3 rounded-lg text-sm font-medium bg-amber-50 text-yellow-700 hover:bg-amber-100 transition-all">
                 {{ t('cart.selectAllStores') }}
               </button>
             </div>
@@ -40,37 +35,34 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-3">{{ t('cart.selectAddress') }}</h3>
 
             <div v-if="hasAddresses" class="relative flex gap-3 items-center">
-              <select
-                v-model="selectedAddress"
-                class="flex-1 bg-amber-50 border border-amber-300 rounded-lg px-4 py-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-              >
+              <select v-model="selectedAddress"
+                class="flex-1 bg-amber-50 border border-amber-300 rounded-lg px-4 py-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-600">
                 <option :value="null" disabled>{{ t('cart.selectAddressPlaceholder') }}</option>
                 <option v-for="address in addresses" :key="address.id" :value="address.id">
                   {{ address.address_line_1 }}, {{ address.city }}
                 </option>
               </select>
 
-              <button
-                @click="goToAddAddress"
-                class="px-5 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition duration-200 text-sm flex-shrink-0"
-              >
+              <button @click="goToAddAddress"
+                class="px-5 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition duration-200 text-sm flex-shrink-0">
                 {{ t('cart.addAddressButton') }}
               </button>
             </div>
 
             <div v-else class="p-4 bg-red-100 border border-red-300 rounded-lg">
-                <p class="text-red-700 font-medium mb-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                    </svg>
-                    {{ t('cart.selectAddressWarning') }}
-                </p>
-                <button
-                    @click="goToAddAddress"
-                    class="w-full py-2 bg-yellow-600 text-white font-semibold rounded-lg hover:bg-yellow-700 transition duration-200"
-                >
-                    {{ t('cart.addAddressButton') }}
-                </button>
+              <p class="text-red-700 font-medium mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -mt-0.5" viewBox="0 0 20 20"
+                  fill="currentColor">
+                  <path fill-rule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clip-rule="evenodd" />
+                </svg>
+                {{ t('cart.selectAddressWarning') }}
+              </p>
+              <button @click="goToAddAddress"
+                class="w-full py-2 bg-yellow-600 text-white font-semibold rounded-lg hover:bg-yellow-700 transition duration-200">
+                {{ t('cart.addAddressButton') }}
+              </button>
             </div>
           </div>
 
@@ -79,44 +71,31 @@
           </div>
 
           <div v-else>
-            <div
-              v-for="product in filteredProducts"
-              :key="product.uniqueId"
-              class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 bg-gray-50 rounded-xl mb-4 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <img
-                :src="product.img || '/images/placeholder-product.png'"
-                :alt="product.name"
-                class="w-24 h-24 object-contain rounded-lg border border-gray-200"
-                loading="lazy"
-              />
+            <div v-for="product in filteredProducts" :key="product.uniqueId"
+              class="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 bg-gray-50 rounded-xl mb-4 shadow-sm hover:shadow-md transition-shadow">
+              <img :src="product.img || '/images/placeholder-product.png'" :alt="product.name"
+                class="w-24 h-24 object-contain rounded-lg border border-gray-200" loading="lazy" />
 
               <div class="flex-1">
                 <h4 class="font-semibold text-gray-900 text-lg">{{ product.name }}</h4>
                 <span class="text-yellow-700 text-sm mt-1">
-                  {{ t('cart.price') }}: {{ (product.price - product.total_discounts_value).toFixed(2) }} {{ t('cart.currency') }}
+                  {{ t('cart.price') }}: {{ (product.price - product.total_discounts_value).toFixed(2) }} {{
+                    t('cart.currency') }}
                 </span>
-                <span
-                  v-if="product.total_discounts_value > 0"
-                  class="text-sm m-1 text-[#0b3baa] line-through opacity-80"
-                >
+                <span v-if="product.total_discounts_value > 0"
+                  class="text-sm m-1 text-[#0b3baa] line-through opacity-80">
                   {{ Number(product.price).toFixed(2) }} {{ t('cart.currency') }}
                 </span>
 
                 <div class="flex flex-wrap items-center gap-6 mt-4">
                   <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                    <button
-                      @click="updateQuantity(product, product.quantity - 1)"
-                      :disabled="product.quantity <= 1"
-                      class="w-12 h-10 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                    >
+                    <button @click="updateQuantity(product, product.quantity - 1)" :disabled="product.quantity <= 1"
+                      class="w-12 h-10 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition">
                       −
                     </button>
                     <span class="w-16 text-center font-medium py-2">{{ product.quantity }}</span>
-                    <button
-                      @click="updateQuantity(product, product.quantity + 1)"
-                      class="w-12 h-10 text-gray-600 hover:bg-gray-100 transition"
-                    >
+                    <button @click="updateQuantity(product, product.quantity + 1)"
+                      class="w-12 h-10 text-gray-600 hover:bg-gray-100 transition">
                       +
                     </button>
                   </div>
@@ -125,10 +104,8 @@
                     {{ t('cart.total') || 'Total' }}: {{ getItemTotal(product) }} {{ t('cart.currency') }}
                   </div>
 
-                  <button
-                    @click="removeProduct(product)"
-                    class="text-red-600 hover:text-red-800 text-sm font-medium transition"
-                  >
+                  <button @click="removeProduct(product)"
+                    class="text-red-600 hover:text-red-800 text-sm font-medium transition">
                     {{ t('cart.remove') }}
                   </button>
                 </div>
@@ -136,26 +113,23 @@
             </div>
 
             <!-- Store Orders -->
-            <div
-              v-for="order in storeOrders"
-              :key="order.unique_store_id"
-              class="bg-gradient-to-r from-amber-50 to-yellow-50 p-6 mt-8 rounded-xl border border-amber-200"
-            >
+            <div v-for="order in storeOrders" :key="order.unique_store_id"
+              class="bg-gradient-to-r from-amber-50 to-yellow-50 p-6 mt-8 rounded-xl border border-amber-200">
               <h3 class="text-xl font-bold text-gray-800 mb-4">
                 {{ t('cart.orderFrom') }} {{ getStoreDisplayName(order.unique_store_id) }}
               </h3>
 
               <!-- Delivery Message -->
-              <div v-if="order.delivery_message"
-                   class="mb-4 p-4 rounded-lg text-sm"
-                   :class="getDeliveryMessageClasses(order.delivery_status)">
+              <div v-if="order.delivery_message" class="mb-4 p-4 rounded-lg text-sm"
+                :class="getDeliveryMessageClasses(order.delivery_status)">
                 <p class="font-semibold">
                   {{ t('cart.deliveryStatus') }}: {{ getDeliveryStatusDisplay(order.delivery_status) }}
                 </p>
               </div>
 
               <!-- Minimum Amount Warning -->
-              <div v-if="isBelowMinAmount(order)" class="mb-4 p-4 bg-orange-100 border border-orange-300 rounded-lg text-orange-800 text-sm">
+              <div v-if="isBelowMinAmount(order)"
+                class="mb-4 p-4 bg-orange-100 border border-orange-300 rounded-lg text-orange-800 text-sm">
                 <span class="font-semibold">
                   ⚠️ {{ t('cart.minAmountWarning', { min: order.min_amount_order, currency: t('cart.currency') }) }}
                 </span>
@@ -188,7 +162,8 @@
 
                 <div class="flex justify-between" v-if="order.coupon > 0">
                   <span class="text-green-600 font-medium">{{ t('cart.couponDiscount') }}</span>
-                  <span class="text-green-600 font-medium">- {{ Number(order.coupon).toFixed(2) }} {{ t('cart.currency') }}</span>
+                  <span class="text-green-600 font-medium">- {{ Number(order.coupon).toFixed(2) }} {{ t('cart.currency')
+                    }}</span>
                 </div>
 
                 <div class="flex justify-between">
@@ -198,7 +173,8 @@
 
                 <div class="flex justify-between">
                   <span class="text-green-600 font-medium">{{ t('cart.discountsFees') || 'Discount Fees' }}</span>
-                  <span class="text-green-600 font-medium">{{ Number(order.total_discounts_fees).toFixed(2) }} {{ t('cart.currency') }}</span>
+                  <span class="text-green-600 font-medium">{{ Number(order.total_discounts_fees).toFixed(2) }} {{
+                    t('cart.currency') }}</span>
                 </div>
 
                 <div class="flex justify-between text-lg font-bold text-gray-900 pt-4 border-t border-amber-300">
@@ -207,11 +183,9 @@
                 </div>
               </div>
 
-              <button
-                @click="submitSingleStoreOrder(order.unique_store_id)"
+              <button @click="submitSingleStoreOrder(order.unique_store_id)"
                 :disabled="!selectedAddress || order.delivery_status === 'not_available' || isBelowMinAmount(order)"
-                class="w-full mt-6 py-3 bg-yellow-600 text-white font-bold rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 shadow-md"
-              >
+                class="w-full mt-6 py-3 bg-yellow-600 text-white font-bold rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 shadow-md">
                 {{ t('cart.checkoutThisStoreOnly') }}
               </button>
             </div>
@@ -234,11 +208,13 @@
           </div>
           <div class="flex justify-between" v-if="totalOrderSummary.coupon > 0">
             <span class="text-green-600 font-medium">{{ t('cart.couponDiscount') }}</span>
-            <span class="text-green-600 font-medium">- {{ totalOrderSummary.coupon.toFixed(2) }} {{ t('cart.currency') }}</span>
+            <span class="text-green-600 font-medium">- {{ totalOrderSummary.coupon.toFixed(2) }} {{ t('cart.currency')
+              }}</span>
           </div>
           <div class="flex justify-between" v-if="totalOrderSummary.total_discounts_fees > 0">
             <span class="text-green-600 font-medium">{{ t('cart.discountsFees') || 'Discount Fees' }}</span>
-            <span class="text-green-600 font-medium">{{ totalOrderSummary.total_discounts_fees.toFixed(2) }} {{ t('cart.currency') }}</span>
+            <span class="text-green-600 font-medium">{{ totalOrderSummary.total_discounts_fees.toFixed(2) }} {{
+              t('cart.currency') }}</span>
           </div>
           <div class="flex justify-between text-xl font-bold pt-4 text-gray-900">
             <span>{{ t('cart.total') }}</span>
@@ -247,50 +223,42 @@
         </div>
 
         <!-- Global Minimum Amount Warning -->
-        <div v-if="totalOrderSummary.belowMinAmountStores.length > 0" class="mt-4 p-4 bg-orange-100 border border-orange-300 rounded-lg text-orange-800 text-sm">
+        <div v-if="totalOrderSummary.belowMinAmountStores.length > 0"
+          class="mt-4 p-4 bg-orange-100 border border-orange-300 rounded-lg text-orange-800 text-sm">
           <p class="font-semibold">⚠️ {{ t('cart.someStoresBelowMin') }}</p>
           <ul class="mt-2 text-xs list-disc list-inside opacity-90">
             <li v-for="store in totalOrderSummary.belowMinAmountStores" :key="store.unique_store_id">
-              {{ getStoreDisplayName(store.unique_store_id) }}: {{ t('cart.minRequired') }} {{ store.min_amount_order }} {{ t('cart.currency') }}
+              {{ getStoreDisplayName(store.unique_store_id) }}: {{ t('cart.minRequired') }} {{ store.min_amount_order }}
+              {{ t('cart.currency') }}
             </li>
           </ul>
         </div>
 
         <div class="mt-8">
-          <input
-            v-model="couponCode"
-            type="text"
-            :placeholder="t('cart.couponPlaceholder')"
-            class="w-full px-4 py-3 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600 transition"
-          />
-          <button
-            @click="applyCoupon"
-            :disabled="!couponCode.trim()"
-            class="w-full mt-3 py-3 bg-amber-100 text-yellow-700 font-semibold rounded-lg hover:bg-amber-200 disabled:opacity-60 disabled:cursor-not-allowed transition"
-          >
+          <input v-model="couponCode" type="text" :placeholder="t('cart.couponPlaceholder')"
+            class="w-full px-4 py-3 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600 transition" />
+          <button @click="applyCoupon" :disabled="!couponCode.trim()"
+            class="w-full mt-3 py-3 bg-amber-100 text-yellow-700 font-semibold rounded-lg hover:bg-amber-200 disabled:opacity-60 disabled:cursor-not-allowed transition">
             {{ t('cart.applyCoupon') }}
           </button>
         </div>
 
         <div class="mt-6">
           <label class="block text-gray-700 font-medium mb-2">{{ t('cart.notes') || 'Special Instructions' }}</label>
-          <textarea
-            v-model="notes"
+          <textarea v-model="notes"
             :placeholder="t('cart.notesPlaceholder') || 'Add any special instructions for your order...'"
             class="w-full px-4 py-3 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-600 transition resize-none"
-            rows="4"
-          ></textarea>
+            rows="4"></textarea>
         </div>
 
-        <button
-          @click="submitOrder"
-          :disabled="!canCheckoutAllStores"
-          class="w-full mt-8 py-4 bg-gray-900 text-white font-bold text-lg rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
-        >
+        <button @click="submitOrder" :disabled="!canCheckoutAllStores"
+          class="w-full mt-8 py-4 bg-gray-900 text-white font-bold text-lg rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200">
           {{ t('cart.checkoutAll') }}
         </button>
-        <p v-if="!canCheckoutAllStores && selectedAddress && filteredProducts.length > 0" class="text-red-500 text-xs mt-2 text-center">
-          {{ totalOrderSummary.unavailable ? t('cart.cannotCheckoutDueToDelivery') : t('cart.cannotCheckoutDueToMinAmount') }}
+        <p v-if="!canCheckoutAllStores && selectedAddress && filteredProducts.length > 0"
+          class="text-red-500 text-xs mt-2 text-center">
+          {{ totalOrderSummary.unavailable ? t('cart.cannotCheckoutDueToDelivery') :
+            t('cart.cannotCheckoutDueToMinAmount') }}
         </p>
       </aside>
     </div>
@@ -340,13 +308,14 @@ const fetchAddresses = async () => {
   }
 }
 
+const cartImage = ref(null);
 const fetchCart = async () => {
   try {
     loading.value = true
     const { data } = await axios.get('/api/cart')
 
     if (!data.is_success) return
-
+    cartImage.value = data.data.cart_image || null
     const allProducts = []
     const uniqueStoresMap = new Map()
 
@@ -447,9 +416,9 @@ const totalOrderSummary = computed(() => {
 // Updated: Can checkout all only if address selected, items exist, delivery available, AND all stores meet min amount
 const canCheckoutAllStores = computed(() => {
   return selectedAddress.value &&
-         filteredProducts.value.length > 0 &&
-         !totalOrderSummary.value.unavailable &&
-         totalOrderSummary.value.belowMinAmountStores.length === 0
+    filteredProducts.value.length > 0 &&
+    !totalOrderSummary.value.unavailable &&
+    totalOrderSummary.value.belowMinAmountStores.length === 0
 })
 
 const fetchOrderTotals = async () => {
@@ -506,7 +475,7 @@ const goToAddAddress = () => {
 }
 
 const getDeliveryStatusDisplay = (status) => {
-  switch(status) {
+  switch (status) {
     case 'available': return t('cart.statusAvailable')
     case 'free': return t('cart.statusFree')
     case 'not_available': return t('cart.statusNotAvailable')
@@ -515,7 +484,7 @@ const getDeliveryStatusDisplay = (status) => {
 }
 
 const getDeliveryMessageClasses = (status) => {
-  switch(status) {
+  switch (status) {
     case 'available':
     case 'free':
       return 'bg-green-100 text-green-800 border-green-300'

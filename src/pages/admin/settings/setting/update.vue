@@ -196,7 +196,7 @@ const fetchSettings = async () => {
         terms_conditions_en: 'terms_conditions_en',
         cart_image: 'cart_image',
       }
-
+ 
       data.forEach(item => {
         const fieldKey = mapping[item.key]
         if (fieldKey && Object.prototype.hasOwnProperty.call(formData.value, fieldKey)) {

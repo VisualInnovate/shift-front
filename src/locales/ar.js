@@ -233,6 +233,9 @@ export default {
   no: 'لا',
 
   settings: {
+    order_notification_whatsappPlaceholder: 'أدخل رقم واتساب للإشعارات ثم اضغط إضافة',
+    order_notification_whatsappEmpty: 'لم يتم إضافة أي رقم واتساب لإشعارات الطلب بعد.',
+    order_notification_whatsapp: 'رقم واتساب لإشعارات الطلب',
     title: 'الإعدادات',
     cartImage: 'صورة سلة التسوق',
     socialLinks: 'روابط التواصل الاجتماعي',

@@ -235,6 +235,9 @@ export default {
   yes: 'Yes',
   no: 'No',
   settings: {
+    order_notification_whatsappPlaceholder: 'Enter WhatsApp number for notifications then click add',
+    order_notification_whatsappEmpty: 'No WhatsApp numbers added for order notifications yet.',
+    order_notification_whatsapp: 'WhatsApp Number for Order Notifications',
     title: 'Settings',
     updateButton: 'Update Settings',
     order_tax: 'Order Tax (%)',

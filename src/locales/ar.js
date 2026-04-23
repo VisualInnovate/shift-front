@@ -156,7 +156,13 @@ export default {
   to: 'إلى',
   from: 'من',
   order: {
-    owner: "الاونر",
+    pending: 'قيد الانتظار',
+    processing: 'قيد المعالجة',
+    ready: 'جاهز',
+    shipped: 'تم الشحن',
+    delivered: 'تم التسليم',
+    cancelled: 'ملغى',
+    owner: 'الاونر',
     createdAt: 'تاريخ الطلب',
     unitPrice: 'سعر الوحدة',
     notes: 'ملاحظات الطلب',
@@ -228,6 +234,10 @@ export default {
     image: 'الصورة',
     noImage: 'لا توجد صورة متاحة',
     noItems: 'لم يتم العثور على عناصر',
+    changeStatus: 'تغيير الحالة',
+    changeStatusConfirm: 'هل أنت متأكد من تغيير حالة الطلب إلى',
+    statusChanged: 'تم تغيير الحالة إلى',
+    statusChangeError: 'فشل في تغيير حالة الطلب',
   },
   yes: 'نعم',
   no: 'لا',
@@ -1660,5 +1670,5 @@ export default {
     infoP:
       'تسوق بذكاء أكبر مع تطبيق Shift 7 للهواتف المحمولة. من مستحضرات التجميل إلى الأجهزة الإلكترونية، كل ما تحبه على بعد نقرة واحدة فقط.',
   },
-  deleteSelected: "حذف متعدد"
+  deleteSelected: 'حذف متعدد',
 }

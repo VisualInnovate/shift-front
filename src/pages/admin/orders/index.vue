@@ -24,8 +24,8 @@ const toast = useToast()
 const loading = ref(true)
 const delete_id = ref('')
 const deleteDialog = ref(false)
-const rejectDialog = ref(false)
-const rejectOrderId = ref(null)
+const statusDialog = ref(false)
+const pendingChange = ref({ orderId: null, status: null })
 
 const orders = ref(null)
 const selectedOrders = ref(null)
@@ -101,16 +101,15 @@ const changeRowsPerPage = (event) => {
   fetchData()
 }
 
-// Change order status (Accept or Reject)
-const changeOrderStatus = (orderId, status, isReject = false) => {
-  if (isReject) {
-    rejectOrderId.value = orderId
-    rejectDialog.value = true
-    return
-  }
+// Open status change confirmation dialog
+const openStatusChange = (orderId, newStatus) => {
+  pendingChange.value = { orderId, status: newStatus }
+  statusDialog.value = true
+}
 
-  // Direct accept
-  performStatusChange(orderId, status)
+const confirmStatusChange = () => {
+  performStatusChange(pendingChange.value.orderId, pendingChange.value.status)
+  statusDialog.value = false
 }
 
 const performStatusChange = (orderId, status) => {
@@ -119,15 +118,14 @@ const performStatusChange = (orderId, status) => {
     params: { status }
   })
     .then(() => {
+      const statusLabel = ordersStatus.find(s => s.value === status)?.label || status
       toast.add({
         severity: 'success',
         summary: t('success'),
-        detail: status === 1
-          ? t('order.statusAccepted')
-          : t('order.statusRejected'),
+        detail: `${t('order.statusChanged')}: ${statusLabel}`,
         life: 3000
       })
-      fetchData() // Refresh list
+      fetchData()
     })
     .catch((error) => {
       toast.add({
@@ -140,16 +138,7 @@ const performStatusChange = (orderId, status) => {
     })
     .finally(() => {
       loading.value = false
-      rejectDialog.value = false
     })
-}
-
-// Confirm Reject
-const confirmReject = () => {
-  if (rejectOrderId.value) {
-    performStatusChange(rejectOrderId.value, 2)
-    rejectOrderId.value = null
-  }
 }
 
 // Delete order
@@ -184,6 +173,18 @@ const deleteOrder = () => {
 const exportCSV = () => {
   dt.value.exportCSV()
 }
+
+
+// Order status
+const ordersStatus = [
+  { value: 1, label: t('order.pending'), color: 'info' },
+  { value: 2, label: t('order.processing'), color: 'warning' },
+  { value: 3, label: t('order.ready'), color: 'success' },
+  { value: 4, label: t('order.shipped'), color: 'primary' },
+  { value: 5, label: t('order.delivered'), color: 'success' },
+  { value: 6, label: t('order.cancelled'), color: 'danger' }
+]
+
 
 // Navigation function
 const viewOrder = (id) => {
@@ -258,9 +259,8 @@ onMounted(() => {
 
             <Column field="status" :header="t('order.status')" :sortable="true">
               <template #body="slotProps">
-                <Tag :value="slotProps.data.status === 0 ? t('order.pending') :
-                  slotProps.data.status === 1 ? t('order.completed') : t('order.rejected')" :severity="slotProps.data.status === 0 ? 'warning' :
-                    slotProps.data.status === 1 ? 'success' : 'danger'" />
+                <Tag :value="ordersStatus.find(status => status.value == slotProps.data.status)?.label"
+                  :severity="ordersStatus.find(status => status.value == slotProps.data.status)?.color" />
               </template>
             </Column>
             <Column field="created_at" :header="t('order.createdAt')" :sortable="true">
@@ -268,22 +268,25 @@ onMounted(() => {
                 {{ formatDate(slotProps.data.created_at) }}
               </template>
             </Column>
-            <Column :header="t('actions')" header-style="min-width:14rem;">
+            <Column :header="t('actions')" header-style="min-width:16rem;">
               <template #body="slotProps">
-                <div class="flex gap-2">
+                <div class="flex gap-2 align-items-center">
                   <!-- View Button -->
                   <Button v-can="'show orders'" icon="pi pi-eye" class="p-button-rounded p-detail p-button-sm"
                     @click="viewOrder(slotProps.data.id)" v-tooltip.top="t('view')" />
 
-                  <!-- Accept Button (only if pending) -->
-                  <Button v-if="slotProps.data.status === 0" v-can="'update orders'" icon="pi pi-check"
-                    class="p-button-rounded p-detail p-button-sm" @click="changeOrderStatus(slotProps.data.id, 1)"
-                    v-tooltip.top="t('order.accept')" />
-
-                  <!-- Reject Button (only if pending) -->
-                  <Button v-if="slotProps.data.status === 0" v-can="'update orders'" icon="pi pi-times"
-                    class="p-button-rounded p-delete" @click="changeOrderStatus(slotProps.data.id, 2, true)"
-                    v-tooltip.top="t('order.reject')" />
+                  <!-- Status Dropdown -->
+                  <Dropdown v-can="'update orders'" :modelValue="slotProps.data.status" :options="ordersStatus"
+                    optionLabel="label" optionValue="value" :placeholder="t('order.changeStatus')" class="p-button-sm"
+                    style="min-width: 130px" @change="openStatusChange(slotProps.data.id, $event.value)">
+                    <template #value="{ value }">
+                      <Tag v-if="value" :value="ordersStatus.find(s => s.value === value)?.label"
+                        :severity="ordersStatus.find(s => s.value === value)?.color" />
+                    </template>
+                    <template #option="{ option }">
+                      <Tag :value="option.label" :severity="option.color" />
+                    </template>
+                  </Dropdown>
                 </div>
               </template>
             </Column>
@@ -343,16 +346,22 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Reject Confirmation Dialog -->
-        <Dialog v-model:visible="rejectDialog" :style="{ width: '450px' }" :header="t('order.rejectConfirmTitle')"
+        <!-- Status Change Confirmation Dialog -->
+        <Dialog v-model:visible="statusDialog" :style="{ width: '450px' }" :header="t('order.changeStatus')"
           :modal="true" :closable="false">
           <div class="flex align-items-center justify-content-center gap-3">
-            <i class="pi pi-exclamation-triangle" style="font-size: 2.5rem; color: var(--red-500)" />
-            <span>{{ t('order.rejectConfirmMessage') }}</span>
+            <i class="pi pi-exclamation-triangle" style="font-size: 2.5rem; color: var(--yellow-500)" />
+            <span>
+              {{ t('order.changeStatusConfirm') }}
+              <strong>
+                <Tag :value="ordersStatus.find(s => s.value === pendingChange.status)?.label"
+                  :severity="ordersStatus.find(s => s.value === pendingChange.status)?.color" class="ml-1" />
+              </strong>
+            </span>
           </div>
           <template #footer>
-            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="rejectDialog = false" />
-            <Button :label="t('yesReject')" icon="pi pi-check" class="p-button-danger" @click="confirmReject" />
+            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="statusDialog = false" />
+            <Button :label="t('yes')" icon="pi pi-check" class="p-button-warning" @click="confirmStatusChange" />
           </template>
         </Dialog>
 

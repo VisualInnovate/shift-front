@@ -291,7 +291,7 @@ const formatDate = (dateString) => {
                 <Button
 
                   icon="pi pi-truck"
-                  class="p-button-warning mx-1"
+                  class="mx-1 p-detail"
                   @click="goToShippingSettings(slotProps.data.id)"
                   v-tooltip.top="t('store.shippingSettings')"
                 />

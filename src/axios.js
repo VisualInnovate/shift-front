@@ -66,7 +66,12 @@ axios.interceptors.response.use(
         router.push({ name: 'home' });
       }
     } else if (error.response?.status === 403) {
-      router.push({ name: 'home' });
+      const currentRoute = router.currentRoute.value;
+      if (currentRoute.path.startsWith('/admin')) {
+        router.push({ name: 'no-permission' });
+      } else {
+        router.push({ name: 'home' });
+      }
     }
 
     return Promise.reject(error);

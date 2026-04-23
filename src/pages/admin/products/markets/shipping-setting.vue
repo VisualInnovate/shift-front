@@ -61,7 +61,7 @@ const fetchShippingSetting = async () => {
   loading.value = true;
   try {
     const response = await axios.get(`/api/category/shipping/setting/show/${route.params.id}`);
-    const data = response.data.data.store_shipping_setting;
+    const data = response.data.data.category_shipping_setting;
 
     if (data) {
       shippingData.value = {

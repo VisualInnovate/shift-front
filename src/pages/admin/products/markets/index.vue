@@ -59,9 +59,9 @@ const exampleData = ref([
     Top_Parent: 'shift7',
   },
 ])
-    const goToShippingSettings = (storeId) => {
-      router.push({ name: 'market-shipping-settings', params: { id: storeId } })
-    }
+const goToShippingSettings = (storeId) => {
+  router.push({ name: 'market-shipping-settings', params: { id: storeId } })
+}
 // Fetch markets data
 const fetchData = () => {
   loading.value = true
@@ -312,27 +312,12 @@ onMounted(() => {
                 <i class="pi pi-search" />
                 <InputText v-model="searchQuery" :placeholder="t('market.search')" />
               </span>
-              <Button
-                :label="t('market.import')"
-                icon="pi pi-download"
-                class="exite"
-                @click="openImportDialog"
-                aria-label="Import markets"
-              />
-              <Button
-                :label="t('market.export')"
-                icon="pi pi-upload"
-                class="exite"
-                @click="exportMarkets"
-                aria-label="Export markets"
-              />
-              <Button
-                :label="t('market.new')"
-                icon="pi pi-plus"
-                class="p-button-success"
-                @click="createNewMarket"
-                aria-label="Create new market"
-              />
+              <Button :label="t('market.import')" icon="pi pi-download" class="exite" @click="openImportDialog"
+                aria-label="Import markets" />
+              <Button :label="t('market.export')" icon="pi pi-upload" class="exite" @click="exportMarkets"
+                aria-label="Export markets" />
+              <Button :label="t('market.new')" icon="pi pi-plus" class="p-button-success" @click="createNewMarket"
+                aria-label="Create new market" />
             </div>
           </template>
         </Toolbar>
@@ -340,81 +325,74 @@ onMounted(() => {
         <Toast />
 
         <div class="card shadow-1 surface-0">
-          <DataTable
-            ref="dt"
-            :value="markets"
-            :loading="loading"
-            data-key="id"
-            :paginator="false"
-            :rows="rowsPerPage"
-            :filters="filters"
-            :totalRecords="totalRecords"
-            responsive-layout="scroll"
-            stripedRows
-            showGridlines
-            class="p-datatable-sm"
-          >
+          <DataTable ref="dt" :value="markets" :loading="loading" data-key="id" :paginator="false" :rows="rowsPerPage"
+            :filters="filters" :totalRecords="totalRecords" responsive-layout="scroll" stripedRows showGridlines
+            class="p-datatable-sm">
             <Column selection-mode="multiple" header-style="width: 3rem"></Column>
             <Column field="id" :header="t('id')" :sortable="true" header-style="width:5%; min-width:5rem;">
               <template #body="slotProps">
                 {{ slotProps.data.id }}
               </template>
             </Column>
-            <Column field="name_en" :header="t('market.nameEn')" :sortable="true" header-style="width:14%; min-width:10rem;">
+            <Column field="name_en" :header="t('market.nameEn')" :sortable="true"
+              header-style="width:14%; min-width:10rem;">
               <template #body="slotProps">
                 {{ slotProps.data.name_en }}
               </template>
             </Column>
-            <Column field="name_ar" :header="t('market.nameAr')" :sortable="true" header-style="width:14%; min-width:10rem;">
+            <Column field="name_ar" :header="t('market.nameAr')" :sortable="true"
+              header-style="width:14%; min-width:10rem;">
               <template #body="slotProps">
                 {{ slotProps.data.name_ar }}
               </template>
             </Column>
-            <Column field="parent.name_en" :header="t('market.parent')" :sortable="true" header-style="width:14%; min-width:10rem;">
+            <Column field="parent.name_en" :header="t('market.parent')" :sortable="true"
+              header-style="width:14%; min-width:10rem;">
               <template #body="slotProps">
                 {{ slotProps.data.parent?.name_en || t('market.noParent') }}
               </template>
             </Column>
-            <Column field="store.name_en" :header="t('market.store')" :sortable="true" header-style="width:14%; min-width:10rem;">
+            <Column field="store.name_en" :header="t('market.store')" :sortable="true"
+              header-style="width:14%; min-width:10rem;">
               <template #body="slotProps">
                 {{ slotProps.data.store?.name_en || t('market.noStore') }}
               </template>
             </Column>
-             <Column field="store.service_fee" :header="t('market.serviceFee')" :sortable="true" header-style="width:14%; min-width:10rem;">
+            <Column field="store.service_fee" :header="t('market.serviceFee')" :sortable="true"
+              header-style="width:14%; min-width:10rem;">
               <template #body="slotProps">
-                {{ slotProps.data?.service_fee || 0   }} {{ $t("currencyLabel") }}
+                {{ slotProps.data?.service_fee || 0 }} {{ $t("currencyLabel") }}
               </template>
             </Column>
-            <Column :header="t('actions')" header-style="width:14rem;">
+            <Column :header="t('actions')" header-style="width:9rem;">
               <template #body="slotProps">
-                <Button
-                  icon="pi pi-pencil"
-                  class="p-detail"
-                  @click="editMarket(slotProps.data.id)"
-                  v-tooltip.top="t('edit')"
-                  aria-label="Edit market"
-                />
-                <Button
-                  icon="pi pi-trash"
-                  class="p-delete"
-                  @click="confirmDelete(slotProps.data.id)"
-                  v-tooltip.top="t('delete')"
-                  aria-label="Delete market"
-                />
-                <Button
-                  icon="pi pi-money-bill"
-                  class="p-button-info ml-2"
-                  @click="openservice_feeDialog(slotProps.data)"
-                  v-tooltip.top="t('market.addServiceFee')"
-                  aria-label="Add service fee"
-                />
-                  <Button
+                <div class="grid grid-cols-2 gap-1 w-fit mx-auto">
 
-                  icon="pi pi-truck"
-                  class="p-button-warning mx-1"
-                  @click="goToShippingSettings(slotProps.data.id)"
-                  v-tooltip.top="t('store.shippingSettings')"
-                />
+                  <Button unstyled icon="pi pi-money-bill" @click="openservice_feeDialog(slotProps.data)"
+                    v-tooltip.top="t('market.addServiceFee')" aria-label="Add service fee" class="inline-flex items-center justify-center w-8 h-8 rounded-lg
+               text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600
+               dark:hover:bg-emerald-950/40
+               transition-all duration-150 hover:scale-110 cursor-pointer" />
+
+                  <Button unstyled icon="pi pi-trash" @click="confirmDelete(slotProps.data.id)"
+                    v-tooltip.top="t('delete')" aria-label="Delete market" class="inline-flex items-center justify-center w-8 h-8 rounded-lg
+               text-red-500 hover:bg-red-50 hover:text-red-600
+               dark:hover:bg-red-950/40
+               transition-all duration-150 hover:scale-110 cursor-pointer" />
+
+                  <Button unstyled icon="pi pi-pencil" @click="editMarket(slotProps.data.id)" v-tooltip.top="t('edit')"
+                    aria-label="Edit market" class="inline-flex items-center justify-center w-8 h-8 rounded-lg
+               text-amber-500 hover:bg-amber-50 hover:text-amber-600
+               dark:hover:bg-amber-950/40
+               transition-all duration-150 hover:scale-110 cursor-pointer" />
+
+                  <Button unstyled icon="pi pi-truck" @click="goToShippingSettings(slotProps.data.id)"
+                    v-tooltip.top="t('store.shippingSettings')" aria-label="Shipping settings" class="inline-flex items-center justify-center w-8 h-8 rounded-lg
+               text-blue-500 hover:bg-blue-50 hover:text-blue-600
+               dark:hover:bg-blue-950/40
+               transition-all duration-150 hover:scale-110 cursor-pointer" />
+
+                </div>
               </template>
             </Column>
             <template #empty>
@@ -433,175 +411,95 @@ onMounted(() => {
           <!-- Custom Pagination -->
           <div class="p-paginator p-component p-unselectable-text p-paginator-bottom">
             <div class="p-paginator-left-content">
-              <span class="p-paginator-current">{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}</span>
+              <span class="p-paginator-current">{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{
+                totalRecords }}</span>
             </div>
             <div class="p-paginator-right-content">
-              <button
-                class="p-paginator-first p-paginator-element p-link"
-                :disabled="currentPage === 1"
-                @click="goToPage(1)"
-                aria-label="First page"
-              >
+              <button class="p-paginator-first p-paginator-element p-link" :disabled="currentPage === 1"
+                @click="goToPage(1)" aria-label="First page">
                 <span class="p-paginator-icon pi pi-angle-double-left"></span>
               </button>
-              <button
-                class="p-paginator-prev p-paginator-element p-link"
-                :disabled="!prevPageUrl"
-                @click="goToPage(currentPage - 1)"
-                aria-label="Previous page"
-              >
+              <button class="p-paginator-prev p-paginator-element p-link" :disabled="!prevPageUrl"
+                @click="goToPage(currentPage - 1)" aria-label="Previous page">
                 <span class="p-paginator-icon pi pi-angle-left"></span>
               </button>
               <template v-for="(link, index) in links" :key="index">
-                <button
-                  v-if="link.label && !isNaN(parseInt(link.label))"
-                  class="p-paginator-page p-paginator-element p-link"
-                  :class="{ 'p-highlight': link.active }"
-                  @click="goToPage(parseInt(link.label))"
-                  :aria-label="`Page ${link.label}`"
-                >
+                <button v-if="link.label && !isNaN(parseInt(link.label))"
+                  class="p-paginator-page p-paginator-element p-link" :class="{ 'p-highlight': link.active }"
+                  @click="goToPage(parseInt(link.label))" :aria-label="`Page ${link.label}`">
                   {{ link.label }}
                 </button>
                 <span v-else-if="link.label === '...'" class="p-paginator-dots">...</span>
               </template>
-              <button
-                class="p-paginator-next p-paginator-element p-link"
-                :disabled="!nextPageUrl"
-                @click="goToPage(currentPage + 1)"
-                aria-label="Next page"
-              >
+              <button class="p-paginator-next p-paginator-element p-link" :disabled="!nextPageUrl"
+                @click="goToPage(currentPage + 1)" aria-label="Next page">
                 <span class="p-paginator-icon pi pi-angle-right"></span>
               </button>
-              <button
-                class="p-paginator-last p-paginator-element p-link"
-                :disabled="currentPage === totalPages"
-                @click="goToPage(totalPages)"
-                aria-label="Last page"
-              >
+              <button class="p-paginator-last p-paginator-element p-link" :disabled="currentPage === totalPages"
+                @click="goToPage(totalPages)" aria-label="Last page">
                 <span class="p-paginator-icon pi pi-angle-double-right"></span>
               </button>
-              <Dropdown
-                v-model="rowsPerPage"
-                :options="[5, 10, 20, 30]"
-                @change="changeRowsPerPage"
-                class="ml-2"
-                style="width: 80px"
-                aria-label="Rows per page"
-              />
+              <Dropdown v-model="rowsPerPage" :options="[5, 10, 20, 30]" @change="changeRowsPerPage" class="ml-2"
+                style="width: 80px" aria-label="Rows per page" />
             </div>
           </div>
         </div>
 
         <!-- Delete Confirmation Dialog -->
-        <Dialog
-          v-model:visible="deleteDialog"
-          :style="{ width: '450px' }"
-          :header="t('market.deleteConfirmTitle')"
-          :modal="true"
-        >
+        <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" :header="t('market.deleteConfirmTitle')"
+          :modal="true">
           <div class="flex align-items-center justify-content-center">
             <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem; color: var(--red-500)" />
             <span>{{ t('market.deleteConfirmMessage') }}</span>
           </div>
           <template #footer>
-            <Button
-              :label="t('cancel')"
-              icon="pi pi-times"
-              class="p-button-text"
-              @click="deleteDialog = false"
-              aria-label="Cancel delete"
-            />
-            <Button
-              :label="t('yes')"
-              icon="pi pi-check"
-              class="p-button-text p-button-danger"
-              @click="deleteMarket"
-              aria-label="Confirm delete"
-            />
+            <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text" @click="deleteDialog = false"
+              aria-label="Cancel delete" />
+            <Button :label="t('yes')" icon="pi pi-check" class="p-button-text p-button-danger" @click="deleteMarket"
+              aria-label="Confirm delete" />
           </template>
         </Dialog>
 
         <!-- Import Dialog -->
-        <Dialog
-          v-model:visible="importDialog"
-          :style="{ width: '500px' }"
-          :header="t('market.importInstructions')"
-          :modal="true"
-        >
+        <Dialog v-model:visible="importDialog" :style="{ width: '500px' }" :header="t('market.importInstructions')"
+          :modal="true">
           <div class="flex flex-column gap-3">
             <div>
-              <Button
-                :label="t('market.downloadExample')"
-                icon="pi pi-download"
-                class="p-button-outlined"
-                @click="downloadExample"
-                aria-label="Download example CSV"
-              />
+              <Button :label="t('market.downloadExample')" icon="pi pi-download" class="p-button-outlined"
+                @click="downloadExample" aria-label="Download example CSV" />
             </div>
 
-            <FileUpload
-              mode="basic"
-              name="file"
-              accept=".xlsx,.xls,.csv"
-              :maxFileSize="10000000"
-              :chooseLabel="t('market.chooseFile')"
-              @select="onFileSelect"
-              :auto="false"
-              :disabled="importLoading"
-              class="mb-3"
-            />
+            <FileUpload mode="basic" name="file" accept=".xlsx,.xls,.csv" :maxFileSize="10000000"
+              :chooseLabel="t('market.chooseFile')" @select="onFileSelect" :auto="false" :disabled="importLoading"
+              class="mb-3" />
             <div v-if="selectedFile" class="mt-2">
               <p class="font-semibold">{{ t('selectedFile') }}: {{ selectedFile.name }}</p>
             </div>
           </div>
           <template #footer>
-            <Button
-              :label="t('cancel')"
-              icon="pi pi-times"
-              class="p-button-text"
-              @click="importDialog = false"
-              aria-label="Cancel import"
-            />
-            <Button
-              :label="t('market.import')"
-              icon="pi pi-check"
-              class="p-button-success"
-              @click="importMarkets"
-              :disabled="!selectedFile"
-              :loading="importLoading"
-              aria-label="Import markets"
-            />
+            <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text" @click="importDialog = false"
+              aria-label="Cancel import" />
+            <Button :label="t('market.import')" icon="pi pi-check" class="p-button-success" @click="importMarkets"
+              :disabled="!selectedFile" :loading="importLoading" aria-label="Import markets" />
           </template>
         </Dialog>
 
         <!-- Service Fee Dialog -->
-        <Dialog
-          v-model:visible="service_feeDialog"
-          :style="{ width: '450px' }"
-          :header="t('market.addServiceFee')"
-          :modal="true"
-        >
+        <Dialog v-model:visible="service_feeDialog" :style="{ width: '450px' }" :header="t('market.addServiceFee')"
+          :modal="true">
           <div class="gap-3">
             <p for="service_fee" class="my-1">{{ t('market.serviceFee') }}</p>
-            <InputNumber class="w-full" id="service_fee" v-model="service_fee" :min="0" :step="0.01" mode="decimal" :minFractionDigits="0" :maxFractionDigits="2" />
+            <InputNumber class="w-full" id="service_fee" v-model="service_fee" :min="0" :step="0.01" mode="decimal"
+              :minFractionDigits="0" :maxFractionDigits="2" />
             <p for="service_final_price" class="my-3 mt-4">{{ t('market.serviceFinalPrice') }}</p>
-            <InputNumber class="w-full" id="service_final_price" v-model="service_final_price" :min="0" :step="0.01" mode="decimal" :minFractionDigits="0" :maxFractionDigits="2" />
+            <InputNumber class="w-full" id="service_final_price" v-model="service_final_price" :min="0" :step="0.01"
+              mode="decimal" :minFractionDigits="0" :maxFractionDigits="2" />
           </div>
           <template #footer>
-            <Button
-              :label="t('cancel')"
-              icon="pi pi-times"
-              class="p-button-text"
-              @click="service_feeDialog = false"
-              aria-label="Cancel"
-            />
-            <Button
-              :label="t('save')"
-              icon="pi pi-check"
-              class="p-button-success"
-              @click="addservice_fee"
-              aria-label="Save service fee"
-            />
+            <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text" @click="service_feeDialog = false"
+              aria-label="Cancel" />
+            <Button :label="t('save')" icon="pi pi-check" class="p-button-success" @click="addservice_fee"
+              aria-label="Save service fee" />
           </template>
         </Dialog>
       </div>
@@ -613,6 +511,7 @@ onMounted(() => {
 :deep(.p-fileupload-choose) {
   width: 100%;
 }
+
 .p-button.p-fileupload-choose .p-icon {
   visibility: hidden !important;
 }

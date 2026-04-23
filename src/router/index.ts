@@ -279,6 +279,11 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/admin/dashboard/Dashboard.vue'),
       },
       {
+        name: 'no-permission',
+        path: 'no-permission',
+        component: () => import('../pages/404-pages/haveNotPermetions.vue'),
+      },
+      {
         name: 'roles',
         path: 'roles',
         component: () => import('../pages/admin/roles/index.vue'),
@@ -670,6 +675,17 @@ const router = createRouter({
 function auth(to: any, from: any, next: any) {
   if (!localStorage.getItem('token')) {
     return next({ name: 'login' })
+  }
+  if (to.name !== 'no-permission') {
+    try {
+      const raw = localStorage.getItem('userPermissions')
+      const permissions: string[] = raw ? JSON.parse(raw) : []
+      if (!Array.isArray(permissions) || !permissions.includes('dashboard')) {
+        return next({ name: 'no-permission' })
+      }
+    } catch {
+      return next({ name: 'no-permission' })
+    }
   }
   next()
 }

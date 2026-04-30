@@ -68,7 +68,9 @@ axios.interceptors.response.use(
     } else if (error.response?.status === 403) {
       const currentRoute = router.currentRoute.value;
       if (currentRoute.path.startsWith('/admin')) {
-        router.push({ name: 'no-permission' });
+        // Page access is decided by the router guard from userPermissions.
+        // A 403 from a secondary admin API should not move the user away
+        // from a page they are allowed to view.
       } else {
         router.push({ name: 'home' });
       }

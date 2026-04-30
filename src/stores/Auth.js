@@ -5,6 +5,13 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import * as PusherPushNotifications from '@pusher/push-notifications-web'
 
+function persistAdminSession({ token, user, permissions }) {
+  localStorage.setItem('authenticated', 'true')
+  localStorage.setItem('token', token || '')
+  localStorage.setItem('authUser', JSON.stringify(user || {}))
+  localStorage.setItem('userPermissions', JSON.stringify(Array.isArray(permissions) ? permissions : []))
+}
+
 export const useAuthStore = defineStore('Auth', {
   state: () => ({
     authUser: useStorage('authUser', {}),
@@ -45,19 +52,28 @@ export const useAuthStore = defineStore('Auth', {
         })
 
         if (response.data.data?.access_token) {
+          const responseData = response.data.data
+          const user = responseData.user || {}
+          const permissions = Array.isArray(user.permissions) ? user.permissions : []
+
           this.authenticated = true
-          this.token = response.data.data.access_token
-          this.authUser = response.data.data.user
-          this.userPermissions = response.data.data.user.permissions
+          this.token = responseData.access_token
+          this.authUser = user
+          this.userPermissions = permissions
+          persistAdminSession({
+            token: responseData.access_token,
+            user,
+            permissions,
+          })
 
           // Initialize Pusher Beams
           const beamsTokenProvider = new PusherPushNotifications.TokenProvider({
             url: `${import.meta.env.VITE_API}/pusher/beams-auth`,
             queryParams: {
-              user_id: `${response.data.data.user.id}`,
+              user_id: `${user.id}`,
             },
             headers: {
-              Authorization: `Bearer ${response.data.data.access_token}`,
+              Authorization: `Bearer ${responseData.access_token}`,
               Accept: 'application/json',
               'Access-Control-Allow-Origin': '*',
               Origin: import.meta.env.VITE_URI,
@@ -71,13 +87,13 @@ export const useAuthStore = defineStore('Auth', {
           beamsClient
             .start()
             .then(() => {
-              beamsClient.setUserId(`"${response.data.data.user.id}"`, beamsTokenProvider)
+              beamsClient.setUserId(`"${user.id}"`, beamsTokenProvider)
             })
             .catch((error) => {
               console.error('Pusher Beams error:', error)
             })
 
-          this.router.push({ name: 'dashboard' })
+          await this.router.push({ name: 'dashboard' })
         } else {
           this.authErrors = ["Invalid credentials. Please try again."]
         }

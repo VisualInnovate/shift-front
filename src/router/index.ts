@@ -672,18 +672,159 @@ const router = createRouter({
   routes,
 })
 
+type PermissionRequirement = string | string[]
+
+const adminRoutePermissions: Record<string, PermissionRequirement> = {
+  dashboard: ['dashboard', 'list dashboard', 'show dashboard', 'view dashboard'],
+  roles: 'list roles',
+  'roles-update': 'edit roles',
+  'roles-create': 'create roles',
+  Permission: 'list permissions',
+  shiftmartfile: 'list stores',
+  users: 'list users',
+  'user-edit': 'edit users',
+  'user-create': 'create users',
+  product: ['list products', 'list product'],
+  'product-create': 'create products',
+  'product-update': ['edit products', 'update products', 'update product inventories'],
+  brand: 'list brands',
+  'brand-create': 'create brands',
+  'brand-edit': 'edit brands',
+  model: ['list models', 'list model'],
+  'model-create': ['create models', 'create products'],
+  'model-edit': 'edit models',
+  discount: ['list discounts', 'list discount'],
+  'discount-create': 'create discounts',
+  'discount-update': ['edit discounts', 'create discounts'],
+  coupon: ['list coupons', 'list coupon'],
+  'coupon-create': 'create coupons',
+  'coupon-update': 'edit coupons',
+  markets: ['list markets', 'list categories'],
+  'market-create': 'create markets',
+  'market-update': ['edit markets', 'create markets'],
+  category: 'list categories',
+  'category-create': 'create categories',
+  'category-update': ['edit categories', 'create categories'],
+  stores: 'list stores',
+  'store-shipping-settings': ['edit shipping settings', 'list shipping-settings'],
+  'product-shipping-settings': ['edit shipping settings', 'list shipping-settings'],
+  'market-shipping-settings': ['edit shipping settings', 'list shipping-settings'],
+  'category-shipping-settings': ['edit shipping settings', 'list shipping-settings'],
+  inventory: 'list inventory',
+  'inventory-quantity': 'edit inventory',
+  order: 'list orders',
+  'order-show': 'show orders',
+  'store-create': 'create stores',
+  'store-edit': 'edit stores',
+  setting: ['edit settings', 'list settings', 'list categories', 'list address'],
+  'shipping-update': ['edit shipping settings', 'list shipping-settings'],
+  'media-links': ['edit media links', 'list stores', 'list categories'],
+  'template-notification': ['list template-notification', 'list notification-templates'],
+  attributes: 'list attributes',
+  invoices: 'list invoices',
+  'invoice-show': 'show invoices',
+  'attribute-create': 'create attributes',
+  'attribute-update': 'edit attributes',
+  address: 'list address',
+  'address-create': 'create address',
+  'address-update': 'edit address',
+  connect: ['connect quickbooks', 'list settings'],
+  custom_tabs: 'list custom tabs',
+  custom_tabs_create: 'create custom tabs',
+  custom_tabs_update: ['edit custom tabs', 'update custom tabs'],
+  custom_tabs_show: ['show custom tabs', 'list custom tabs'],
+}
+
+function normalizePermission(permission: string) {
+  return permission.trim().toLowerCase()
+}
+
+function normalizeStoredPermission(permission: unknown) {
+  if (typeof permission === 'string') {
+    return permission
+  }
+
+  if (permission && typeof permission === 'object') {
+    const permissionRecord = permission as Record<string, unknown>
+    const permissionFields = ['name', 'permission', 'slug', 'key']
+
+    for (const field of permissionFields) {
+      if (typeof permissionRecord[field] === 'string') {
+        return permissionRecord[field]
+      }
+    }
+  }
+
+  return null
+}
+
+function hasStoredToken() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    return false
+  }
+
+  const normalizedToken = token.replace(/^"|"$/g, '').trim().toLowerCase()
+  return Boolean(normalizedToken && normalizedToken !== 'null' && normalizedToken !== 'undefined')
+}
+
+function getStoredPermissions() {
+  const rawPermissions = localStorage.getItem('userPermissions')
+  if (!rawPermissions) {
+    return []
+  }
+
+  try {
+    const parsedPermissions = JSON.parse(rawPermissions)
+    if (!Array.isArray(parsedPermissions)) {
+      return []
+    }
+
+    return parsedPermissions.map(normalizeStoredPermission).filter((permission): permission is string => Boolean(permission))
+  } catch {
+    return rawPermissions
+      .split(',')
+      .map((permission) => permission.trim())
+      .filter(Boolean)
+  }
+}
+
+function getRoutePermissionRequirement(to: any): PermissionRequirement | undefined {
+  const metaPermission = to.meta?.permission
+  if (typeof metaPermission === 'string' || Array.isArray(metaPermission)) {
+    return metaPermission
+  }
+
+  if (typeof to.name !== 'string') {
+    return undefined
+  }
+
+  return adminRoutePermissions[to.name]
+}
+
+function hasCurrentRoutePermission(to: any) {
+  const requirement = getRoutePermissionRequirement(to)
+  if (!requirement) {
+    return true
+  }
+
+  const storedPermissions = new Set(getStoredPermissions().map(normalizePermission))
+  const routeName = typeof to.name === 'string' ? to.name : ''
+  const requiredPermissions = Array.isArray(requirement) ? [...requirement] : [requirement]
+
+  if (routeName) {
+    requiredPermissions.push(routeName)
+  }
+
+  return requiredPermissions.some((permission) => storedPermissions.has(normalizePermission(permission)))
+}
+
 function auth(to: any, from: any, next: any) {
-  if (!localStorage.getItem('token')) {
+  if (!hasStoredToken()) {
     return next({ name: 'login' })
   }
   if (to.name !== 'no-permission') {
-    try {
-      const raw = localStorage.getItem('userPermissions')
-      const permissions: string[] = raw ? JSON.parse(raw) : []
-      if (!Array.isArray(permissions) || !permissions.includes('dashboard')) {
-        return next({ name: 'no-permission' })
-      }
-    } catch {
+    if (!hasCurrentRoutePermission(to)) {
       return next({ name: 'no-permission' })
     }
   }

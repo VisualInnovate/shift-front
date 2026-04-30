@@ -168,6 +168,8 @@ const formatCurrency = (value) => {
                   <div class="space-y-3 mb-5">
                     <p><strong>{{ t('order.name') }}:</strong> {{ orderData.user?.name }}</p>
                     <hr>
+                    <p><strong>{{ t('order.phoneNumber') }}:</strong> {{ orderData.user?.phone }}</p>
+                    <hr>
                     <p><strong>{{ t('order.createdAt') }}:</strong> {{ formatDate(orderData.created_at) }}</p>
                     <hr>
                     <p><strong>{{ t('order.owner') }}:</strong> {{ orderData.owner[locale] }}</p>

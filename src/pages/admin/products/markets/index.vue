@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -36,6 +36,18 @@ const service_feeDialog = ref(false)
 const selectedMarketId = ref(null)
 const service_fee = ref(0)
 const service_final_price = ref(0)
+const closeMarketLoading = ref({})
+const timeslotDialog = ref(false)
+const selectedTimeslotMarket = ref(null)
+const timeslots = ref([])
+const timeslotLoading = ref(false)
+const timeslotSaving = ref(false)
+const deletingTimeslotId = ref(null)
+const timeslotForm = ref({
+  day: '0',
+  start_time: '08:00',
+  end_time: '12:00',
+})
 
 // Pagination variables
 const currentPage = ref(1)
@@ -49,6 +61,45 @@ const prevPageUrl = ref('')
 const from = ref(0)
 const to = ref(0)
 const links = ref([])
+const marketTimeableType = 'App\\Models\\Category'
+const weekDayOptions = [
+  { value: '0', labelKey: 'store.days.sunday' },
+  { value: '1', labelKey: 'store.days.monday' },
+  { value: '2', labelKey: 'store.days.tuesday' },
+  { value: '3', labelKey: 'store.days.wednesday' },
+  { value: '4', labelKey: 'store.days.thursday' },
+  { value: '5', labelKey: 'store.days.friday' },
+  { value: '6', labelKey: 'store.days.saturday' },
+]
+
+const availableDayOptions = computed(() => {
+  const usedDays = new Set(timeslots.value.map((slot) => String(slot.day)))
+
+  return weekDayOptions
+    .filter((day) => !usedDays.has(day.value))
+    .map((day) => ({
+      label: t(day.labelKey),
+      value: day.value,
+    }))
+})
+
+const isTimeslotFormValid = computed(() => {
+  const startTime = timeslotForm.value.start_time
+  const endTime = timeslotForm.value.end_time
+
+  return Boolean(
+    selectedTimeslotMarket.value &&
+      timeslotForm.value.day !== null &&
+      timeslotForm.value.day !== undefined &&
+      startTime &&
+      endTime &&
+      startTime < endTime &&
+      availableDayOptions.value.length,
+  )
+})
+
+const isMarketBusy = (value) => value === true || value === 1 || value === '1'
+const toBusyValue = (value) => (isMarketBusy(value) ? 1 : 0)
 
 // Example data for import template
 const exampleData = ref([
@@ -283,6 +334,178 @@ const addservice_fee = () => {
     })
 }
 
+const toggleCloseMarket = async (market, value) => {
+  const marketId = market.id
+  const previousValue = isMarketBusy(market.is_busy)
+  const nextValue = Boolean(value)
+
+  if (closeMarketLoading.value[marketId]) return
+
+  closeMarketLoading.value[marketId] = true
+  market.is_busy = nextValue ? 1 : 0
+
+  try {
+    const response = await axios.get(`/api/market/is_busy/${marketId}`)
+    const updatedValue = response.data?.data?.is_busy ?? response.data?.is_busy
+
+    if (updatedValue !== undefined && updatedValue !== null) {
+      market.is_busy = toBusyValue(updatedValue)
+    }
+  } catch (error) {
+    market.is_busy = previousValue ? 1 : 0
+    toast.add({ severity: 'error', summary: t('error'), detail: t('market.closeError'), life: 3000 })
+  } finally {
+    closeMarketLoading.value[marketId] = false
+  }
+}
+
+const getDayLabel = (day) => {
+  const dayOption = weekDayOptions.find((option) => option.value === String(day))
+  return dayOption ? t(dayOption.labelKey) : day
+}
+
+const getMarketDisplayName = (market) => {
+  if (!market) return ''
+
+  const appLang = localStorage.getItem('appLang') || 'en'
+
+  return appLang === 'ar'
+    ? market.name_ar || market.name_en || `#${market.id}`
+    : market.name_en || market.name_ar || `#${market.id}`
+}
+
+const formatTimeForApi = (time) => {
+  if (!time) return ''
+
+  return String(time).slice(0, 5)
+}
+
+const formatTimeForDisplay = (time) => {
+  if (!time) return ''
+
+  return String(time).slice(0, 5)
+}
+
+const resetTimeslotForm = () => {
+  timeslotForm.value = {
+    day: availableDayOptions.value[0]?.value || '0',
+    start_time: '08:00',
+    end_time: '12:00',
+  }
+}
+
+const isCurrentMarketTimeslot = (timeslot, marketId) => {
+  const type = String(timeslot.timeable_type || '').toLowerCase()
+
+  return Number(timeslot.timeable_id) === marketId && (!type || type.includes('category'))
+}
+
+const fetchTimeslots = async () => {
+  if (!selectedTimeslotMarket.value) return
+
+  timeslotLoading.value = true
+
+  try {
+    const marketId = Number(selectedTimeslotMarket.value.id)
+    const allTimeslots = []
+    let page = 1
+    let lastPage = 1
+
+    do {
+      const response = await axios.get('/api/timeslot', {
+        params: {
+          page,
+          limit: 100,
+          per_page: 100,
+          timeable_id: marketId,
+          timeable_type: marketTimeableType,
+        },
+      })
+
+      const responseData = response.data?.data
+      const pageTimeslots = Array.isArray(responseData?.data)
+        ? responseData.data
+        : Array.isArray(responseData)
+          ? responseData
+          : []
+
+      allTimeslots.push(...pageTimeslots)
+      lastPage = Number(responseData?.last_page || page)
+      page += 1
+    } while (page <= lastPage && page <= 50)
+
+    timeslots.value = allTimeslots
+      .filter((timeslot) => isCurrentMarketTimeslot(timeslot, marketId))
+      .sort((first, second) => Number(first.day) - Number(second.day))
+
+    resetTimeslotForm()
+  } catch (error) {
+    toast.add({ severity: 'error', summary: t('error'), detail: t('market.timeslotLoadError'), life: 3000 })
+  } finally {
+    timeslotLoading.value = false
+  }
+}
+
+const openTimeslotDialog = async (market) => {
+  selectedTimeslotMarket.value = market
+  timeslots.value = []
+  resetTimeslotForm()
+  timeslotDialog.value = true
+  await fetchTimeslots()
+}
+
+const createTimeslot = async () => {
+  if (!isTimeslotFormValid.value) {
+    toast.add({ severity: 'warn', summary: t('warning'), detail: t('market.timeslotValidationError'), life: 3000 })
+    return
+  }
+
+  const duplicateDay = timeslots.value.some((timeslot) => String(timeslot.day) === String(timeslotForm.value.day))
+  if (duplicateDay) {
+    toast.add({ severity: 'warn', summary: t('warning'), detail: t('market.timeslotDuplicateError'), life: 3000 })
+    return
+  }
+
+  timeslotSaving.value = true
+
+  try {
+    await axios.post('/api/timeslot', {
+      timeable_type: marketTimeableType,
+      timeable_id: selectedTimeslotMarket.value.id,
+      start_time: formatTimeForApi(timeslotForm.value.start_time),
+      end_time: formatTimeForApi(timeslotForm.value.end_time),
+      day: timeslotForm.value.day,
+    })
+
+    toast.add({ severity: 'success', summary: t('success'), detail: t('market.timeslotCreatedSuccess'), life: 3000 })
+    await fetchTimeslots()
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: t('error'),
+      detail: error.response?.data?.message || t('market.timeslotCreateError'),
+      life: 3000,
+    })
+  } finally {
+    timeslotSaving.value = false
+  }
+}
+
+const deleteTimeslot = async (timeslot) => {
+  deletingTimeslotId.value = timeslot.id
+
+  try {
+    await axios.delete(`/api/timeslot/${timeslot.id}`)
+    timeslots.value = timeslots.value.filter((item) => item.id !== timeslot.id)
+    resetTimeslotForm()
+    toast.add({ severity: 'success', summary: t('success'), detail: t('market.timeslotDeletedSuccess'), life: 3000 })
+  } catch (error) {
+    toast.add({ severity: 'error', summary: t('error'), detail: t('market.timeslotDeleteError'), life: 3000 })
+  } finally {
+    deletingTimeslotId.value = null
+  }
+}
+
 // Navigation functions
 const createNewMarket = () => {
   router.push({ name: 'market-create' })
@@ -364,6 +587,24 @@ onMounted(() => {
                 {{ slotProps.data?.service_fee || 0 }} {{ $t("currencyLabel") }}
               </template>
             </Column>
+            <Column field="is_busy" :header="t('market.closeStore')" :sortable="true"
+              header-style="width:10%; min-width:8rem;">
+              <template #body="slotProps">
+                <div class="flex justify-content-center align-items-center">
+                  <InputSwitch
+                    :model-value="isMarketBusy(slotProps.data.is_busy)"
+                    :disabled="closeMarketLoading[slotProps.data.id]"
+                    @update:model-value="(value) => toggleCloseMarket(slotProps.data, value)"
+                  />
+                  <ProgressSpinner
+                    v-if="closeMarketLoading[slotProps.data.id]"
+                    style="width:20px;height:20px"
+                    class="ml-2"
+                    strokeWidth="5"
+                  />
+                </div>
+              </template>
+            </Column>
             <Column :header="t('actions')" header-style="width:9rem;">
               <template #body="slotProps">
                 <div class="grid grid-cols-2 gap-1 w-fit mx-auto">
@@ -390,6 +631,12 @@ onMounted(() => {
                     v-tooltip.top="t('store.shippingSettings')" aria-label="Shipping settings" class="inline-flex items-center justify-center w-8 h-8 rounded-lg
                text-blue-500 hover:bg-blue-50 hover:text-blue-600
                dark:hover:bg-blue-950/40
+               transition-all duration-150 hover:scale-110 cursor-pointer" />
+
+                  <Button unstyled icon="pi pi-clock" @click="openTimeslotDialog(slotProps.data)"
+                    v-tooltip.top="t('market.timeslots')" aria-label="Market time slots" class="inline-flex items-center justify-center w-8 h-8 rounded-lg
+               text-cyan-500 hover:bg-cyan-50 hover:text-cyan-600
+               dark:hover:bg-cyan-950/40
                transition-all duration-150 hover:scale-110 cursor-pointer" />
 
                 </div>
@@ -500,6 +747,84 @@ onMounted(() => {
               aria-label="Cancel" />
             <Button :label="t('save')" icon="pi pi-check" class="p-button-success" @click="addservice_fee"
               aria-label="Save service fee" />
+          </template>
+        </Dialog>
+
+        <!-- Timeslot Dialog -->
+        <Dialog v-model:visible="timeslotDialog" :style="{ width: '760px', maxWidth: '95vw' }"
+          :header="`${t('market.timeslots')} - ${getMarketDisplayName(selectedTimeslotMarket)}`" :modal="true">
+          <div v-if="timeslotLoading" class="flex justify-content-center align-items-center py-5">
+            <ProgressSpinner style="width: 48px; height: 48px" strokeWidth="4" />
+          </div>
+
+          <template v-else>
+            <div class="timeslot-form grid align-items-end gap-4">
+              <div class="col-12 md:col-4">
+                <label class="block mb-2 font-medium">{{ t('market.day') }}</label>
+                <Dropdown v-model="timeslotForm.day" :options="availableDayOptions" optionLabel="label"
+                  optionValue="value" :placeholder="t('market.selectDay')" class="w-full"
+                  :disabled="!availableDayOptions.length || timeslotSaving" />
+              </div>
+
+              <div class="col-12 md:col-3">
+                <label class="block mb-2 font-medium">{{ t('market.startTime') }}</label>
+                <InputText v-model="timeslotForm.start_time" type="time" class="w-full" :disabled="timeslotSaving" />
+              </div>
+
+              <div class="col-12 md:col-3">
+                <label class="block mb-2 font-medium">{{ t('market.endTime') }}</label>
+                <InputText v-model="timeslotForm.end_time" type="time" class="w-full" :disabled="timeslotSaving" />
+              </div>
+
+              <div class="col-12 md:col-2">
+                <Button :label="t('market.addTimeslot')" icon="pi pi-plus" class="w-full p-button-success"
+                  :loading="timeslotSaving" :disabled="!isTimeslotFormValid || timeslotSaving"
+                  @click="createTimeslot" />
+              </div>
+            </div>
+
+            <p v-if="!availableDayOptions.length" class="text-sm text-color-secondary mt-2">
+              {{ t('market.allDaysAdded') }}
+            </p>
+
+            <DataTable :value="timeslots" data-key="id" responsive-layout="scroll" stripedRows showGridlines
+              class="p-datatable-sm mt-4">
+              <Column field="day" :header="t('market.day')">
+                <template #body="slotProps">
+                  {{ getDayLabel(slotProps.data.day) }}
+                </template>
+              </Column>
+
+              <Column field="start_time" :header="t('market.startTime')">
+                <template #body="slotProps">
+                  {{ formatTimeForDisplay(slotProps.data.start_time) }}
+                </template>
+              </Column>
+
+              <Column field="end_time" :header="t('market.endTime')">
+                <template #body="slotProps">
+                  {{ formatTimeForDisplay(slotProps.data.end_time) }}
+                </template>
+              </Column>
+
+              <Column :header="t('actions')" headerStyle="width: 7rem">
+                <template #body="slotProps">
+                  <Button icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger"
+                    :loading="deletingTimeslotId === slotProps.data.id" @click="deleteTimeslot(slotProps.data)"
+                    v-tooltip.top="t('delete')" />
+                </template>
+              </Column>
+
+              <template #empty>
+                <div class="text-center py-4">
+                  <p class="text-xl">{{ t('market.noTimeslots') }}</p>
+                </div>
+              </template>
+            </DataTable>
+          </template>
+
+          <template #footer>
+            <Button :label="t('cancel')" icon="pi pi-times" class="p-button-text" @click="timeslotDialog = false" />
           </template>
         </Dialog>
       </div>

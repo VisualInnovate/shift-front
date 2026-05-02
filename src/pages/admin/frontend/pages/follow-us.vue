@@ -30,7 +30,6 @@ onMounted(async () => {
 const { t } = useI18n()
 </script>
 <template>
-  <Navbar></Navbar>
   <main class="bg-[#FAFAFA]">
     <!-- contaner -->
     <div class="flex justify-center w-full mx-auto flex-col md:px-28 px-8">
@@ -201,5 +200,4 @@ const { t } = useI18n()
       </div>
     </section>
   </main>
-  <Footer></Footer>
 </template>

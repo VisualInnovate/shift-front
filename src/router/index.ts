@@ -14,11 +14,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/:catchAll(.*)',
     redirect: { name: 'dashboard' },
   },
-  {
-    name: 'follow-us',
-    path: '/follow-us',
-    component: () => import('../pages/admin/frontend/pages/follow-us.vue'),
-  },
+
  {
         name: 'order-details',
         path: '/order-details/:id',
@@ -53,6 +49,11 @@ const routes: Array<RouteRecordRaw> = [
           }
         },
       },
+       {
+    name: 'follow-us',
+    path: '/follow-us',
+    component: () => import('../pages/admin/frontend/pages/follow-us.vue'),
+  },
       {
         name: 'subcategory',
         path: '/subcategory/:id',

@@ -9,14 +9,15 @@ import RouteViewComponent from '../layouts/RouterBypass.vue'
 import UIRoute from '../pages/admin/ui/route'
 
 const routes: Array<RouteRecordRaw> = [
+
+  {
+    path: '/:catchAll(.*)',
+    redirect: { name: 'dashboard' },
+  },
   {
     name: 'follow-us',
     path: '/follow-us',
     component: () => import('../pages/admin/frontend/pages/follow-us.vue'),
-  },
-  {
-    path: '/:catchAll(.*)',
-    redirect: { name: 'dashboard' },
   },
  {
         name: 'order-details',

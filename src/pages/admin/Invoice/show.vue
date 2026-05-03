@@ -1,208 +1,217 @@
 <template>
-  <div class="grid">
-    <div class="col-12">
-      <Toast />
-      <Card class="shadow-4">
-        <template #title>
-          <div class="flex justify-content-between align-items-center">
-            <div>
-              <h2 class="m-0">{{ t('invoice.details') }} #{{ invoice?.number }}</h2>
-            </div>
-            <div class="flex gap-2">
-              <Button :label="t('print')" icon="pi pi-print" class="p-button-success" @click="printInvoice" />
-              <Button :label="t('back')" icon="pi pi-arrow-left" class="p-button-secondary" @click="goBack" />
-            </div>
-          </div>
-        </template>
+  <div class="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900" :dir="lang === 'ar' ? 'rtl' : 'ltr'">
+    <Toast />
 
-        <template #content>
-          <div v-if="loading" class="flex justify-content-center py-8">
-            <ProgressSpinner />
-          </div>
+    <!-- Loading State -->
+    <div v-if="loading" class="flex flex-col items-center justify-center h-64">
+      <ProgressSpinner strokeWidth="4" />
+      <p class="mt-4 text-[#0b3baa] font-bold animate-pulse">{{ t('loading') }}...</p>
+    </div>
 
-          <div v-else-if="invoice" class="invoice-content" :dir="lang === 'ar' ? 'rtl' : 'ltr'">
-            <div class="grid mb-5">
-              <div class="col-12 md:col-6">
-                <h3 class="text-primary mb-3">{{ t('invoice.invoice') }}</h3>
-                <div class="invoice-info-item mb-2">
-                  <strong>{{ t('invoice.number') }}:</strong> {{ invoice.number }}
-                </div>
-                <div class="invoice-info-item mb-2">
-                  <strong>{{ t('invoice.date') }}:</strong> {{ formatDate(invoice.created_at) }}
-                </div>
-                <div class="invoice-info-item mb-2">
-                  <strong>{{ t('name') }}:</strong> {{ invoice.user?.name || '-' }}
-                </div>
-                <div class="invoice-info-item mb-2">
-                  <strong>{{ t('invoice.orderNumber') }}:</strong> #{{ invoice.order?.id || '-' }}
-                </div>
-                <div class="invoice-info-item mb-2">
-                  <strong>{{ t('invoice.customerNumber') }}:</strong> {{ invoice.user?.phone || '-' }}
-                </div>
+    <div v-else-if="invoice" class="max-w-7xl mx-auto space-y-6">
+
+      <!-- Top Header Bar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#0b3baa]">
+        <div class="flex items-center gap-4">
+          <div class="bg-[#0b3baa]/10 p-3 rounded-xl text-[#0b3baa]">
+            <i class="pi pi-file-pdf text-2xl"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl font-black tracking-tight text-slate-800">
+              {{ t('invoice.details') }} <span class="text-[#0b3baa]">#{{ invoice.number }}</span>
+            </h1>
+            <p class="text-slate-500 text-sm mt-1 font-medium">{{ formatDate(invoice.created_at) }}</p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <Button
+            icon="pi pi-arrow-left"
+            @click="goBack"
+          />
+          <Button
+            :label="t('print')"
+            icon="pi pi-print"
+            @click="printInvoice"
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left: Customer & Address Sidebar -->
+        <div class="lg:col-span-1 space-y-6">
+
+          <!-- Info Section -->
+          <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-[#0b3baa]">
+              <i class="pi pi-info-circle"></i> {{ t('invoice.invoice') }}
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between border-b border-slate-50 pb-2">
+                <span class="text-slate-500">{{ t('name') }}</span>
+                <span class="font-bold">{{ invoice.user?.name || '-' }}</span>
               </div>
-
-              <div class="col-12 md:col-6">
-                <div class="flex flex-column md:flex-row md:justify-content-between gap-4">
-                  <div v-if="invoice.address" class="flex-grow-1">
-                    <div class="invoice-info-item mb-2">
-                      <strong>{{ t('invoice.deliveryAddress') || 'Delivery Address' }}:</strong>
-                      {{ formatAddress(invoice.address) }}
-                    </div>
-                    <Button v-if="hasCoordinates" icon="pi pi-map-marker"
-                      :label="t('viewOnMap') || 'View on Google Maps'" class="p-button-info p-button-outlined mt-2"
-                      @click="openGoogleMaps" />
-                    <span v-else class="text-500 text-sm block mt-2">
-                      {{ t('noLocationAvailable') || '(No coordinates available)' }}
-                    </span>
-                  </div>
-
-                  <!-- QR Code – smaller size, only on screen -->
-                  <div class="flex-shrink-0 text-center">
-                    <div class="p-3 surface-100 border-round">
-                      <qrcode-vue :value="qrValue" :size="80" level="H" render-as="canvas" />
-                    </div>
-                  </div>
-                </div>
+              <div class="flex justify-between border-b border-slate-50 pb-2">
+                <span class="text-slate-500">{{ t('invoice.orderNumber') }}</span>
+                <span class="font-bold text-[#0b3baa]">#{{ invoice.order?.id || '-' }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">{{ t('invoice.customerNumber') }}</span>
+                <span class="font-bold">{{ invoice.user?.phone || '-' }}</span>
               </div>
             </div>
 
-            <Divider />
+            <Divider v-if="invoice.address" />
 
-            <h4 class="mb-3">{{ t('invoice.items') }}</h4>
-            <DataTable :value="invoice.items" responsiveLayout="scroll" class="p-datatable-sm">
-              <Column header="#" headerStyle="width: 3rem">
+            <div v-if="invoice.address">
+              <h4 class="text-sm font-bold text-slate-400 uppercase mb-2">{{ t('invoice.deliveryAddress') }}</h4>
+              <p class="text-sm leading-relaxed text-slate-600 mb-3">{{ formatAddress(invoice.address) }}</p>
+              <Button v-if="hasCoordinates" icon="pi pi-map-marker"
+                :label="t('viewOnMap')" class="w-full"
+                @click="openGoogleMaps" />
+            </div>
+          </section>
+
+          <!-- Totals Card -->
+          <section class="bg-[#0b3baa] text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+             <!-- QR Overlay -->
+             <div class="absolute -right-4 -bottom-4 opacity-10 bg-white p-2 rounded-xl rotate-12">
+               <qrcode-vue :value="qrValue" :size="100" level="H" />
+             </div>
+
+            <h3 class="text-lg font-bold mb-4 text-[#F3B913] uppercase tracking-widest text-sm">{{ t('invoice.summary') }}</h3>
+            <div class="space-y-3 relative z-10">
+              <div class="flex justify-between opacity-80">
+                <span>{{ t('invoice.subTotal') }}</span>
+                <span>{{ formatCurrency(invoice.sub_total_price) }}</span>
+              </div>
+              <div class="flex justify-between opacity-80" v-if="parseFloat(invoice.tax_fee) > 0">
+                <span>{{ t('invoice.tax') }}</span>
+                <span>{{ formatCurrency(invoice.tax_fee) }}</span>
+              </div>
+              <div class="flex justify-between opacity-80" v-if="parseFloat(invoice.delivery_fee) > 0">
+                <span>{{ t('invoice.deliveryFee') }}</span>
+                <span>{{ formatCurrency(invoice.delivery_fee) }}</span>
+              </div>
+              <div class="flex justify-between text-[#F3B913] italic" v-if="parseFloat(invoice.coupon) > 0">
+                <span>{{ t('invoice.coupon') }}</span>
+                <span>-{{ formatCurrency(invoice.coupon) }}</span>
+              </div>
+
+              <Divider class="!my-2 opacity-20" />
+
+              <div class="flex justify-between items-center pt-2">
+                <span class="text-xl font-medium text-[#F3B913]">{{ t('invoice.total') }}</span>
+                <span class="text-3xl font-black text-white">{{ formatCurrency(invoice.total_price) }}</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- On-screen QR for Scan -->
+          <div class="flex flex-col items-center p-4 bg-white rounded-2xl border border-slate-100">
+             <qrcode-vue :value="qrValue" :size="120" level="H" class="mb-2" />
+             <p class="text-[10px] text-slate-400 uppercase tracking-widest">Scan to view order</p>
+          </div>
+        </div>
+
+        <!-- Right: Invoice Items Table -->
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+              <h3 class="text-lg font-bold text-slate-800">
+                {{ t('invoice.items') }} <span class="text-slate-400 font-normal ml-2">({{ invoice.items?.length }})</span>
+              </h3>
+            </div>
+
+            <DataTable :value="invoice.items" responsiveLayout="scroll" class="p-datatable-sm fancy-table">
+              <Column header="#" headerStyle="width: 3rem" class="pl-4">
                 <template #body="slotProps">
-                  {{ slotProps.index + 1 }}
+                  <span class="text-slate-400 font-medium">{{ slotProps.index + 1 }}</span>
                 </template>
               </Column>
 
               <Column :header="t('navigation.products')">
                 <template #body="slotProps">
-                  <div class="flex flex-column">
-                    <span class="font-medium">{{ getProductName(slotProps.data.product) }}</span>
-                    <small class="text-500">
-                      {{ lang === 'ar' ? slotProps.data.product.sub_name_ar : slotProps.data.product.sub_name_en }}
-                    </small>
+                  <div class="flex flex-column py-1">
+                    <span class="font-bold text-slate-800">{{ getProductName(slotProps.data.product) }}</span>
+                    <div class="flex items-center gap-2">
+                      <Tag :value="slotProps.data.product?.code" severity="secondary" class="!text-[10px] !bg-slate-100 !text-slate-500" />
+                      <span class="text-xs text-slate-400">
+                        {{ lang === 'ar' ? slotProps.data.product.sub_name_ar : slotProps.data.product.sub_name_en }}
+                      </span>
+                    </div>
                   </div>
                 </template>
               </Column>
 
-              <Column field="quantity" :header="t('quantity')" class="text-center" style="width: 100px" />
+              <Column field="quantity" :header="t('quantity')" class="text-center">
+                <template #body="slotProps">
+                  <span class="bg-slate-100 px-3 py-1 rounded-lg font-black text-[#0b3baa] text-sm">x{{ slotProps.data.quantity }}</span>
+                </template>
+              </Column>
 
               <Column :header="t('price')">
                 <template #body="slotProps">
-                  {{ formatCurrency(slotProps.data.variant_id ? slotProps.data.variant.price : slotProps.data.price) }}
+                  <span class="text-slate-600 text-sm">
+                    {{ formatCurrency(slotProps.data.variant_id ? slotProps.data.variant.price : slotProps.data.price) }}
+                  </span>
                 </template>
               </Column>
 
-              <Column :header="t('product.code')">
+              <Column :header="t('total')" class="text-right pr-6">
                 <template #body="slotProps">
-                  {{ slotProps.data.product?.code }}
-                </template>
-              </Column>
-
-              <Column :header="t('total')">
-                <template #body="slotProps">
-                  <span class="font-bold">{{ formatCurrency(parseFloat(slotProps.data.variant_id ?
-                    slotProps.data.variant.price : slotProps.data.price) * slotProps.data.quantity)
-                  }}</span>
+                  <span class="font-black text-slate-900">
+                    {{ formatCurrency(parseFloat(slotProps.data.variant_id ? slotProps.data.variant.price : slotProps.data.price) * slotProps.data.quantity) }}
+                  </span>
                 </template>
               </Column>
             </DataTable>
 
-            <Divider />
-
-            <div class="grid">
-              <div class="col-12 md:col-7"></div>
-              <div class="col-12 md:col-5">
-                <div class="surface-50 border-round p-4">
-                  <div class="flex justify-content-between mb-2">
-                    <span>{{ t('invoice.subTotal') }}</span>
-                    <span class="font-medium">{{ formatCurrency(invoice.sub_total_price) }}</span>
-                  </div>
-                  <div class="flex justify-content-between mb-2">
-                    <span>{{ t('invoice.tax') }}</span>
-                    <span class="font-medium">{{ formatCurrency(invoice.tax_fee) }}</span>
-                  </div>
-                  <div class="flex justify-content-between mb-2" v-if="parseFloat(invoice.service_fee) > 0">
-                    <span>{{ t('invoice.serviceFee') || 'Service Fee' }}</span>
-                    <span class="font-medium">{{ formatCurrency(invoice.service_fee) }}</span>
-                  </div>
-                  <div class="flex justify-content-between mb-2" v-if="parseFloat(invoice.delivery_fee) > 0">
-                    <span>{{ t('invoice.deliveryFee') || 'Delivery Fee' }}</span>
-                    <span class="font-medium">{{ formatCurrency(invoice.delivery_fee) }}</span>
-                  </div>
-                  <div class="flex justify-content-between mb-2 text-pink-500" v-if="parseFloat(invoice.coupon) > 0">
-                    <span>{{ t('invoice.coupon') }}</span>
-                    <span>-{{ formatCurrency(invoice.coupon) }}</span>
-                  </div>
-
-                  <Divider />
-
-                  <div class="flex justify-content-between text-xl font-bold">
-                    <span>{{ t('invoice.total') }}</span>
-                    <span class="text-primary">{{ formatCurrency(invoice.total_price) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="text-center mt-6 text-500">
-              <p>{{ t('invoice.thankYou') }}</p>
+            <div class="p-8 text-center bg-slate-50 border-t border-slate-100">
+              <p class="text-[#0b3baa] font-bold italic">{{ t('invoice.thankYou') }}</p>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
-          <div v-else class="text-center py-8">
-            <i class="pi pi-exclamation-circle text-5xl text-400 mb-3"></i>
-            <p class="text-xl text-600">{{ t('invoice.notFound') }}</p>
-          </div>
-        </template>
-      </Card>
+    <!-- 404 / Error State -->
+    <div v-else class="text-center py-20 bg-white rounded-3xl shadow-sm max-w-xl mx-auto mt-10 border border-slate-100">
+      <div class="w-20 h-20 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+        <i class="pi pi-search"></i>
+      </div>
+      <p class="text-2xl font-bold text-slate-800">{{ t('invoice.notFound') }}</p>
+      <Button :label="t('common.back')" icon="pi pi-arrow-left" class="p-button-text !text-[#0b3baa] mt-4" @click="goBack" />
     </div>
   </div>
 
-  <!-- PRINT VERSION – WITH QR CODE -->
+  <!-- HIDDEN PRINT TEMPLATE -->
   <div id="print-section" class="hidden">
     <div class="print-container" :dir="lang === 'ar' ? 'rtl' : 'ltr'">
       <div class="header-grid">
         <div class="info-col">
-          <h1 class="invoice-title">{{ t('invoice.invoice') }}</h1>
+          <h1 class="invoice-title" style="color: #0b3baa;">{{ t('invoice.invoice') }}</h1>
           <p><strong>{{ t('invoice.number') }}:</strong> {{ invoice?.number }}</p>
           <p><strong>{{ t('invoice.date') }}:</strong> {{ formatDate(invoice?.created_at) }}</p>
           <p><strong>{{ t('name') }}:</strong> {{ invoice?.user?.name || '-' }}</p>
           <p><strong>{{ t('invoice.orderNumber') }}:</strong> #{{ invoice?.order?.id || '-' }}</p>
-          <p><strong>{{ t('invoice.customerNumber') }}:</strong> {{ invoice?.user?.phone || '-' }}</p>
-
-          <div v-if="invoice?.address">
-            <p><strong>{{ t('invoice.deliveryAddress') || 'Delivery Address' }}:</strong></p>
-            <p class="mb-1">{{ formatAddress(invoice.address) }}</p>
-            <p v-if="hasCoordinates" class="text-sm text-500">
-              Lat: {{ invoice.address.lat }} • Long: {{ invoice.address.long }}
-            </p>
-          </div>
+          <p v-if="invoice?.address"><strong>{{ t('invoice.deliveryAddress') }}:</strong> {{ formatAddress(invoice.address) }}</p>
         </div>
-
-        <!-- QR code column in print – small size -->
-        <div class="qr-col" v-if="qrValue">
-
-          <qrcode-vue :value="qrValue" :size="90" level="H" render-as="canvas" />
+        <div class="qr-col">
+          <qrcode-vue :value="qrValue" :size="90" level="H" />
         </div>
       </div>
-
-
       <table class="items-table">
         <thead>
           <tr>
             <th>#</th>
             <th>{{ t('navigation.products') }}</th>
-            <th class="text-center">{{ t('quantity') }}</th>
-            <th class="text-center">{{ t('product.code') }}</th>
+            <th>{{ t('quantity') }}</th>
+            <th>{{ t('product.code') }}</th>
             <th class="text-right">{{ t('price') }}</th>
             <th class="text-right">{{ t('total') }}</th>
           </tr>
         </thead>
-
-
         <tbody>
           <tr v-for="(item, i) in invoice?.items" :key="i">
             <td>{{ i + 1 }}</td>
@@ -210,43 +219,18 @@
             <td class="text-center">{{ item.quantity }}</td>
             <td class="text-center">{{ item.product?.code }}</td>
             <td class="text-right">{{ formatCurrency(item.price) }}</td>
-            <td class="text-right font-bold">{{ formatCurrency(parseFloat(item.price) * item.quantity) }}</td>
+            <td class="text-right"><strong>{{ formatCurrency(parseFloat(item.price) * item.quantity) }}</strong></td>
           </tr>
         </tbody>
       </table>
-
       <div class="summary-section">
         <div class="summary-box">
-          <div class="summary-row">
-            <span>{{ t('invoice.subTotal') }}</span>
-            <span>{{ formatCurrency(invoice?.sub_total_price) }}</span>
-          </div>
-          <div class="summary-row" v-if="parseFloat(invoice?.tax_fee) > 0">
-            <span>{{ t('invoice.tax') }}</span>
-            <span>{{ formatCurrency(invoice?.tax_fee) }}</span>
-          </div>
-          <div class="summary-row" v-if="parseFloat(invoice?.service_fee) > 0">
-            <span>{{ t('invoice.serviceFee') || 'Service Fee' }}</span>
-            <span>{{ formatCurrency(invoice?.service_fee) }}</span>
-          </div>
-          <div class="summary-row" v-if="parseFloat(invoice?.delivery_fee) > 0">
-            <span>{{ t('invoice.deliveryFee') || 'Delivery Fee' }}</span>
-            <span>{{ formatCurrency(invoice?.delivery_fee) }}</span>
-          </div>
-          <div class="summary-row text-pink-600" v-if="parseFloat(invoice?.coupon) > 0">
-            <span>{{ t('invoice.coupon') }}</span>
-            <span>-{{ formatCurrency(invoice?.coupon) }}</span>
-          </div>
-          <hr class="my-3" />
-          <div class="summary-row text-xl">
-            <strong>{{ t('invoice.total') }}</strong>
-            <strong class="text-primary">{{ formatCurrency(invoice?.total_price) }}</strong>
+          <div class="summary-row"><span>{{ t('invoice.subTotal') }}</span> <span>{{ formatCurrency(invoice?.sub_total_price) }}</span></div>
+          <div class="summary-row" v-if="parseFloat(invoice?.tax_fee) > 0"><span>{{ t('invoice.tax') }}</span> <span>{{ formatCurrency(invoice?.tax_fee) }}</span></div>
+          <div class="summary-row text-xl" style="color:#0b3baa; border-top:1px solid #ddd; padding-top:10px;">
+            <strong>{{ t('invoice.total') }}</strong> <strong>{{ formatCurrency(invoice?.total_price) }}</strong>
           </div>
         </div>
-      </div>
-
-      <div class="text-center mt-5 text-600">
-        <p>{{ t('invoice.thankYou') }}</p>
       </div>
     </div>
   </div>
@@ -260,13 +244,14 @@ import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import QrcodeVue from 'qrcode.vue'
 
-import Card from 'primevue/card'
+// Components
 import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Divider from 'primevue/divider'
 import ProgressSpinner from 'primevue/progressspinner'
 import Toast from 'primevue/toast'
+import Tag from 'primevue/tag'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -278,30 +263,18 @@ const loading = ref(true)
 const lang = localStorage.getItem('appLang') || 'en'
 
 const qrValue = computed(() => {
-  if (!invoice.value?.order?.number) return ''
-  return `${window.location.origin}/order-details/${invoice.value.order.number}`
+  if (!invoice.value?.order?.id) return ''
+  return `${window.location.origin}/order-details/${invoice.value.order.id}`
 })
 
-const hasCoordinates = computed(() => {
-  return invoice.value?.address?.lat && invoice.value?.address?.long
-})
-
-const googleMapsLink = computed(() => {
-  if (!hasCoordinates.value) return '#'
-  const lat = invoice.value.address.lat
-  const lng = invoice.value.address.long
-  return `https://www.google.com/maps?q=${lat},${lng}`
-})
+const hasCoordinates = computed(() => invoice.value?.address?.lat && invoice.value?.address?.long)
+const googleMapsLink = computed(() => `https://www.google.com/maps?q=${invoice.value.address.lat},${invoice.value.address.long}`)
 
 const fetchInvoice = async () => {
   loading.value = true
   try {
     const res = await axios.get(`/api/invoice/${route.params.id}`)
-    if (res.data?.is_success && res.data?.data) {
-      invoice.value = res.data.data
-    } else {
-      throw new Error('No invoice data')
-    }
+    if (res.data?.is_success) invoice.value = res.data.data
   } catch (error) {
     toast.add({ severity: 'error', summary: t('error'), detail: t('invoice.loadError'), life: 4000 })
   } finally {
@@ -310,96 +283,49 @@ const fetchInvoice = async () => {
 }
 
 const getProductName = (p) => lang === 'ar' ? (p?.name_ar || p?.name_en || '-') : (p?.name_en || p?.name_ar || '-')
-
 const formatCurrency = (v) => `${parseFloat(v || 0).toFixed(2)} ${t('currencyLabel') || 'EGP'}`
-
-const formatDate = (d) => d ? new Date(d).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
-  year: 'numeric', month: 'long', day: 'numeric'
-}) : '-'
+const formatDate = (d) => d ? new Date(d).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'
 
 const formatAddress = (addr) => {
   if (!addr) return '-'
-  const parts = [
-    addr.address_line_1,
-    addr.address_line_2,
-    addr.city,
-    addr.governorate,
-    addr.country
-  ].filter(Boolean)
-  return parts.join(' — ')
+  return [addr.address_line_1, addr.city, addr.governorate].filter(Boolean).join(' — ')
 }
 
-const openGoogleMaps = () => {
-  if (hasCoordinates.value) {
-    window.open(googleMapsLink.value, '_blank', 'noopener,noreferrer')
-  }
-}
+const openGoogleMaps = () => window.open(googleMapsLink.value, '_blank')
+const goBack = () => router.back()
 
 const printInvoice = () => {
-  // Grab the canvas from the print section's qrcode-vue component
   const printSection = document.getElementById('print-section')
   const canvas = printSection.querySelector('canvas')
   const qrDataUrl = canvas ? canvas.toDataURL('image/png') : null
-
   let printContent = printSection.innerHTML
 
-  // Replace the canvas element with an <img> so it renders in the print window
   if (qrDataUrl) {
-    printContent = printContent.replace(
-      /<canvas[^>]*><\/canvas>/,
-      `<img src="${qrDataUrl}" width="90" height="90" style="display:block;" />`
-    )
+    printContent = printContent.replace(/<canvas[^>]*><\/canvas>/, `<img src="${qrDataUrl}" width="90" height="90" />`)
   }
 
   const win = window.open('', '', 'height=900,width=1100')
   win.document.write(`
     <html>
       <head>
-        <title>Invoice #${invoice.value?.number || '—'}</title>
         <style>
-          body { font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 40px 30px; direction: ${lang === 'ar' ? 'rtl' : 'ltr'}; }
-          .print-container { max-width: 850px; margin: 0 auto; }
-          .header-grid { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; gap: 20px; }
-          .info-col { flex: 1; }
-          .qr-col { display: flex; flex-direction: column; align-items: center; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f9fafb; }
-          .invoice-title { color: #1e40af; margin: 0 0 12px; font-size: 32px; }
-          .items-table { width: 100%; border-collapse: collapse; margin: 20px 0 40px; }
-          .items-table th, .items-table td { border: 1px solid #d1d5db; padding: 10px 12px; }
-          .items-table th { background: #f3f4f6; font-weight: 600; }
-          .summary-section { display: flex; justify-content: flex-end; }
-          .summary-box { width: 320px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; }
-          .summary-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 1.05rem; }
+          body { font-family: sans-serif; margin: 40px; direction: ${lang === 'ar' ? 'rtl' : 'ltr'}; }
+          .header-grid { display: flex; justify-content: space-between; margin-bottom: 40px; }
+          .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          .items-table th, .items-table td { border: 1px solid #ddd; padding: 10px; }
+          .summary-section { display: flex; justify-content: flex-end; margin-top: 30px; }
+          .summary-box { width: 300px; padding: 15px; border: 1px solid #ddd; background: #fafafa; }
+          .summary-row { display: flex; justify-content: space-between; margin: 5px 0; }
           .text-right { text-align: right; }
           .text-center { text-align: center; }
         </style>
       </head>
-      <body>
-        ${printContent}
-      </body>
+      <body>${printContent}</body>
     </html>
   `)
   win.document.close()
-
-  setTimeout(() => {
-    win.focus()
-    win.print()
-    // win.close()   // uncomment if you want auto-close after print dialog
-  }, 600)
+  setTimeout(() => { win.focus(); win.print(); }, 500)
 }
-
-const goBack = () => router.back()
 
 onMounted(fetchInvoice)
 </script>
-
-<style scoped>
-.hidden {
-  display: none;
-}
-
-.invoice-info-item {
-  font-size: 1.05rem;
-  color: #4b5563;
-  line-height: 1.5;
-}
-</style>

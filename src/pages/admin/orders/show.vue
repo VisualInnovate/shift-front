@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useI18n } from 'vue-i18n'
@@ -25,320 +25,224 @@ const orderData = ref(null)
 const loading = ref(true)
 const isGeneratingInvoice = ref(false)
 const displayConfirmationModal = ref(false)
+const selectedItems = ref([])
 
 const lang = localStorage.getItem('appLang') || 'en'
 
 /**
- * Fetch order details
+ * Sort items by Category ID
  */
+const sortedOrderItems = computed(() => {
+  if (!orderData.value?.order_items) return []
+  return [...orderData.value.order_items].sort((a, b) => {
+    return (a.product?.category_id || 0) - (b.product?.category_id || 0)
+  })
+})
+
 const fetchOrderData = async () => {
   loading.value = true
   try {
     const res = await axios.get(`/api/order/${route.params.id}`)
-
     if (res.data?.is_success && res.data?.data) {
       orderData.value = res.data.data
     } else {
-      throw new Error(res.data?.message || 'No data received')
+      throw new Error('No data')
     }
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: t('order.loadError'),
-      life: 5000
-    })
-    console.error('Error fetching order:', error)
-    orderData.value = null
+    toast.add({ severity: 'error', summary: t('error'), detail: t('order.loadError'), life: 5000 })
   } finally {
     loading.value = false
   }
 }
 
-/**
- * Open confirmation dialog before generating invoice
- */
 const openGenerateInvoiceModal = () => {
-  if (!orderData.value) return
-
+  if (!orderData.value || selectedItems.value.length === 0) {
+     toast.add({ severity: 'warn', summary: t('attention'), detail: t('order.selectFirst'), life: 3000 })
+     return
+  }
   displayConfirmationModal.value = true
 }
 
-/**
- * Generate invoice after user confirmation
- */
 const confirmAndGenerateInvoice = async () => {
-  if (!orderData.value?.id) return
-
   displayConfirmationModal.value = false
   isGeneratingInvoice.value = true
-
   try {
-    const res = await axios.post('/api/invoice', { order_id: orderData.value.id })
-    fetchOrderData() // Refresh order data
-    toast.add({
-      severity: 'success',
-      summary: t('success'),
-      detail: t('order.invoiceSuccess'),
-      life: 5000
+    const res = await axios.post('/api/invoice', {
+      order_id: orderData.value.id,
+      items: selectedItems.value.map(i => i.id)
     })
-
-    if (res.data?.invoice_url) {
-      window.open(res.data.invoice_url, '_blank')
-    }
+    fetchOrderData()
+    toast.add({ severity: 'success', summary: t('success'), detail: t('order.invoiceSuccess') })
+    if (res.data?.invoice_url) window.open(res.data.invoice_url, '_blank')
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: error.response?.data?.message || t('order.invoiceError'),
-      life: 5000
-    })
-    console.error('Invoice generation failed:', error)
+    toast.add({ severity: 'error', summary: t('error'), detail: t('order.invoiceError') })
   } finally {
     isGeneratingInvoice.value = false
   }
 }
 
-const goBack = () => {
-  router.push({ name: 'orders' })
-}
+const formatCurrency = (v) => `${parseFloat(v).toFixed(2)} ${t('currencyLabel')}`
+const getProductName = (p) => lang === 'ar' ? p.name_ar : p.name_en
+const getProductImage = (p) => (p.media?.[0]?.url) || p.key_default_image || '/images/no-image.png'
 
-onMounted(() => {
-  fetchOrderData()
-})
-
-// Helpers
-const getProductName = (product) => {
-  return lang === 'ar' ? product.name_ar : product.name_en
-}
-
-const getProductImage = (product) => {
-  if (product.media && product.media.length > 0 && product.media[0]?.url) {
-    return product.media[0].url
-  }
-  return product.key_default_image || '/images/no-image.png'
-}
-
-const getVariantDisplay = (variant) => {
-  if (!variant || !variant.attribute_values?.length) return null
-
-  return variant.attribute_values
-    .map(attr => {
-      const value = lang === 'ar' ? attr.value_ar : attr.value_en
-      const attrName = lang === 'ar' ? attr.attribute.name_ar : attr.attribute.name_en
-      return `${attrName}: ${value}`
-    })
-    .join(' • ')
-}
-
-// format Date
-const formatDate = (dateString) => {
-  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-  return new Date(dateString).toLocaleDateString(undefined, options)
-}
-
-const formatCurrency = (value) => {
-  return `${parseFloat(value).toFixed(2)} ${t('currencyLabel')}`
-}
+onMounted(fetchOrderData);
 </script>
 
 <template>
+  <div class="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900" :dir="lang === 'ar' ? 'rtl' : 'ltr'">
+    <Toast />
 
-  <div class="grid">
-    <div class="col-12">
-      <div class="card p-4 shadow-2 border-round">
+    <!-- Loading State -->
+    <div v-if="loading" class="flex flex-col items-center justify-center h-64">
+      <ProgressSpinner strokeWidth="4" />
+      <p class="mt-4 text-[#0b3baa] font-bold animate-pulse">{{ t('loading') }}...</p>
+    </div>
 
-        <Toast />
+    <div v-else-if="orderData" class="max-w-7xl mx-auto space-y-6">
 
-        <div v-if="loading" class="flex justify-content-center align-items-center py-8">
-          <ProgressSpinner style="width: 60px; height: 60px" strokeWidth="5" />
+      <!-- Top Header Bar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#0b3baa]">
+        <div>
+          <h1 class="text-2xl font-black tracking-tight text-slate-800">
+            {{ t('order.details') }} <span class="text-[#0b3baa]">#{{ orderData.id }}</span>
+          </h1>
+          <p class="text-slate-500 text-sm mt-1 font-medium">{{ new Date(orderData.created_at).toLocaleString() }}</p>
         </div>
+        <div class="flex gap-3">
+          <Button
+            icon="pi pi-arrow-left"
+            @click="router.back()"
+          />
+          <Button
+            :label="t('order.generateInvoice')"
+            icon="pi pi-file-export"
+            @click="openGenerateInvoiceModal"
+          />
+        </div>
+      </div>
 
-        <div v-else-if="orderData">
-          <div class="flex justify-content-between align-items-center mb-5">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <Button :label="t('order.generateInvoice')" icon="pi pi-file-pdf" @click="openGenerateInvoiceModal"
-              :loading="isGeneratingInvoice" :disabled="orderData.has_invoice" class="p-button-success" />
-          </div>
-
-          <Card class="mb-5">
-            <template #content>
-              <div class="grid">
-                <div class="col-12 lg:col-6">
-                  <div class="space-y-3 mb-5">
-                    <p><strong>{{ t('order.name') }}:</strong> {{ orderData.user?.name }}</p>
-                    <hr>
-                    <p><strong>{{ t('order.phoneNumber') }}:</strong> {{ orderData.user?.phone }}</p>
-                    <hr>
-                    <p><strong>{{ t('order.createdAt') }}:</strong> {{ formatDate(orderData.created_at) }}</p>
-                    <hr>
-                    <p><strong>{{ t('order.owner') }}:</strong> {{ orderData.owner[locale] }}</p>
-                    <p v-if="orderData.notes">
-                      <strong>{{ t('order.notes') }}:</strong>
-                      <span class="text-600">{{ orderData.notes }}</span>
-                    </p>
-                  </div>
-
-                  <Divider class="my-4" />
-
-                  <h4 class="text-lg font-semibold mb-3 text-primary">
-                    {{ t('order.financialSummary') }}
-                  </h4>
-                  <div class="space-y-3">
-                    <p><strong>{{ t('order.subTotalPrice') }}:</strong> {{ formatCurrency(orderData.sub_total_price) }}
-                    </p>
-                    <p><strong>{{ t('order.taxFee') }}:</strong> {{ formatCurrency(orderData.tax_fee) }}</p>
-                    <p><strong>{{ t('order.serviceFee') }}:</strong> {{ formatCurrency(orderData.service_fee) }}</p>
-                    <p><strong>{{ t('order.deliveryFee') }}:</strong> {{ formatCurrency(orderData.delivery_fee) }}</p>
-                    <p v-if="parseFloat(orderData.coupon) > 0">
-                      <strong>{{ t('order.coupon') }}:</strong>
-                      <span class="text-red-600">-{{ formatCurrency(orderData.coupon) }}</span>
-                    </p>
-                    <Divider class="my-4" />
-                    <p class="text-xl font-bold text-primary">
-                      {{ t('order.totalPrice') }}:
-                      <span class="text-2xl">{{ formatCurrency(orderData.total_price) }}</span>
-                    </p>
-                  </div>
-                </div>
-
-                <div class="col-12 lg:col-6">
-                  <div class="space-y-3">
-                    <p class="flex align-items-center gap-2">
-                      <strong class="mb-2">{{ t('order.status') }}:</strong>
-                      <Tag :value="orderData.status === 0 ? t('order.pending') : t('order.completed')"
-                        :severity="orderData.status === 0 ? 'warning' : 'success'" rounded />
-                    </p>
-
-
-                  </div>
-                </div>
+        <!-- Left: Order Info & Totals -->
+        <div class="lg:col-span-1 space-y-6">
+          <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-[#0b3baa]">
+              <i class="pi pi-user"></i> {{ t('order.customerInfo') }}
+            </h3>
+            <div class="space-y-4">
+              <div class="flex justify-between border-b pb-2 border-slate-50">
+                <span class="text-slate-500">{{ t('order.name') }}</span>
+                <span class="font-bold text-slate-800">{{ orderData.user?.name }}</span>
               </div>
-            </template>
-          </Card>
-
-          <Card>
-            <template #title>
-              <h3 class="text-xl font-bold">
-                {{ t('order.items') }} ({{ orderData.order_items?.length || 0 }})
-              </h3>
-            </template>
-
-            <template #content>
-              <DataTable :value="orderData.order_items" responsiveLayout="scroll" stripedRows showGridlines
-                class="p-datatable-sm">
-                <Column :header="t('order.itemId')" style="width: 6%">
-                  <template #body="{ data }">{{ data.id }}</template>
-                </Column>
-
-                <Column :header="t('order.productName')" style="width: 40%">
-                  <template #body="{ data }">
-                    <div class="font-medium">
-                      {{ getProductName(data.product) }}
-                    </div>
-                    <div v-if="data.variant" class="text-sm text-600 mt-1">
-                      {{ getVariantDisplay(data.variant) }}
-                    </div>
-                  </template>
-                </Column>
-
-                <Column field="quantity" :header="t('order.quantity')" style="width: 8%">
-                  <template #body="{ data }">
-                    <span class="font-semibold">{{ data.quantity }}</span>
-                  </template>
-                </Column>
-                <Column field="product.code" :header="t('product.code')" style="width: 8%">
-                  <template #body="{ data }">
-                    <span class="font-semibold">{{ data.product.code }}</span>
-                  </template>
-                </Column>
-
-                <Column :header="t('order.unitPrice')" style="width: 12%">
-                  <template #body="{ data }">
-                    {{ formatCurrency((parseFloat(data.price) / data.quantity).toFixed(2)) }}
-                  </template>
-                </Column>
-
-                <Column :header="t('order.total')" style="width: 12%">
-                  <template #body="{ data }">
-                    <strong>{{ formatCurrency(parseFloat(data.price)) }}</strong>
-                  </template>
-                </Column>
-
-                <Column :header="t('order.image')" style="width: 22%">
-                  <template #body="{ data }">
-                    <img :src="getProductImage(data.product)" alt="Product" class="product-image shadow-2 border-round"
-                      @error="(e) => e.target.src = '/images/no-image.png'" />
-                  </template>
-                </Column>
-
-                <template #empty>
-                  <div class="text-center py-6 text-600">
-                    <i class="pi pi-shopping-cart text-4xl mb-3 opacity-30" />
-                    <p class="text-lg font-medium">{{ t('order.noItems') }}</p>
-                  </div>
-                </template>
-              </DataTable>
-            </template>
-          </Card>
-        </div>
-
-        <div v-else class="text-center py-8">
-          <i class="pi pi-exclamation-triangle text-6xl text-red-500 mb-4 opacity-70" />
-          <p class="text-xl font-medium text-700">{{ t('order.notFound') }}</p>
-          <Button :label="t('common.back')" icon="pi pi-arrow-left" @click="goBack" class="mt-4 p-button-outlined" />
-        </div>
-
-        <!-- Confirmation Dialog -->
-        <Dialog v-if="orderData" v-model:visible="displayConfirmationModal"
-          :header="t('order.invoiceConfirmationTitle')" :modal="true" :style="{ width: '50vw' }">
-          <div class="p-fluid">
-            <p class="mb-4 text-lg">
-              {{ t('order.invoiceConfirmationMessage') }}
-            </p>
-
-            <div class="p-3 bg-gray-100 border-round">
-              <h4 class="text-base font-semibold mb-3">
-                {{ t('order.orderSummaryBrief') }}
-              </h4>
-
-              <div class="flex justify-content-between mb-2">
-                <span class="font-medium">{{ t('order.itemsCount') }}:</span>
-                <span>{{ orderData.order_items?.length || 0 }}</span>
-              </div>
-              <Divider class="my-2" />
-              <div class="flex justify-content-between text-xl font-bold text-primary">
-                <span>{{ t('order.totalPrice') }}:</span>
-                <span>{{ formatCurrency(orderData.total_price) }}</span>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500">{{ t('order.status') }}</span>
+                <Tag :style="{ background: orderData.status === 0 ? '#F3B913' : '#0b3baa', color: '#fff' }"
+                     :value="orderData.status === 0 ? t('order.pending') : t('order.completed')"
+                     class="!rounded-lg px-3" />
               </div>
             </div>
+          </section>
 
-            <p class="mt-4 text-sm text-red-500">
-              {{ t('order.invoiceGenerationWarning') }}
-            </p>
+          <section class="bg-[#0b3baa] text-white p-6 rounded-2xl shadow-xl relative overflow-hidden">
+            <!-- Decorative Gold Accent -->
+            <div class="absolute top-0 right-0 w-16 h-16 bg-[#F3B913] opacity-10 rounded-full -mr-8 -mt-8"></div>
+
+            <h3 class="text-lg font-bold mb-4 text-[#F3B913] uppercase tracking-widest text-sm">{{ t('order.financialSummary') }}</h3>
+            <div class="space-y-3">
+              <div class="flex justify-between opacity-80">
+                <span>{{ t('order.subtotal') }}</span>
+                <span>{{ formatCurrency(orderData.sub_total_price) }}</span>
+              </div>
+              <div class="flex justify-between opacity-80">
+                <span>{{ t('order.fees') }}</span>
+                <span>{{ formatCurrency(parseFloat(orderData.tax_fee) + parseFloat(orderData.service_fee)) }}</span>
+              </div>
+              <Divider class="!my-2 opacity-20" />
+              <div class="flex justify-between items-center pt-2">
+                <span class="text-xl font-medium text-[#F3B913]">{{ t('order.total') }}</span>
+                <span class="text-3xl font-black text-white">{{ formatCurrency(orderData.total_price) }}</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Right: Items Table -->
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h3 class="text-lg font-bold text-slate-800">
+                {{ t('order.items') }} <span class="text-slate-400 font-normal ml-2">({{ orderData.order_items?.length }})</span>
+              </h3>
+              <span v-if="selectedItems.length" class="text-xs font-bold bg-[#F3B913]/20 text-[#0b3baa] px-4 py-1.5 rounded-full ring-1 ring-[#F3B913]">
+                {{ selectedItems.length }} {{ t('selected') }}
+              </span>
+            </div>
+
+            <DataTable
+              :value="sortedOrderItems"
+              v-model:selection="selectedItems"
+              dataKey="id"
+              class="p-datatable-sm fancy-table"
+              responsiveLayout="scroll"
+              :rowHover="true"
+            >
+              <Column selectionMode="multiple" headerStyle="width: 3rem; background: transparent;" class="pl-4"></Column>
+
+              <Column :header="t('order.product')" class="py-4">
+                <template #body="{ data }">
+                  <div class="flex items-center gap-4">
+                    <img :src="getProductImage(data.product)" class="w-14 h-14 rounded-xl object-cover shadow-sm ring-2 ring-slate-100" />
+                    <div>
+                      <div class="font-bold text-slate-800 hover:text-[#0b3baa] transition-colors cursor-default">
+                        {{ getProductName(data.product) }}
+                      </div>
+                      <div class="flex gap-2 mt-1">
+                         <span class="text-base font-bold text-[#0b3baa] bg-[#0b3baa]/5 px-2 py-0.5 rounded">
+                           CAT: {{ data.product?.category_id }}
+                         </span>
+                         <span class="text-base  font-bold text-slate-400 uppercase tracking-tighter">
+                           CODE: {{ data.product?.code }}
+                         </span>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </Column>
+
+              <Column field="quantity" :header="t('order.qty')" class="text-center">
+                <template #body="{ data }">
+                  <span class="bg-slate-100 px-3 py-1 rounded-lg font-black text-[#0b3baa] text-sm">x{{ data.quantity }}</span>
+                </template>
+              </Column>
+
+              <Column :header="t('order.price')">
+                <template #body="{ data }">
+                  <span class="font-bold text-slate-900">{{ formatCurrency(data.price) }}</span>
+                </template>
+              </Column>
+            </DataTable>
           </div>
-
-          <template #footer>
-            <Button :label="t('common.cancel')" icon="pi pi-times" @click="displayConfirmationModal = false"
-              class="p-button-text p-button-secondary" />
-            <Button :label="t('order.confirmGenerate')" icon="pi pi-check" @click="confirmAndGenerateInvoice"
-              class="p-button-success" />
-          </template>
-        </Dialog>
+        </div>
       </div>
     </div>
+
+    <!-- Fancy Confirmation Modal -->
+    <Dialog v-model:visible="displayConfirmationModal" modal :header="t('order.confirmInvoice')" :style="{ width: '30rem' }" class="fancy-dialog">
+      <div class="text-center p-4">
+        <div class="w-20 h-20 bg-[#F3B913]/20 text-[#F3B913] rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+          <i class="pi pi-question-circle"></i>
+        </div>
+        <h4 class="text-xl font-bold text-[#0b3baa] mb-2">{{ t('order.areYouSure') }}</h4>
+        <p class="text-slate-600 leading-relaxed">
+          {{ t('order.invoiceNotice') }} <strong class="text-[#0b3baa]">{{ selectedItems.length }}</strong> {{ t('order.items') }}.
+        </p>
+      </div>
+      <template #footer>
+        <div class="flex justify-center gap-3 w-full pb-6">
+          <Button :label="t('cancel')" class="p-button-text !text-slate-400 !rounded-xl" @click="displayConfirmationModal = false" />
+          <Button :label="t('confirm')" class="!bg-[#0b3baa] !border-[#0b3baa] !rounded-xl px-10 shadow-lg" @click="confirmAndGenerateInvoice" />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
-
-<style scoped>
-.product-image {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border: 1px solid var(--surface-300);
-}
-
-.space-y-3>*+* {
-  margin-top: 0.75rem;
-}
-</style>

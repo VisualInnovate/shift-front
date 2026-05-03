@@ -180,7 +180,10 @@
 
           <router-link
             :to="{ name: 'cart' }"
-            class="icon-container bg-[#E6AC31] cursor-pointer hover:bg-[#d89b2a] transition-colors"
+            class="icon-container bg-[#E6AC31] cursor-pointer hover:bg-[#d89b2a] transition-colors relative group"
+            @mouseenter="showCartTooltip = true"
+            @mouseleave="showCartTooltip = false"
+            ref="cartIconRef"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
@@ -190,6 +193,12 @@
                 fill="white"
               />
             </svg>
+
+            <!-- Tooltip with Cart Total -->
+            <div v-if="showCartTooltip && cartStore.cartTotal > 0" class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg whitespace-nowrap z-50 pointer-events-none shadow-lg">
+              <div class="font-semibold">{{ $t('cart.total') || 'Total' }}: {{ cartStore.cartTotal.toFixed(2) }}</div>
+              <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+            </div>
           </router-link>
 
           <router-link
@@ -246,9 +255,10 @@
 
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import axios from 'axios'
-import { useAuthStore } from '../../../../stores/WebAuth'
+import { useAuthStore } from '../../../../stores/WebAuth.js'
+import { useCartStore } from '../../../../stores/Cart.js'
 import Notifications from './Notification.vue'
 import SearchBar from './SearchBar.vue'
 
@@ -256,11 +266,13 @@ import SearchBar from './SearchBar.vue'
 const currentText = ref('E')
 
 const authStore = useAuthStore()
+const cartStore = useCartStore()
 const stores = ref([])
 const router = useRouter()
 const route = useRoute()
 const isDropdownOpen = ref(false)
 const isUserDropdownOpen = ref(false)
+const showCartTooltip = ref(false)
 const defaultStoreId = ref('')
 const defaultStore = ref(null)
 const hasMarket = ref(null)
@@ -269,6 +281,7 @@ const webUser = ref({})
 
 const storesDropdown = ref(null)
 const userDropdownDesktop = ref(null)
+const cartIconRef = ref(null)
 
 const getStoreImage = (store) => {
   const storeImage = store.media.find((mediaItem) => mediaItem.name === 'store_image')

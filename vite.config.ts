@@ -17,21 +17,7 @@ export default defineConfig({
     prerender({
       staticDir: join(__dirname, 'dist'),
       routes: [
-        '/',
-        '/follow-us',
-        '/terms-condition',
-        '/Privacy-Policy',
-        '/stores',
-        '/stores-hasmarket',
-        '/stores-nomarket',
-        '/forget-password',
-        '/register',
-        '/authlog',
-        '/product-details/1',
-        '/subcategory/1',
-        '/produts-category/1',
-        '/products-brand/1',
-        '/products-exclusive/1',
+
       ],
     }),
   ],

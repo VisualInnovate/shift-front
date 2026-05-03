@@ -50,10 +50,10 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
        {
-    name: 'follow-us',
-    path: '/follow-us',
-    component: () => import('../pages/admin/frontend/pages/follow-us.vue'),
-  },
+        name: 'follow-us',
+        path: '/follow-us',
+        component: () => import('../pages/admin/frontend/pages/follow-us.vue'),
+      },
       {
         name: 'subcategory',
         path: '/subcategory/:id',

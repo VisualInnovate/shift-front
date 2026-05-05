@@ -107,6 +107,7 @@ onMounted(fetchOrderData);
             {{ t('order.details') }} <span class="text-[#0b3baa]">#{{ orderData.id }}</span>
           </h1>
           <p class="text-slate-500 text-sm mt-1 font-medium">{{ new Date(orderData.created_at).toLocaleString() }}</p>
+          <span class="text-xs text-gray-600">OTP : {{ orderData.otp }}</span>
         </div>
         <div class="flex gap-3">
           <Button

@@ -231,8 +231,9 @@
                   !selectedAddress ||
                   order.delivery_status === 'not_available' ||
                   isBelowMinAmount(order) ||
-                  storesClose.some(
-                    (store) => (store.store_id !== order.store_id && store.is_busy) || !store.in_time_slots,
+                  storesClose.some(store =>
+                    (store.store_id === order.store_id) && (store.market_id === order.market_id) && store.is_busy ||
+                      !store.in_time_slots,
                   )
                 "
                 class="w-full mt-6 py-3 bg-yellow-600 text-white font-bold rounded-lg hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 shadow-md"
@@ -317,7 +318,7 @@
 
         <button
           @click="submitOrder"
-          :disabled="!canCheckoutAllStores"
+          :disabled="!canCheckoutAllStores || storesClose.some((store) => !store.in_time_slots || store.is_busy)"
           class="w-full mt-8 py-4 bg-gray-900 text-white font-bold text-lg rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
         >
           {{ t('cart.checkoutAll') }}
@@ -325,7 +326,6 @@
         <p
           v-if="!canCheckoutAllStores && selectedAddress && filteredProducts.length > 0"
           class="text-red-500 text-xs mt-2 text-center"
-          :disapled="storesClose.forEach((store) => !store.in_time_slots || store.is_busy)"
         >
           {{
             totalOrderSummary.unavailable

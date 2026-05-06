@@ -492,6 +492,11 @@ const routes: Array<RouteRecordRaw> = [
             path: 'order',
             component: () => import('../pages/admin/orders/index.vue'),
           },
+            {
+            name: 'direct-orders',
+            path: 'direct-orders',
+            component: () => import('../pages/admin/orders/direct-orders.vue'),
+          },
           {
             name: 'order-show',
             path: 'order-show/:id',

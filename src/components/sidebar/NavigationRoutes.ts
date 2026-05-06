@@ -150,6 +150,14 @@ export default {
       },
     },
     {
+      name: 'direct-orders',
+      displayName: 'navigation.direct_orders',
+      show: ['list orders'],
+      meta: {
+          icon: 'local_shipping',
+      },
+    },
+    {
       name: 'order',
       displayName: 'navigation.orders',
       show: ['list orders'],

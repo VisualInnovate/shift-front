@@ -107,7 +107,7 @@
                   <i class="pi pi-calendar text-[10px]"></i>
                   <span class="text-[10px] font-black uppercase tracking-tighter">{{ formatDate(order.created_at) }}</span>
                 </div>
-                <span class="text-sm font-black text-slate-900">{{ order.total_price }} <small class="text-[10px] text-slate-400">EGP</small></span>
+                <span class="text-sm font-black text-slate-900">{{ order.total_price }} <small class="text-[10px] text-slate-400">{{$t('currencyLabel')}}</small></span>
               </div>
             </div>
           </div>

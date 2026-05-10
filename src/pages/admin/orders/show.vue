@@ -167,6 +167,7 @@ onMounted(fetchOrderData)
             @click="router.back()"
           />
           <Button
+
             :label="t('order.generateInvoice')"
             icon="pi pi-file-pdf"
             class="!bg-[#0b3baa] !border-none !rounded-xl px-6 py-3 shadow-md hover:shadow-lg transition-all"

@@ -11,10 +11,10 @@
           </div>
           <div>
             <h1 class="text-2xl font-black tracking-tight text-slate-800 uppercase">
-              {{ t('order.management') || 'Order Tracking' }}
+              {{ t('order.management') }}
             </h1>
             <p class="text-slate-500 text-sm mt-1 font-medium">
-              Showing {{ pagination.from }} - {{ pagination.to }} of {{ pagination.total }} orders
+              {{ t('show') }} {{ pagination.from }} - {{ pagination.to }} {{ t('from') }} {{ pagination.total }} {{ t('navigation.orders') }}
             </p>
           </div>
         </div>
@@ -57,7 +57,7 @@
           <div class="space-y-4 min-h-[300px] pb-10">
             <div v-if="!groupedOrders[col.status]?.length" class="bg-white/50 border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center opacity-60">
               <i class="pi pi-inbox text-slate-300 text-3xl mb-2"></i>
-              <p class="text-slate-400 text-[10px] font-black uppercase">{{ t('noOrders') || 'No Orders' }}</p>
+              <p class="text-slate-400 text-[10px] font-black uppercase">{{ t('order.noData') }}</p>
             </div>
 
             <div
@@ -85,7 +85,7 @@
                     <i class="pi pi-shopping-cart text-slate-500 text-xs"></i>
                   </div>
                   <div class="overflow-hidden">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase leading-none">Store</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase leading-none">{{ t('store.default') }}</p>
                     <p class="text-xs font-black text-slate-700 truncate">{{ lang === 'ar' ? order.store?.name_ar : order.store?.name_en }}</p>
                   </div>
                 </div>
@@ -94,7 +94,7 @@
                     <i class="pi pi-user text-slate-500 text-xs"></i>
                   </div>
                   <div class="overflow-hidden">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase leading-none">Customer</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase leading-none">{{ t('invoice.customer') }}</p>
                     <p class="text-xs font-bold text-slate-600 truncate">{{ order.user?.name }}</p>
                   </div>
                 </div>
@@ -152,11 +152,11 @@ const pagination = ref({
  * Added all 5 statuses from your API.
  */
 const columns = [
-    { status: 5, label: t('order.delivered') || 'Delivered', hex: '#22C55E' },  // Success/Green
-  { status: 1, label: t('order.pending') || 'Pending', hex: '#3B82F6' },    // Info/Blue
-  { status: 2, label: t('order.processing') || 'Processing', hex: '#F59E0B' }, // Warning/Amber
-  { status: 3, label: t('order.ready') || 'Ready', hex: '#10B981' },      // Success/Green
-  { status: 4, label: t('order.shipped') || 'Shipped', hex: '#6366F1' },    // Primary/Indigo
+  { status: 5, label: t('order.delivered'), hex: '#22C55E' },
+  { status: 1, label: t('order.pending'), hex: '#3B82F6' },
+  { status: 2, label: t('order.processing'), hex: '#F59E0B' },
+  { status: 3, label: t('order.ready'), hex: '#10B981' },
+  { status: 4, label: t('order.shipped'), hex: '#6366F1' },
 ]
 
 /**
@@ -197,7 +197,7 @@ const fetchOrders = async (page = 1) => {
     }
   } catch (error) {
     console.error("Fetch Error:", error)
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to fetch orders', life: 3000 });
+    toast.add({ severity: 'error', summary: t('error'), detail: t('order.loadError'), life: 3000 })
   } finally {
     loading.value = false
   }

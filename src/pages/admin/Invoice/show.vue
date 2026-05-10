@@ -283,7 +283,7 @@ const fetchInvoice = async () => {
 }
 
 const getProductName = (p) => lang === 'ar' ? (p?.name_ar || p?.name_en || '-') : (p?.name_en || p?.name_ar || '-')
-const formatCurrency = (v) => `${parseFloat(v || 0).toFixed(2)} ${t('currencyLabel') || 'EGP'}`
+const formatCurrency = (v) => `${parseFloat(v || 0).toFixed(2)} ${t('currencyLabel') || 'د.أ'}`
 const formatDate = (d) => d ? new Date(d).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'
 
 const formatAddress = (addr) => {

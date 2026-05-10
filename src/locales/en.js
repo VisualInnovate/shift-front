@@ -163,6 +163,7 @@ export default {
   error: 'Error',
   success: 'Success',
   order: {
+    management: 'Order Management',
     phoneNumber: 'Phone Number',
     pending: 'Pending',
     processing: 'Processing',
@@ -291,6 +292,7 @@ export default {
   error: 'Error',
   success: 'Success',
   warning: 'Warning',
+  attention: 'Attention',
   loading: 'Loading...',
   custom_tabs: {
     update_tab: 'update tab',

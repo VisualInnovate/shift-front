@@ -157,6 +157,7 @@ export default {
   to: 'إلى',
   from: 'من',
   order: {
+    "management": "إدارة الطلبات",
      "proc": {
       "done":        "تمت",
       "waiting":     "انتظار",
@@ -344,6 +345,7 @@ export default {
   error: 'خطأ',
   success: 'نجاح',
   warning: 'تحذير',
+  attention: 'تنبيه',
   loading: 'جارٍ التحميل...',
   customTabs: {
     managementTitle: 'إدارة التبويبات المخصصة',

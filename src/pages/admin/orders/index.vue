@@ -273,7 +273,7 @@ onMounted(() => {
                 <div class="flex gap-2 align-items-center">
                   <!-- View Button -->
                   <Button v-can="'show orders'" icon="pi pi-eye" class="p-button-rounded p-detail p-button-sm"
-                    @click="viewOrder(slotProps.data.id)" v-tooltip.top="t('view')" />
+                    @click="viewOrder(slotProps.data.id)" v-tooltip.top="t('order.view')" />
 
                   <!-- Status Dropdown -->
                   <Dropdown v-can="'update orders'" :modelValue="slotProps.data.status" :options="ordersStatus"

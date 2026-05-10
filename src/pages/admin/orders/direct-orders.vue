@@ -6,20 +6,22 @@
     <div class="max-w-7xl mx-auto mb-8">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#0b3baa]">
         <div class="flex items-center gap-4">
-          <div class="bg-[#0b3baa]/10 p-3 rounded-xl text-[#0b3baa]">
+          <div class="/10 p-3 rounded-xl ">
             <i class="pi pi-box text-2xl"></i>
           </div>
           <div>
             <h1 class="text-2xl font-black tracking-tight text-slate-800 uppercase">
               {{ t('order.management') || 'Order Tracking' }}
             </h1>
-
+            <p class="text-slate-500 text-sm mt-1 font-medium">
+              Showing {{ pagination.from }} - {{ pagination.to }} of {{ pagination.total }} orders
+            </p>
           </div>
         </div>
         <Button
           icon="pi pi-refresh"
           :loading="loading"
-
+          class="!rounded-xl"
           @click="fetchOrders(pagination.current_page)"
         />
       </div>
@@ -65,8 +67,7 @@
 
               <div class="flex justify-between items-start mb-4">
                 <div class="max-w-[70%]">
-                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">UUID</span>
-                  <p class="text-xs font-bold text-[#0b3baa] truncate">{{ order.number }}</p>
+                  <p class="text-xs font-bold text-[#0b3baa] truncate"> #{{ order.id }}</p>
                 </div>
                 <div class="bg-slate-50 p-2 rounded-lg text-slate-400 group-hover:bg-[#0b3baa] group-hover:text-white transition-colors">
                   <i class="pi pi-eye text-xs"></i>
@@ -115,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed,onUnmounted} from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useI18n } from 'vue-i18n'
@@ -132,6 +133,7 @@ const { t } = useI18n()
 const router = useRouter()
 const toast = useToast()
 
+let refreshInterval = null
 const orders = ref([])
 const loading = ref(true)
 const lang = localStorage.getItem('appLang') || 'en'
@@ -147,9 +149,11 @@ const pagination = ref({
 
 // Status Columns Definition
 const columns = [
+  { status: 1, label: t('order.statusCompleted') || 'Completed', color: '#10B981' },
+    { status: 2, label: t('order.statusDelivering') || 'Delivering', color: '#F3B913' },
+
   { status: 3, label: t('order.statusProcessed') || 'Processed', color: '#0B3BAA' },
-  { status: 2, label: t('order.statusDelivering') || 'Delivering', color: '#F3B913' },
-  { status: 1, label: t('order.statusCompleted') || 'Completed', color: '#10B981' }
+
 ]
 
 // Logic to group the flat array into columns based on status
@@ -162,17 +166,18 @@ const groupedOrders = computed(() => {
   })
   return groups
 })
-
 const fetchOrders = async (page = 1) => {
+
+  if (page === pagination.value.current_page) {
+
+  }
+
   loading.value = true
   try {
-    const res = await axios.get(`/api/order?page=${page}&limit=${100}`)
+    const res = await axios.get(`/api/order?page=${page}`)
     if (res.data?.is_success) {
-      // Correctly accessing the nested data from your JSON structure
       const apiResponse = res.data.data
       orders.value = apiResponse.data
-
-      // Sync Pagination metadata
       pagination.value = {
         current_page: apiResponse.current_page,
         total: apiResponse.total,
@@ -182,16 +187,13 @@ const fetchOrders = async (page = 1) => {
       }
     }
   } catch (error) {
-    toast.add({
-      severity: 'error',
-      summary: t('error'),
-      detail: error.response?.data?.message || 'Connection Error',
-      life: 3000
-    })
+
   } finally {
     loading.value = false
   }
 }
+
+
 
 const onPageChange = (event) => {
   const newPage = event.page + 1
@@ -212,6 +214,22 @@ const formatDate = (dateString) => {
 const viewDetails = (id) => {
   router.push({ name: 'order-show', params: { id } })
 }
+onMounted(() => {
 
-onMounted(() => fetchOrders())
+  fetchOrders()
+
+
+
+  refreshInterval = setInterval(() => {
+    console.log('Auto-refreshing orders...')
+    fetchOrders(pagination.value.current_page)
+  }, 10000)
+})
+
+
+onUnmounted(() => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval)
+  }
+})
 </script>

@@ -263,7 +263,7 @@ export default {
     deleteConfirmMessage: 'هل أنت متأكد من حذف هذا الطلب؟',
     detailsTitle: 'تفاصيل الطلب',
     back: 'رجوع',
-     fees: 'الرسوم',
+     fees: 'رسوم الخدمة',
     details : 'تفاصيل الطلب',
     areYouSure: 'هل أنت متأكد من تغيير حالة الطلب إلى',
     invoiceNotice : 'ملاحظة: إصدار الفاتورة قد يؤدي إلى إنهاء تفاصيل هذا الطلب.',

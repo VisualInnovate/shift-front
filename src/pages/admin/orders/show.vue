@@ -6,7 +6,6 @@ import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 
 // PrimeVue Components
-import Card from 'primevue/card'
 import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -25,15 +24,11 @@ const orderData = ref(null)
 const loading = ref(true)
 const isGeneratingInvoice = ref(false)
 const displayConfirmationModal = ref(false)
-const selectedItems = ref([])
 
 const lang = localStorage.getItem('appLang') || 'en'
 
 // ─── Computed Logic ───────────────────────────────────────────────────────────
 
-/**
- * Returns true if processing_at is set and more than 25 minutes have passed.
- */
 const isProcessingOverdue = computed(() => {
   const proc = orderData.value?.procedures
   if (!proc?.processing_at || proc?.ready_at) return false
@@ -43,9 +38,6 @@ const isProcessingOverdue = computed(() => {
   return diffMinutes > 25
 })
 
-/**
- * The ordered list of procedure steps to show in the timeline.
- */
 const procedureSteps = computed(() => {
   const proc = orderData.value?.procedures
   if (!proc) return []
@@ -58,7 +50,6 @@ const procedureSteps = computed(() => {
     { key: 'delivered_at',  labelKey: 'order.proc.delivered',  icon: 'pi pi-home' },
   ]
 
-  // Only show cancelled if it actually happened
   if (proc.cancelled_at) {
     steps.push({ key: 'cancelled_at', labelKey: 'order.proc.cancelled', icon: 'pi pi-times-circle' })
   }
@@ -96,10 +87,7 @@ const fetchOrderData = async () => {
 }
 
 const openGenerateInvoiceModal = () => {
-  if (!orderData.value || selectedItems.value.length === 0) {
-    toast.add({ severity: 'warn', summary: t('attention'), detail: t('order.selectFirst'), life: 3000 })
-    return
-  }
+  if (!orderData.value) return
   displayConfirmationModal.value = true
 }
 
@@ -107,10 +95,14 @@ const confirmAndGenerateInvoice = async () => {
   displayConfirmationModal.value = false
   isGeneratingInvoice.value = true
   try {
+    // Map all item IDs from orderData instead of using a selection ref
+    const allItemIds = orderData.value.order_items.map(i => i.id)
+
     const res = await axios.post('/api/invoice', {
       order_id: orderData.value.id,
-      items: selectedItems.value.map(i => i.id)
+      items: allItemIds
     })
+
     await fetchOrderData()
     toast.add({ severity: 'success', summary: t('success'), detail: t('order.invoiceSuccess') })
     if (res.data?.invoice_url) window.open(res.data.invoice_url, '_blank')
@@ -167,7 +159,6 @@ onMounted(fetchOrderData)
             @click="router.back()"
           />
           <Button
-
             :label="t('order.generateInvoice')"
             icon="pi pi-file-pdf"
             class="!bg-[#0b3baa] !border-none !rounded-xl px-6 py-3 shadow-md hover:shadow-lg transition-all"
@@ -195,9 +186,8 @@ onMounted(fetchOrderData)
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- Left Column: Details (4 cols) -->
+        <!-- Left Column: Details -->
         <div class="lg:col-span-4 space-y-6">
-
           <!-- Info Card: Customer & Store -->
           <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
             <div>
@@ -213,9 +203,7 @@ onMounted(fetchOrderData)
                 <span class="font-bold text-slate-800 dir-ltr">{{ orderData.user?.phone }}</span>
               </div>
             </div>
-
             <Divider />
-
             <div>
               <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                 <i class="pi pi-shop text-[#0b3baa]"></i> {{ t('order.storeInfo') }}
@@ -262,118 +250,72 @@ onMounted(fetchOrderData)
         </div>
 
         <div class="lg:col-span-8 space-y-6">
-
-
-<section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-  <div class="p-2 border-b border-slate-100 bg-slate-50/50">
-    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-      <i class="pi pi-list-check text-[#0b3baa]"></i>
-      {{ t('order.procedures') }}
-    </h3>
-  </div>
-
-  <div class="p-6">
-    <div class="flex flex-col gap-0">
-      <div
-        v-for="(step, index) in procedureSteps"
-        :key="step.key"
-        class="flex gap-4 group"
-      >
-        <!-- Left: Icon + Connector Line -->
-        <div class="flex flex-col items-center">
-          <!-- Circle -->
-          <div
-            class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 shadow-sm transition-all duration-300 text-sm"
-            :class="[
-              step.done && step.key !== 'cancelled_at'
-                ? 'bg-[#0b3baa] text-white ring-4 ring-[#0b3baa]/20'
-                : step.key === 'cancelled_at' && step.done
-                  ? 'bg-red-500 text-white ring-4 ring-red-200'
-                  : 'bg-slate-100 text-slate-400 ring-4 ring-transparent'
-            ]"
-          >
-            <i :class="step.done ? step.icon : 'pi pi-minus'" class="text-xs"></i>
-          </div>
-
-          <!-- Vertical Line -->
-          <div
-            v-if="index < procedureSteps.length - 1"
-            class="w-0.5 flex-1 min-h-[1rem] mt-1 rounded-full transition-all duration-300"
-            :class="step.done ? 'bg-[#0b3baa]/30' : 'bg-slate-200'"
-          ></div>
-        </div>
-
-        <!-- Right: Content -->
-        <div
-          class="flex-1 pb-2 group-last:pb-0"
-        >
-          <div
-            class="rounded-xl p-2 border transition-all duration-200"
-            :class="[
-              step.done && step.key !== 'cancelled_at'
-                ? 'bg-[#0b3baa]/5 border-[#0b3baa]/20'
-                : step.key === 'cancelled_at' && step.done
-                  ? 'bg-red-50 border-red-200'
-                  : 'bg-slate-50 border-slate-100'
-            ]"
-          >
-            <div class="flex items-center justify-between flex-wrap gap-2">
-              <!-- Step Label -->
-              <p
-                class="text-sm font-bold"
-                :class="[
-                  step.done && step.key !== 'cancelled_at'
-                    ? 'text-[#0b3baa]'
-                    : step.key === 'cancelled_at' && step.done
-                      ? 'text-red-600'
-                      : 'text-slate-400'
-                ]"
-              >
-                {{ t(step.labelKey) }}
-              </p>
-
-              <!-- Status Badge -->
-              <span
-                class="text-xs font-bold px-2.5 py-1 rounded-full"
-                :class="[
-                  step.done && step.key !== 'cancelled_at'
-                    ? 'bg-[#0b3baa] text-white'
-                    : step.key === 'cancelled_at' && step.done
-                      ? 'bg-red-500 text-white'
-                      : 'bg-slate-200 text-slate-400'
-                ]"
-              >
-                {{ step.done ? t('order.proc.done') : t('order.proc.notYet') }}
-              </span>
+          <!-- Procedures -->
+          <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-2 border-b border-slate-100 bg-slate-50/50">
+              <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <i class="pi pi-list-check text-[#0b3baa]"></i>
+                {{ t('order.procedures') }}
+              </h3>
             </div>
-
-            <!-- Timestamp -->
-            <div v-if="step.timestamp" class="mt-2 flex items-center gap-2 flex-wrap">
-              <span class="flex items-center gap-1 text-xs text-slate-500">
-                <i class="pi pi-calendar text-xs"></i>
-                {{ formatDate(step.timestamp) }}
-              </span>
-
-              <!-- Overdue badge -->
-              <span
-                v-if="step.key === 'processing_at' && isProcessingOverdue"
-                class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full ring-1 ring-amber-300"
-              >
-                <i class="pi pi-exclamation-circle text-xs"></i>
-                +25 {{ t('order.proc.minutes') }}
-              </span>
+            <div class="p-6">
+              <div class="flex flex-col gap-0">
+                <div v-for="(step, index) in procedureSteps" :key="step.key" class="flex gap-4 group">
+                  <div class="flex flex-col items-center">
+                    <div
+                      class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 shadow-sm transition-all duration-300 text-sm"
+                      :class="[
+                        step.done && step.key !== 'cancelled_at'
+                          ? 'bg-[#0b3baa] text-white ring-4 ring-[#0b3baa]/20'
+                          : step.key === 'cancelled_at' && step.done
+                            ? 'bg-red-500 text-white ring-4 ring-red-200'
+                            : 'bg-slate-100 text-slate-400 ring-4 ring-transparent'
+                      ]"
+                    >
+                      <i :class="step.done ? step.icon : 'pi pi-minus'" class="text-xs"></i>
+                    </div>
+                    <div
+                      v-if="index < procedureSteps.length - 1"
+                      class="w-0.5 flex-1 min-h-[1rem] mt-1 rounded-full transition-all duration-300"
+                      :class="step.done ? 'bg-[#0b3baa]/30' : 'bg-slate-200'"
+                    ></div>
+                  </div>
+                  <div class="flex-1 pb-2 group-last:pb-0">
+                    <div
+                      class="rounded-xl p-2 border transition-all duration-200"
+                      :class="[
+                        step.done && step.key !== 'cancelled_at'
+                          ? 'bg-[#0b3baa]/5 border-[#0b3baa]/20'
+                          : step.key === 'cancelled_at' && step.done
+                            ? 'bg-red-50 border-red-200'
+                            : 'bg-slate-50 border-slate-100'
+                      ]"
+                    >
+                      <div class="flex items-center justify-between flex-wrap gap-2">
+                        <p class="text-sm font-bold" :class="[step.done && step.key !== 'cancelled_at' ? 'text-[#0b3baa]' : step.key === 'cancelled_at' && step.done ? 'text-red-600' : 'text-slate-400']">
+                          {{ t(step.labelKey) }}
+                        </p>
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-full" :class="[step.done && step.key !== 'cancelled_at' ? 'bg-[#0b3baa] text-white' : step.key === 'cancelled_at' && step.done ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-400']">
+                          {{ step.done ? t('order.proc.done') : t('order.proc.notYet') }}
+                        </span>
+                      </div>
+                      <div v-if="step.timestamp" class="mt-2 flex items-center gap-2 flex-wrap">
+                        <span class="flex items-center gap-1 text-xs text-slate-500">
+                          <i class="pi pi-calendar text-xs"></i>
+                          {{ formatDate(step.timestamp) }}
+                        </span>
+                        <span v-if="step.key === 'processing_at' && isProcessingOverdue" class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full ring-1 ring-amber-300">
+                          <i class="pi pi-exclamation-circle text-xs"></i>
+                          +25 {{ t('order.proc.minutes') }}
+                        </span>
+                      </div>
+                      <p v-else class="mt-1 text-xs text-slate-400 italic">{{ t('order.proc.waiting') }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <!-- Not yet placeholder -->
-            <p v-else class="mt-1 text-xs text-slate-400 italic">
-              {{ t('order.proc.waiting') }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+          </section>
 
           <!-- Items Table -->
           <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -387,15 +329,13 @@ onMounted(fetchOrderData)
 
             <DataTable
               :value="sortedOrderItems"
-              v-model:selection="selectedItems"
               dataKey="id"
               class="p-datatable-custom"
               responsiveLayout="scroll"
               :rowHover="true"
             >
-              <Column selectionMode="multiple" headerStyle="width: 3rem" class="pl-4" />
-
-              <Column :header="t('order.product')">
+              <!-- Selection column removed -->
+              <Column :header="t('order.product')" class="pl-6">
                 <template #body="{ data }">
                   <div class="flex items-center gap-4 py-2">
                     <img :src="getProductImage(data.product)" class="w-12 h-12 rounded-xl object-cover ring-4 ring-slate-50" />
@@ -406,13 +346,11 @@ onMounted(fetchOrderData)
                   </div>
                 </template>
               </Column>
-
               <Column :header="t('order.qty')" class="text-center">
                 <template #body="{ data }">
                   <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-black text-[#0b3baa]">x{{ data.quantity }}</span>
                 </template>
               </Column>
-
               <Column :header="t('order.price')" headerClass="text-end">
                 <template #body="{ data }">
                   <span class="font-bold text-slate-800">{{ formatCurrency(data.price) }}</span>
@@ -420,7 +358,6 @@ onMounted(fetchOrderData)
               </Column>
             </DataTable>
           </div>
-
         </div>
       </div>
     </div>
@@ -440,7 +377,7 @@ onMounted(fetchOrderData)
         <h4 class="text-2xl font-black text-slate-800 mb-2">{{ t('order.confirmInvoice') }}</h4>
         <p class="text-slate-500 text-sm leading-relaxed">
           {{ t('order.invoiceNotice') }}
-          <span class="text-[#0b3baa] font-bold">({{ selectedItems.length }} {{ t('order.items') }})</span>
+          <span class="text-[#0b3baa] font-bold">({{ orderData.order_items.length }} {{ t('order.items') }})</span>
         </p>
       </div>
       <template #footer>
@@ -454,7 +391,6 @@ onMounted(fetchOrderData)
 </template>
 
 <style scoped>
-/* Custom PrimeVue Overrides */
 :deep(.p-datatable-thead > tr > th) {
   background: #f8fafc;
   color: #64748b;
@@ -464,28 +400,18 @@ onMounted(fetchOrderData)
   padding: 1rem;
   border: none;
 }
-
 :deep(.p-datatable-tbody > tr) {
   border-bottom: 1px solid #f1f5f9;
   transition: all 0.2s;
 }
-
 :deep(.p-datatable-tbody > tr:hover) {
   background: #f1f5f9 !important;
 }
-
 :deep(.p-tag) {
   font-size: 10px;
   font-weight: 800;
   padding: 0.25rem 0.75rem;
 }
-
 .fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-
-/* Horizontal line fix for RTL */
-[dir="rtl"] .md\:left-1 {
-  left: auto;
-  right: 1/2;
-}
 </style>

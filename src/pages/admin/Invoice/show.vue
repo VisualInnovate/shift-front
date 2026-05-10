@@ -89,10 +89,11 @@
                 <span>{{ t('invoice.tax') }}</span>
                 <span>{{ formatCurrency(invoice.tax_fee) }}</span>
               </div>
-              <div class="flex justify-between opacity-80" v-if="parseFloat(invoice.delivery_fee) > 0">
-                <span>{{ t('invoice.deliveryFee') }}</span>
-                <span>{{ formatCurrency(invoice.delivery_fee) }}</span>
+                <div  class="flex justify-between opacity-80" >
+                <span>{{ t('order.fees') }}</span>
+                <span class="text-white">{{ formatCurrency(parseFloat(invoice.tax_fee) + parseFloat(invoice.service_fee)) }}</span>
               </div>
+
               <div class="flex justify-between text-[#F3B913] italic" v-if="parseFloat(invoice.coupon) > 0">
                 <span>{{ t('invoice.coupon') }}</span>
                 <span>-{{ formatCurrency(invoice.coupon) }}</span>
@@ -150,18 +151,12 @@
                 </template>
               </Column>
 
-              <Column :header="t('price')">
-                <template #body="slotProps">
-                  <span class="text-slate-600 text-sm">
-                    {{ formatCurrency(slotProps.data.variant_id ? slotProps.data.variant.price : slotProps.data.price) }}
-                  </span>
-                </template>
-              </Column>
+
 
               <Column :header="t('total')" class="text-right pr-6">
                 <template #body="slotProps">
                   <span class="font-black text-slate-900">
-                    {{ formatCurrency(parseFloat(slotProps.data.variant_id ? slotProps.data.variant.price : slotProps.data.price) * slotProps.data.quantity) }}
+                    {{ formatCurrency(slotProps.data.variant_id ? slotProps.data.variant.price : slotProps.data.price) }}
                   </span>
                 </template>
               </Column>
@@ -329,3 +324,4 @@ const printInvoice = () => {
 
 onMounted(fetchInvoice)
 </script>
+

@@ -56,6 +56,7 @@
     "vue": "^3.2.26",
     "vue-chartjs": "^4.1.2",
     "vue-core-image-upload": "^2.4.14",
+    "vue-draggable-plus": "^0.6.1",
     "vue-filepond": "^7.0.3",
     "vue-i18n": "^9.9.1",
     "vue-moment": "^4.1.0",

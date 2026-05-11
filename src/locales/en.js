@@ -163,6 +163,9 @@ export default {
   error: 'Error',
   success: 'Success',
   order: {
+    dragAndDrop: 'You can drag and drop orders to reorder them',
+    changeStatusTitle: 'Change Order Status',
+    changeStatusConfirmMsg: 'Are you sure you want to change the order status',
     management: 'Order Management',
     phoneNumber: 'Phone Number',
     pending: 'Pending',
@@ -249,6 +252,7 @@ export default {
     changeStatusConfirm: 'Are you sure you want to change the order status to',
     statusChanged: 'Status changed to',
     statusChangeError: 'Failed to change order status',
+    changeStatusSuccess: 'Order status changed successfully',
   },
   yes: 'Yes',
   no: 'No',
@@ -1176,6 +1180,8 @@ export default {
   to: 'to',
   from: 'of',
   product: {
+    minMarketPrice: 'Min Market Price',
+    maxMarketPrice: 'Max Market Price',
     export_prices_features: 'Export Prices & Features',
     import_product_characteristics: 'Import Product Characteristics',
     'Price after discount': 'Price after discount',

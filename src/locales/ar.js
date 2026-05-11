@@ -5,6 +5,8 @@ export default {
   UpdateInStockToys: 'تحديث مخزون الألعاب',
   roles: 'الأدوار',
   apply: 'تطبيق',
+  Yes: 'نعم',
+  No: 'لا',
   clearFilters: 'مسح الفلاتر',
   filters: 'الفلاتر',
   updatePrice: ' تجديث اسعار المنتجات',
@@ -157,6 +159,9 @@ export default {
   to: 'إلى',
   from: 'من',
   order: {
+    dragAndDrop: 'يمكنك سحب وإفلات الطلبات لإعادة ترتيبها',
+    changeStatusTitle: 'تغيير حالة الطلب',
+    changeStatusConfirmMsg: 'هل أنت متأكد من تغيير حالة الطلب',
     "management": "إدارة الطلبات",
      "proc": {
       "done":        "تمت",
@@ -286,6 +291,7 @@ export default {
     changeStatusConfirm: 'هل أنت متأكد من تغيير حالة الطلب إلى',
     statusChanged: 'تم تغيير الحالة إلى',
     statusChangeError: 'فشل في تغيير حالة الطلب',
+    changeStatusSuccess: 'تم تغيير حالة الطلب بنجاح',
   },
   yes: 'نعم',
   no: 'لا',
@@ -1386,6 +1392,8 @@ export default {
     missingParams: 'معرف المتجر مفقود.',
   },
   product: {
+    maxMarketPrice: 'السعر الأقصى في السوق',
+    minMarketPrice: 'السعر الأقل في السوق',
     code: 'كود المنتج',
     sku: 'رمز المتغير',
     total: 'الإجمالي',

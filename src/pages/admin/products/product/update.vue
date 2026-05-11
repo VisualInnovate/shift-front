@@ -54,6 +54,8 @@ const productData = ref({
   description_ar: '',
   base_price: null,
   cost_price: null,
+  min_market_price: null,
+  max_market_price: null,
   tax: 0,
   code: '',           // ← add this line
   is_displayed: true,
@@ -61,11 +63,11 @@ const productData = ref({
   variants: []
 });
 
-// Dynamic required fields: SKU required only if no variants
+// Dynamic required fields: SKU & base_price required only if no variants
 const requiredFields = computed(() => {
-  const base = ['store_id', 'category_id', 'name_en', 'name_ar', 'base_price'];
+  const base = ['store_id', 'category_id', 'name_en', 'name_ar'];
   if (!hasVariants.value) {
-    base.push('sku');
+    base.push('sku', 'base_price');
   }
   return base;
 });
@@ -110,6 +112,8 @@ const fetchProduct = async () => {
       description_ar: data.description_ar || '',
       base_price: data.base_price || null,
       cost_price: data.cost_price || null,
+      min_market_price: data.min_market_price || null,
+      max_market_price: data.max_market_price || null,
       tax: data.tax || 0,
       is_displayed: data.is_displayed === 1,
       is_stock: data.is_stock === 1,
@@ -118,6 +122,8 @@ const fetchProduct = async () => {
         sku: variant.sku || '',
         price: variant.price,
         cost_price: variant.cost_price,
+        min_market_price: variant.min_market_price || null,
+        max_market_price: variant.max_market_price || null,
         attribute_value_ids: variant.attribute_values?.map(av => av.id) || [],
         variant_image: null,
         variant_image_preview: variant.media?.[0]?.url || null
@@ -326,6 +332,9 @@ const addVariant = () => {
     id: null,
     sku: '',
     price: '',
+    cost_price: null,
+    min_market_price: null,
+    max_market_price: null,
     attribute_value_ids: [],
     variant_image: null,
     variant_image_preview: null
@@ -384,8 +393,12 @@ const submitForm = async () => {
   formData.append('is_displayed', productData.value.is_displayed ? 1 : 0);
   formData.append('is_stock', productData.value.is_stock ? 1 : 0);
 
-  formData.append('base_price', productData.value.base_price);
-  formData.append('cost_price', productData.value.cost_price || 0);
+  if (!hasVariants.value) {
+    formData.append('base_price', productData.value.base_price);
+    formData.append('cost_price', productData.value.cost_price || 0);
+    formData.append('min_market_price', productData.value.min_market_price || 0);
+    formData.append('max_market_price', productData.value.max_market_price || 0);
+  }
 
   // Main image (only if changed)
   if (mainImage.value) {
@@ -403,6 +416,9 @@ const submitForm = async () => {
       if (variant.id) formData.append(`variants[${index}][id]`, variant.id);
       if (variant.sku) formData.append(`variants[${index}][sku]`, variant.sku);
       formData.append(`variants[${index}][price]`, variant.price);
+      formData.append(`variants[${index}][cost_price]`, variant.cost_price || 0);
+      formData.append(`variants[${index}][min_market_price]`, variant.min_market_price || 0);
+      formData.append(`variants[${index}][max_market_price]`, variant.max_market_price || 0);
       if (variant.attribute_value_ids && variant.attribute_value_ids.length) {
         variant.attribute_value_ids.forEach((attrId, attrIndex) => {
           formData.append(`variants[${index}][attribute_value_ids][${attrIndex}]`, attrId);
@@ -536,7 +552,7 @@ const submitForm = async () => {
         </div>
 
         <!-- Base Price -->
-        <div class="space-y-2">
+        <div v-if="!hasVariants" class="space-y-2">
           <label for="base_price" class="block text-sm font-medium text-gray-700">
             {{ t('product.basePrice') }} <span class="text-red-500">*</span>
           </label>
@@ -545,12 +561,30 @@ const submitForm = async () => {
         </div>
 
         <!-- Cost Price -->
-        <div class="space-y-2">
+        <div v-if="!hasVariants" class="space-y-2">
           <label for="cost_price" class="block text-sm font-medium text-gray-700">
             {{ t('product.costPrice') }}
           </label>
           <InputNumber id="cost_price" v-model="productData.cost_price" mode="decimal" :minFractionDigits="2"
             class="w-full" />
+        </div>
+
+        <!-- Min market price -->
+        <div v-if="!hasVariants" class="space-y-2">
+          <label for="min_market_price" class="block text-sm font-medium text-gray-700">
+            {{ t('product.minMarketPrice') }}
+          </label>
+          <InputNumber id="min_market_price" v-model="productData.min_market_price" mode="decimal"
+            :minFractionDigits="2" class="w-full" />
+        </div>
+
+        <!-- Max market price -->
+        <div v-if="!hasVariants" class="space-y-2">
+          <label for="max_market_price" class="block text-sm font-medium text-gray-700">
+            {{ t('product.maxMarketPrice') }}
+          </label>
+          <InputNumber id="max_market_price" v-model="productData.max_market_price" mode="decimal"
+            :minFractionDigits="2" class="w-full" />
         </div>
 
         <!-- Tax -->
@@ -628,11 +662,29 @@ const submitForm = async () => {
 
               <!-- Cost Price - REQUIRED -->
               <div class="space-y-2">
-                <label :for="'price_' + index" class="block text-sm font-medium text-gray-700">
+                <label :for="'cost_price_' + index" class="block text-sm font-medium text-gray-700">
                   {{ t('product.costPrice') }} <span class="text-red-500">*</span>
                 </label>
-                <InputNumber :id="'price_' + index" v-model="variant.cost_price" mode="decimal" :minFractionDigits="2"
-                  class="w-full" :class="{ 'p-invalid': !variant.price }" />
+                <InputNumber :id="'cost_price_' + index" v-model="variant.cost_price" mode="decimal"
+                  :minFractionDigits="2" class="w-full" :class="{ 'p-invalid': !variant.price }" />
+              </div>
+
+              <!-- Min market price -->
+              <div class="space-y-2">
+                <label :for="'min_market_price_' + index" class="block text-sm font-medium text-gray-700">
+                  {{ t('product.minMarketPrice') }}
+                </label>
+                <InputNumber :id="'min_market_price_' + index" v-model="variant.min_market_price" mode="decimal"
+                  :minFractionDigits="2" class="w-full" />
+              </div>
+
+              <!-- Max market price -->
+              <div class="space-y-2">
+                <label :for="'max_market_price_' + index" class="block text-sm font-medium text-gray-700">
+                  {{ t('product.maxMarketPrice') }}
+                </label>
+                <InputNumber :id="'max_market_price_' + index" v-model="variant.max_market_price" mode="decimal"
+                  :minFractionDigits="2" class="w-full" />
               </div>
 
               <!-- Variant Image Upload -->

@@ -152,11 +152,12 @@ const pagination = ref({
  * Added all 5 statuses from your API.
  */
 const columns = [
-  { status: 5, label: t('order.delivered'), hex: '#22C55E' },
   { status: 1, label: t('order.pending'), hex: '#3B82F6' },
   { status: 2, label: t('order.processing'), hex: '#F59E0B' },
   { status: 3, label: t('order.ready'), hex: '#10B981' },
   { status: 4, label: t('order.shipped'), hex: '#6366F1' },
+    { status: 5, label: t('order.delivered'), hex: '#22C55E' },
+s
 ]
 
 /**

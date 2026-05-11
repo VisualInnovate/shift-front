@@ -156,7 +156,7 @@
               <Column :header="t('total')" class="text-right pr-6">
                 <template #body="slotProps">
                   <span class="font-black text-slate-900">
-                    {{ formatCurrency(slotProps.data.variant_id ? slotProps.data.variant.price : slotProps.data.price) }}
+                    {{ formatCurrency( slotProps.data.price) }}
                   </span>
                 </template>
               </Column>

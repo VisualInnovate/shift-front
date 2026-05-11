@@ -125,7 +125,6 @@ const getStatusSeverity = (status) => {
               <tr class="text-slate-400 text-xs uppercase tracking-wider">
                 <th class="py-4 font-bold border-b-2 border-slate-100">{{ t('navigation.products') }}</th>
                 <th class="py-4 px-4 font-bold text-center border-b-2 border-slate-100">{{ t('quantity') }}</th>
-                <th class="py-4 font-bold text-right border-b-2 border-slate-100">{{ t('price') }}</th>
                 <th class="py-4 font-bold text-right border-b-2 border-slate-100">{{ t('total') }}</th>
               </tr>
             </thead>
@@ -141,7 +140,6 @@ const getStatusSeverity = (status) => {
                   </div>
                 </td>
                 <td class="py-6 px-4 text-center font-bold text-slate-700">{{ item.quantity }}</td>
-                <td class="py-6 text-right text-slate-500 font-medium">{{ formatCurrency(item.variant?.price || item.price) }}</td>
                 <td class="py-6 text-right text-slate-900 font-black">{{ formatCurrency(item.price) }}</td>
               </tr>
             </tbody>

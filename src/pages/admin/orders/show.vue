@@ -164,7 +164,7 @@ onMounted(fetchOrderData)
           <Button
             :label="t('order.generateInvoice')"
             icon="pi pi-file-pdf"
-            :disabled="!orderData.has_invoice && orderData.order_items?.length === 0"
+            :disabled="orderData.has_invoice "
             class="!bg-[#0b3baa] !border-none !rounded-xl px-6 py-3 shadow-md hover:shadow-lg transition-all"
             :loading="isGeneratingInvoice"
             @click="openGenerateInvoiceModal"

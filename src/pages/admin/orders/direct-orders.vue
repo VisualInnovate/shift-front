@@ -158,7 +158,6 @@
   import { useConfirm } from 'primevue/useconfirm'
   import { useI18n } from 'vue-i18n'
   import axios from 'axios'
-  import { VueDraggable } from 'vue-draggable-plus'
 
   // PrimeVue Components
   import Button from 'primevue/button'

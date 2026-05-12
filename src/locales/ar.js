@@ -473,12 +473,14 @@ export default {
   invoice: {
     customerNumber: 'رقم هاتف العميل',
     orderNumber: 'رقم الطلب',
+    summary: 'ملخص الفاتورة',
     customerName: 'اسم العميل',
     deliveryAddress: 'عنوان التوصيل',
     managementTitle: 'ادارة الفواتير',
     details: 'تفاصيل الفاتورة',
     invoice: 'الفاتورة',
     number: 'رقم الفاتورة',
+
     date: 'تاريخ الإصدار',
     customer: 'العميل',
     items: 'المنتجات المطلوبة',

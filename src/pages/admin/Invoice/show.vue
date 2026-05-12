@@ -93,6 +93,11 @@
                 <span>{{ t('order.fees') }}</span>
                 <span class="text-white">{{ formatCurrency(parseFloat(invoice.tax_fee) + parseFloat(invoice.service_fee)) }}</span>
               </div>
+               <div  class="flex justify-between opacity-80" >
+                <span>{{ t('order.delivery') }}</span>
+                <span class="text-white">{{ formatCurrency(parseFloat(invoice.delivery_fee) + parseFloat(invoice.service_fee)) }}</span>
+              </div>
+
 
               <div class="flex justify-between text-[#F3B913] italic" v-if="parseFloat(invoice.coupon) > 0">
                 <span>{{ t('invoice.coupon') }}</span>
@@ -222,6 +227,7 @@
         <div class="summary-box">
           <div class="summary-row"><span>{{ t('invoice.subTotal') }}</span> <span>{{ formatCurrency(invoice?.sub_total_price) }}</span></div>
           <div class="summary-row" v-if="parseFloat(invoice?.tax_fee) > 0"><span>{{ t('invoice.tax') }}</span> <span>{{ formatCurrency(invoice?.tax_fee) }}</span></div>
+          <div class="summary-row" ><span>{{ t('order.delivery') }}</span> <span>{{ formatCurrency(invoice?.delivery_fee) }}</span></div>
           <div class="summary-row text-xl" style="color:#0b3baa; border-top:1px solid #ddd; padding-top:10px;">
             <strong>{{ t('invoice.total') }}</strong> <strong>{{ formatCurrency(invoice?.total_price) }}</strong>
           </div>

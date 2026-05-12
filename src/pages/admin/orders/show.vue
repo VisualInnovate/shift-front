@@ -1,418 +1,309 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 
-// PrimeVue Components
-import Button from 'primevue/button'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Tag from 'primevue/tag'
-import ProgressSpinner from 'primevue/progressspinner'
-import Toast from 'primevue/toast'
-import Divider from 'primevue/divider'
-import Dialog from 'primevue/dialog'
-
-const { t, locale } = useI18n()
-const route = useRoute()
+const { t } = useI18n()
 const router = useRouter()
 const toast = useToast()
 
-const orderData = ref(null)
+// ── DATA & STATE ────────────────────────────────────────────────
+const orders = ref([])
 const loading = ref(true)
-const isGeneratingInvoice = ref(false)
-const displayConfirmationModal = ref(false)
+const stats = ref({})
+const activeMobileTab = ref(2) // Defaults to the first status value (2)
 
-const lang = localStorage.getItem('appLang') || 'en'
+// ── STATUS CONFIG ───────────────────────────────────────────────
+const statusColumns = computed(() => [
+  {
+    value: 2,
+    label: t('order.statusAssignDistributor'),
+    icon: 'pi-user-plus',
+    headerBg: 'bg-sky-500',
+    cardBg: 'bg-sky-50 dark:bg-sky-900/20',
+    border: 'border-sky-200 dark:border-sky-800',
+    badge: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
+    dot: 'bg-sky-400',
+    emptyIcon: 'pi-user-plus',
+  },
+  {
+    value: 3,
+    label: t('order.statusProcessed'),
+    icon: 'pi-cog',
+    headerBg: 'bg-violet-500',
+    cardBg: 'bg-violet-50 dark:bg-violet-900/20',
+    border: 'border-violet-200 dark:border-violet-800',
+    badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
+    dot: 'bg-violet-400',
+    emptyIcon: 'pi-cog',
+  },
+  {
+    value: 4,
+    label: t('order.statusAssignDriver'),
+    icon: 'pi-car',
+    headerBg: 'bg-orange-500',
+    cardBg: 'bg-orange-50 dark:bg-orange-900/20',
+    border: 'border-orange-200 dark:border-orange-800',
+    badge: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300',
+    dot: 'bg-orange-400',
+    emptyIcon: 'pi-car',
+  },
+  {
+    value: 5,
+    label: t('order.statusDelivering'),
+    icon: 'pi-truck',
+    headerBg: 'bg-amber-500',
+    cardBg: 'bg-amber-50 dark:bg-amber-900/20',
+    border: 'border-amber-200 dark:border-amber-800',
+    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+    dot: 'bg-amber-400',
+    emptyIcon: 'pi-truck',
+  },
+  {
+    value: 6,
+    label: t('order.statusDelivered'),
+    icon: 'pi-box',
+    headerBg: 'bg-teal-500',
+    cardBg: 'bg-teal-50 dark:bg-teal-900/20',
+    border: 'border-teal-200 dark:border-teal-800',
+    badge: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300',
+    dot: 'bg-teal-400',
+    emptyIcon: 'pi-box',
+  },
+  {
+    value: 7,
+    label: t('order.statusCompleted'),
+    icon: 'pi-check-circle',
+    headerBg: 'bg-green-500',
+    cardBg: 'bg-green-50 dark:bg-green-900/20',
+    border: 'border-green-200 dark:border-green-800',
+    badge: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
+    dot: 'bg-green-400',
+    emptyIcon: 'pi-check-circle',
+  },
+])
 
-// ─── Computed Logic ───────────────────────────────────────────────────────────
-
-const isProcessingOverdue = computed(() => {
-  const proc = orderData.value?.procedures
-  if (!proc?.processing_at || proc?.ready_at) return false
-  const processingTime = new Date(proc.processing_at)
-  const now = new Date()
-  const diffMinutes = (now - processingTime) / 1000 / 60
-  return diffMinutes > 25
+const groupedOrders = computed(() => {
+  const map = {}
+  statusColumns.value.forEach(s => { map[s.value] = [] })
+  orders.value.forEach(order => {
+    if (map[order.status] !== undefined) {
+      map[order.status].push(order)
+    }
+  })
+  return map
 })
 
-const procedureSteps = computed(() => {
-  const proc = orderData.value?.procedures
-  if (!proc) return []
+const totalVisible = computed(() =>
+  statusColumns.value.reduce((sum, col) => sum + (groupedOrders.value[col.value]?.length ?? 0), 0)
+)
 
-  const steps = [
-    { key: 'pending_at',    labelKey: 'order.proc.pending',    icon: 'pi pi-clock' },
-    { key: 'processing_at', labelKey: 'order.proc.processing', icon: 'pi pi-spin pi-spinner' },
-    { key: 'ready_at',      labelKey: 'order.proc.ready',      icon: 'pi pi-check-circle' },
-    { key: 'shipped_at',    labelKey: 'order.proc.shipped',    icon: 'pi pi-send' },
-    { key: 'delivered_at',  labelKey: 'order.proc.delivered',  icon: 'pi pi-home' },
-  ]
-
-  if (proc.cancelled_at) {
-    steps.push({ key: 'cancelled_at', labelKey: 'order.proc.cancelled', icon: 'pi pi-times-circle' })
-  }
-
-  return steps.map(step => ({
-    ...step,
-    timestamp: proc[step.key],
-    done: !!proc[step.key],
-  }))
-})
-
-const sortedOrderItems = computed(() => {
-  if (!orderData.value?.order_items) return []
-  return [...orderData.value.order_items].sort((a, b) =>
-    (a.product?.category_id || 0) - (b.product?.category_id || 0)
-  )
-})
-
-// ─── Actions ──────────────────────────────────────────────────────────────────
-
-const fetchOrderData = async () => {
+// ── API ─────────────────────────────────────────────────────────
+const fetchOrders = async () => {
   loading.value = true
   try {
-    const res = await axios.get(`/api/order/${route.params.id}`)
-    if (res.data?.is_success && res.data?.data) {
-      orderData.value = res.data.data
-    } else {
-      throw new Error('No data')
-    }
-  } catch (error) {
-    toast.add({ severity: 'error', summary: t('error'), detail: t('order.loadError'), life: 5000 })
+    const res = await axios.get('/api/order', { params: { page: 1, limit: 999 } })
+    orders.value = res.data.data ?? []
+    stats.value = res.data.stats ?? {}
+  } catch (err) {
+    toast.add({
+      severity: 'error',
+      summary: t('error'),
+      detail: err.response?.data?.message || 'Failed to load orders',
+      life: 4400,
+    })
   } finally {
     loading.value = false
   }
 }
 
-const openGenerateInvoiceModal = () => {
-  if (!orderData.value) return
-  displayConfirmationModal.value = true
+const viewDetails = (id) => {
+  router.push({ name: 'order-details', params: { id } })
 }
 
-const confirmAndGenerateInvoice = async () => {
-  displayConfirmationModal.value = false
-  isGeneratingInvoice.value = true
-  try {
-    // Map all item IDs from orderData instead of using a selection ref
-    const allItemIds = orderData.value.order_items.map(i => i.id)
-
-    const res = await axios.post('/api/invoice', {
-      order_id: orderData.value.id,
-      items: allItemIds
-    })
-
-    await fetchOrderData()
-    toast.add({ severity: 'success', summary: t('success'), detail: t('order.invoiceSuccess') })
-    if (res.data?.invoice_url) window.open(res.data.invoice_url, '_blank')
-  } catch (error) {
-    toast.add({ severity: 'error', summary: t('error'), detail: t('order.invoiceError') })
-  } finally {
-    isGeneratingInvoice.value = false
-  }
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const formatCurrency = (v) => `${parseFloat(v || 0).toFixed(2)} ${t('currencyLabel')}`
-const getProductName = (p) => lang === 'ar' ? p.name_ar : p.name_en
-const getProductImage = (p) => p.media?.[0]?.url || p.key_default_image || '/images/no-image.png'
-const formatDate = (d) => d ? new Date(d).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') : '—'
-
-onMounted(fetchOrderData)
+onMounted(() => fetchOrders())
 </script>
 
 <template>
-  <div
-    class="min-h-screen bg-[#f8fafc] p-4 md:p-8 font-sans text-slate-900"
-    :dir="lang === 'ar' ? 'rtl' : 'ltr'"
-  >
+  <div class="p-3 sm:p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
     <Toast />
 
-    <!-- Loading State -->
-    <div v-if="loading" class="flex flex-col items-center justify-center h-[60vh]">
-      <ProgressSpinner strokeWidth="3" fill="transparent" animationDuration=".5s" />
-      <p class="mt-4 text-[#0b3baa] font-bold tracking-wider animate-pulse">{{ t('loading') }}</p>
+    <!-- ── Header & Stats ──────────────────────────────────────── -->
+    <div class="mb-6 flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">
+          {{ t('order.management') || 'إدارة الطلبات' }}
+        </h1>
+        <p class="text-xs sm:text-sm text-gray-400 dark:text-gray-500 mt-1">
+          {{ t('order.kanbanSubtitle') || 'عرض الطلبات مقسمة حسب الحالة' }}
+        </p>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 xs:grid-cols-4 gap-2 sm:gap-3">
+        <div class="bg-white dark:bg-gray-800 rounded-xl px-3 py-2 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+          <div class="text-lg font-black text-gray-800 dark:text-gray-100">{{ stats.total_orders ?? 0 }}</div>
+          <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">{{ t('order.totalOrders') || 'إجمالي' }}</div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl px-3 py-2 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+          <div class="text-lg font-black text-amber-500">{{ stats.total_in_progress ?? 0 }}</div>
+          <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">{{ t('order.inProgress') || 'قيد التنفيذ' }}</div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl px-3 py-2 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+          <div class="text-lg font-black text-green-500">{{ stats.total_completed ?? 0 }}</div>
+          <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">{{ t('order.completed') || 'مكتمل' }}</div>
+        </div>
+        <div class="bg-white dark:bg-gray-800 rounded-xl px-3 py-2 shadow-sm border border-gray-100 dark:border-gray-700 text-center">
+          <div class="text-lg font-black text-sky-500">{{ totalVisible }}</div>
+          <div class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">{{ t('order.visible') || 'مرئي' }}</div>
+        </div>
+      </div>
     </div>
 
-    <div v-else-if="orderData" class="max-w-6xl mx-auto space-y-6">
+    <!-- ── Loading ────────────────────────────────────────────── -->
+    <div v-if="loading" class="flex flex-col justify-center items-center h-64 gap-3">
+      <div class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center animate-bounce">
+        <i class="pi pi-box text-orange-400 text-xl"></i>
+      </div>
+      <p class="text-xs text-gray-400 font-medium">{{ t('common.loading') || 'جاري التحميل...' }}</p>
+    </div>
 
-      <!-- Header Section -->
-      <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 bg-[#0b3baa]/10 rounded-2xl flex items-center justify-center text-[#0b3baa]">
-             <i class="pi pi-shopping-bag text-xl"></i>
-          </div>
-          <div>
-            <h1 class="text-xl md:text-2xl font-black text-slate-800">
-              {{ t('order.details') }} <span class="text-[#0b3baa]">#{{ orderData.id }}</span>
-            </h1>
-            <p class="text-slate-400 text-sm font-medium">{{ formatDate(orderData.created_at) }}</p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <Button
-            icon="pi pi-chevron-left"
-            outlined
-            class="!rounded-xl !p-3 hover:!bg-slate-100"
-            @click="router.back()"
-          />
-          <Button
-            :label="t('order.generateInvoice')"
-            icon="pi pi-file-pdf"
-            :disabled="!orderData.has_invoice && orderData.order_items?.length === 0"
-            class="!bg-[#0b3baa] !border-none !rounded-xl px-6 py-3 shadow-md hover:shadow-lg transition-all"
-            :loading="isGeneratingInvoice"
-            @click="openGenerateInvoiceModal"
-          />
-        </div>
-      </header>
-
-      <!-- Alert: Overdue -->
-      <transition name="fade">
-        <div
-          v-if="isProcessingOverdue"
-          class="flex items-center gap-4 bg-red-50 border border-red-100 text-red-800 rounded-2xl p-4"
+    <div v-else>
+      <!-- ── Mobile Tab Navigation (Visible only on small screens) ── -->
+      <div class="lg:hidden flex overflow-x-auto gap-2 pb-4 mb-2 no-scrollbar">
+        <button
+          v-for="col in statusColumns"
+          :key="col.value"
+          @click="activeMobileTab = col.value"
+          :class="[
+            'px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border',
+            activeMobileTab === col.value
+              ? col.headerBg + ' text-white border-transparent shadow-md'
+              : 'bg-white dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700'
+          ]"
         >
-          <div class="shrink-0 w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center animate-bounce">
-            <i class="pi pi-bolt text-lg"></i>
-          </div>
-          <div class="flex-1">
-            <p class="font-bold text-red-900 leading-none">{{ t('order.proc.overdueTitle') }}</p>
-            <p class="text-xs mt-1 text-red-600 opacity-80">{{ t('order.proc.overdueDesc') }}</p>
-          </div>
-        </div>
-      </transition>
+          {{ col.label }} ({{ groupedOrders[col.value]?.length ?? 0 }})
+        </button>
+      </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- ── Kanban Board Wrapper ────────────────────────────────── -->
+      <div class="overflow-x-auto lg:overflow-visible pb-6">
+        <!--
+          On Mobile: Show only the active column
+          On Desktop: Show all columns in a flex row
+        -->
+        <div class="flex flex-col lg:flex-row gap-5 items-start">
 
-        <!-- Left Column: Details -->
-        <div class="lg:col-span-4 space-y-6">
-          <!-- Info Card: Customer & Store -->
-          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
-            <div>
-              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <i class="pi pi-user text-[#0b3baa]"></i> {{ t('order.customerInfo') }}
-              </h3>
-              <div class="flex justify-between items-center mb-3">
-                <span class="text-slate-500 text-sm">{{ t('order.name') }}</span>
-                <span class="font-bold text-slate-800">{{ orderData.user?.name }}</span>
+          <div
+            v-for="col in statusColumns"
+            :key="col.value"
+            v-show="activeMobileTab === col.value || $viewport?.width >= 1024"
+            class="flex flex-col gap-4 w-full lg:w-80 flex-shrink-0"
+            :class="{'hidden lg:flex': activeMobileTab !== col.value}"
+          >
+            <!-- Column Header -->
+            <div :class="['rounded-2xl px-4 py-3.5 flex items-center justify-between text-white shadow-lg sticky top-0 z-10', col.headerBg]">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                  <i :class="['pi text-sm', col.icon]"></i>
+                </div>
+                <span class="font-bold text-sm tracking-tight">{{ col.label }}</span>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-500 text-sm">{{ t('order.phone') }}</span>
-                <span class="font-bold text-slate-800 dir-ltr">{{ orderData.user?.phone }}</span>
-              </div>
+              <span class="bg-black/10 text-white text-xs font-black px-2.5 py-1 rounded-lg backdrop-blur-md">
+                {{ groupedOrders[col.value]?.length ?? 0 }}
+              </span>
             </div>
-            <Divider />
-            <div>
-              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <i class="pi pi-shop text-[#0b3baa]"></i> {{ t('order.storeInfo') }}
-              </h3>
-              <div class="flex justify-between items-center mb-3">
-                <span class="text-slate-500 text-sm">{{ t('order.storeName') }}</span>
-                <span class="font-bold text-slate-800">{{ lang === 'ar' ? orderData.store?.name_ar : orderData.store?.name_en }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                 <span class="text-slate-500 text-sm">{{ t('order.storeStatus') }}</span>
-                 <Tag
-                  :value="orderData.store?.is_busy ? t('order.busy') : t('order.available')"
-                  :severity="orderData.store?.is_busy ? 'danger' : 'success'"
-                  rounded
-                 />
-              </div>
-            </div>
-          </div>
 
-          <!-- Financial Summary -->
-          <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl shadow-slate-200 relative overflow-hidden">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-[#0b3baa] opacity-20 rounded-full"></div>
-            <h3 class="text-xs font-bold text-[#F3B913] uppercase tracking-widest mb-6">{{ t('order.financialSummary') }}</h3>
-            <div class="space-y-4 relative z-10">
-              <div class="flex justify-between text-slate-400 text-sm">
-                <span>{{ t('order.subtotal') }}</span>
-                <span class="text-white">{{ formatCurrency(orderData.sub_total_price) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-400 text-sm">
-                <span>{{ t('order.fees') }}</span>
-                <span class="text-white">{{ formatCurrency(parseFloat(orderData.tax_fee) + parseFloat(orderData.service_fee)) }}</span>
-              </div>
-              <div class="flex justify-between text-slate-400 text-sm">
-                <span>{{ t('order.delivery') }}</span>
-                <span class="text-white">{{ formatCurrency(orderData.delivery_fee) }}</span>
-              </div>
-              <Divider class="!border-slate-700" />
-              <div class="flex justify-between items-end">
-                <span class="text-[#F3B913] font-bold">{{ t('order.total') }}</span>
-                <span class="text-3xl font-black text-white">{{ formatCurrency(orderData.total_price) }}</span>
-              </div>
+            <!-- Empty State -->
+            <div
+              v-if="!groupedOrders[col.value]?.length"
+              :class="['rounded-3xl border-2 border-dashed p-10 text-center flex flex-col items-center gap-3 transition-colors', col.border, 'bg-gray-50/50 dark:bg-gray-800/20']"
+            >
+              <i :class="['pi text-4xl opacity-20', col.emptyIcon]"></i>
+              <p class="text-xs text-gray-400 font-semibold italic">
+                {{ t('common.noData') || 'لا توجد طلبات' }}
+              </p>
             </div>
-          </div>
-        </div>
 
-        <div class="lg:col-span-8 space-y-6">
-          <!-- Procedures -->
-          <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-2 border-b border-slate-100 bg-slate-50/50">
-              <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <i class="pi pi-list-check text-[#0b3baa]"></i>
-                {{ t('order.procedures') }}
-              </h3>
-            </div>
-            <div class="p-6">
-              <div class="flex flex-col gap-0">
-                <div v-for="(step, index) in procedureSteps" :key="step.key" class="flex gap-4 group">
-                  <div class="flex flex-col items-center">
-                    <div
-                      class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 shadow-sm transition-all duration-300 text-sm"
-                      :class="[
-                        step.done && step.key !== 'cancelled_at'
-                          ? 'bg-[#0b3baa] text-white ring-4 ring-[#0b3baa]/20'
-                          : step.key === 'cancelled_at' && step.done
-                            ? 'bg-red-500 text-white ring-4 ring-red-200'
-                            : 'bg-slate-100 text-slate-400 ring-4 ring-transparent'
-                      ]"
-                    >
-                      <i :class="step.done ? step.icon : 'pi pi-minus'" class="text-xs"></i>
-                    </div>
-                    <div
-                      v-if="index < procedureSteps.length - 1"
-                      class="w-0.5 flex-1 min-h-[1rem] mt-1 rounded-full transition-all duration-300"
-                      :class="step.done ? 'bg-[#0b3baa]/30' : 'bg-slate-200'"
-                    ></div>
+            <!-- Order Cards -->
+            <div class="flex flex-col gap-3">
+              <div
+                v-for="order in groupedOrders[col.value]"
+                :key="order.id"
+                :class="[
+                  'rounded-2xl border p-4 shadow-sm active:scale-95 lg:hover:scale-[1.02] lg:hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden bg-white dark:bg-gray-800',
+                  col.border
+                ]"
+                @click="viewDetails(order.id)"
+              >
+                <!-- Dynamic accent background (subtle) -->
+                <div :class="['absolute inset-0 opacity-[0.03] pointer-events-none', col.headerBg]"></div>
+
+                <div :class="['absolute top-0 left-0 w-1 h-full', col.headerBg]"></div>
+
+                <div class="flex justify-between items-start mb-4 relative">
+                  <div>
+                    <span class="font-black text-gray-800 dark:text-gray-100 text-base block leading-tight">
+                      {{ order.number }}
+                    </span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ID: {{ order.id }}</span>
                   </div>
-                  <div class="flex-1 pb-2 group-last:pb-0">
-                    <div
-                      class="rounded-xl p-2 border transition-all duration-200"
-                      :class="[
-                        step.done && step.key !== 'cancelled_at'
-                          ? 'bg-[#0b3baa]/5 border-[#0b3baa]/20'
-                          : step.key === 'cancelled_at' && step.done
-                            ? 'bg-red-50 border-red-200'
-                            : 'bg-slate-50 border-slate-100'
-                      ]"
-                    >
-                      <div class="flex items-center justify-between flex-wrap gap-2">
-                        <p class="text-sm font-bold" :class="[step.done && step.key !== 'cancelled_at' ? 'text-[#0b3baa]' : step.key === 'cancelled_at' && step.done ? 'text-red-600' : 'text-slate-400']">
-                          {{ t(step.labelKey) }}
-                        </p>
-                        <span class="text-xs font-bold px-2.5 py-1 rounded-full" :class="[step.done && step.key !== 'cancelled_at' ? 'bg-[#0b3baa] text-white' : step.key === 'cancelled_at' && step.done ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-400']">
-                          {{ step.done ? t('order.proc.done') : t('order.proc.notYet') }}
-                        </span>
-                      </div>
-                      <div v-if="step.timestamp" class="mt-2 flex items-center gap-2 flex-wrap">
-                        <span class="flex items-center gap-1 text-xs text-slate-500">
-                          <i class="pi pi-calendar text-xs"></i>
-                          {{ formatDate(step.timestamp) }}
-                        </span>
-                        <span v-if="step.key === 'processing_at' && isProcessingOverdue" class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full ring-1 ring-amber-300">
-                          <i class="pi pi-exclamation-circle text-xs"></i>
-                          +25 {{ t('order.proc.minutes') }}
-                        </span>
-                      </div>
-                      <p v-else class="mt-1 text-xs text-slate-400 italic">{{ t('order.proc.waiting') }}</p>
+                  <span :class="['text-[10px] font-black px-2 py-1 rounded-md uppercase', col.badge]">
+                    {{ col.label }}
+                  </span>
+                </div>
+
+                <div class="space-y-2 mb-4 relative">
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                      <i class="pi pi-user text-[10px] text-gray-500"></i>
                     </div>
+                    <span class="text-sm text-gray-700 dark:text-gray-300 font-bold truncate">
+                      {{ order.client || '—' }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                      <i class="pi pi-building text-[10px] text-gray-500"></i>
+                    </div>
+                    <span class="text-xs text-gray-400 dark:text-gray-500 truncate font-medium">
+                      {{ order.distributor || '—' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center relative">
+                  <div class="flex items-center gap-1.5 text-[11px] text-gray-400 font-bold">
+                    <i class="pi pi-calendar-clock text-xs"></i>
+                    <span>{{ order.scheduled_at || '—' }}</span>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-sm font-black text-gray-900 dark:text-white">
+                      {{ order.total_price }}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
-          </section>
 
-          <!-- Items Table -->
-          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
-              <h3 class="font-bold text-slate-800 flex items-center gap-2">
-                <i class="pi pi-box text-[#0b3baa]"></i>
-                {{ t('order.items') }}
-                <Tag :value="orderData.order_items?.length" rounded class="!bg-slate-200 !text-slate-600 !text-[10px]" />
-              </h3>
-            </div>
-
-            <DataTable
-              :value="sortedOrderItems"
-              dataKey="id"
-              class="p-datatable-custom"
-              responsiveLayout="scroll"
-              :rowHover="true"
-            >
-              <!-- Selection column removed -->
-              <Column :header="t('order.product')" class="pl-6">
-                <template #body="{ data }">
-                  <div class="flex items-center gap-4 py-2">
-                    <img :src="getProductImage(data.product)" class="w-12 h-12 rounded-xl object-cover ring-4 ring-slate-50" />
-                    <div class="flex flex-col">
-                      <span class="font-bold text-slate-800 text-sm leading-tight">{{ getProductName(data.product) }}</span>
-                      <span class="text-[10px] text-slate-400 mt-1 uppercase font-medium">SKU: {{ data.product?.code || 'N/A' }}</span>
-                    </div>
-                  </div>
-                </template>
-              </Column>
-              <Column :header="t('order.qty')" class="text-center">
-                <template #body="{ data }">
-                  <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-black text-[#0b3baa]">x{{ data.quantity }}</span>
-                </template>
-              </Column>
-              <Column :header="t('order.price')" headerClass="text-end">
-                <template #body="{ data }">
-                  <span class="font-bold text-slate-800">{{ formatCurrency(data.price) }}</span>
-                </template>
-              </Column>
-            </DataTable>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Confirmation Modal -->
-    <Dialog
-      v-model:visible="displayConfirmationModal"
-      modal
-      header=" "
-      :style="{ width: '28rem' }"
-      class="invoice-dialog"
-    >
-      <div class="text-center px-4 pb-4">
-        <div class="w-20 h-20 bg-blue-50 text-[#0b3baa] rounded-full flex items-center justify-center mx-auto mb-6">
-          <i class="pi pi-file-export text-4xl"></i>
-        </div>
-        <h4 class="text-2xl font-black text-slate-800 mb-2">{{ t('order.confirmInvoice') }}</h4>
-        <p class="text-slate-500 text-sm leading-relaxed">
-          {{ t('order.invoiceNotice') }}
-          <span class="text-[#0b3baa] font-bold">({{ orderData.order_items.length }} {{ t('order.items') }})</span>
-        </p>
-      </div>
-      <template #footer>
-        <div class="flex gap-3 justify-center w-full pb-4">
-          <Button :label="t('cancel')" class="p-button-text !text-slate-400 !rounded-xl" @click="displayConfirmationModal = false" />
-          <Button :label="t('confirm')" class="!bg-[#0b3baa] !border-none !rounded-xl px-8" @click="confirmAndGenerateInvoice" />
-        </div>
-      </template>
-    </Dialog>
   </div>
 </template>
 
 <style scoped>
-:deep(.p-datatable-thead > tr > th) {
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 1rem;
-  border: none;
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
-:deep(.p-datatable-tbody > tr) {
-  border-bottom: 1px solid #f1f5f9;
-  transition: all 0.2s;
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
-:deep(.p-datatable-tbody > tr:hover) {
-  background: #f1f5f9 !important;
-}
-:deep(.p-tag) {
-  font-size: 10px;
-  font-weight: 800;
-  padding: 0.25rem 0.75rem;
-}
-.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

@@ -148,7 +148,10 @@ onMounted(fetchOrderData)
             <h1 class="text-xl md:text-2xl font-black text-slate-800">
               {{ t('order.details') }} <span class="text-[#0b3baa]">#{{ orderData.id }}</span>
             </h1>
-            <p class="text-slate-400 text-sm font-medium">{{ formatDate(orderData.created_at) }}</p>
+            <div class="flex items-center justify-center gap-4">
+              <p class="text-slate-400 text-sm font-medium">{{ formatDate(orderData.created_at) }}</p>
+              <p class="text-slate-400 text-sm font-medium">otp: {{ orderData.otp || '—' }}</p>
+            </div>
           </div>
         </div>
         <div class="flex items-center gap-2">

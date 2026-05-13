@@ -396,8 +396,13 @@ const submitForm = async () => {
   if (!hasVariants.value) {
     formData.append('base_price', productData.value.base_price);
     formData.append('cost_price', productData.value.cost_price || 0);
-    formData.append('min_market_price', productData.value.min_market_price || 0);
-    formData.append('max_market_price', productData.value.max_market_price || 0);
+    if (productData.value.min_market_price && productData.value.min_market_price != 0) {
+    formData.append('min_market_price', productData.value.min_market_price);
+    }
+
+    if (productData.value.max_market_price && productData.value.max_market_price != 0) {
+        formData.append('max_market_price', productData.value.max_market_price);
+    }
   }
 
   // Main image (only if changed)
@@ -417,8 +422,13 @@ const submitForm = async () => {
       if (variant.sku) formData.append(`variants[${index}][sku]`, variant.sku);
       formData.append(`variants[${index}][price]`, variant.price);
       formData.append(`variants[${index}][cost_price]`, variant.cost_price || 0);
-      formData.append(`variants[${index}][min_market_price]`, variant.min_market_price || 0);
-      formData.append(`variants[${index}][max_market_price]`, variant.max_market_price || 0);
+      if (variant.min_market_price && variant.min_market_price != 0) {
+        formData.append(`variants[${index}][min_market_price]`, variant.min_market_price);
+      }
+      if (variant.max_market_price && variant.max_market_price != 0) {
+        formData.append(`variants[${index}][max_market_price]`, variant.max_market_price);
+      }
+
       if (variant.attribute_value_ids && variant.attribute_value_ids.length) {
         variant.attribute_value_ids.forEach((attrId, attrIndex) => {
           formData.append(`variants[${index}][attribute_value_ids][${attrIndex}]`, attrId);

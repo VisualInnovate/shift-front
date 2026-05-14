@@ -13,9 +13,9 @@
       <!-- Swiper -->
       <swiper
         :modules="[Autoplay, Grid]"
-        :slides-per-view="tab.row_type === 1 ? 4 : 2"
+        :slides-per-view="tab.row_type === 2 ? 2 : 4"
         :grid="tab.row_type === 2 ? { rows: 2, fill: 'row' } : undefined"
-        :space-between="tab.row_type === 1 ? 8 : 16"
+        :space-between="20"
         :loop="true"
         :autoplay="{ delay: 0, disableOnInteraction: false, pauseOnMouseEnter: true }"
         :speed="30000"
@@ -33,7 +33,7 @@
             :to="linkToDetail(detail.type, detail.id, locale === 'ar' ? detail.name_ar : detail.name_en)"
             class="block w-full"
           >
-            <div class="w-full aspect-[3.3/4] overflow-hidden rounded-xl shadow-sm relative bg-gray-50">
+            <div class="w-full aspect-square overflow-hidden rounded-xl shadow-sm relative bg-gray-50">
               <img
                 :src="detail.media?.[0]?.url || '/placeholder.jpg'"
                 :alt="locale === 'ar' ? detail.name_ar : detail.name_en"
@@ -74,26 +74,31 @@ const getBreakpoints = (rowType) => {
   return {
     320: {
       slidesPerView: 2,
-      spaceBetween: 8,
+      spaceBetween: 5,
+      grid: isGrid ? { rows: 2 } : undefined
+    },
+    480: {
+      slidesPerView: 2,
+      spaceBetween: 5,
       grid: isGrid ? { rows: 2 } : undefined
     },
     640: {
       slidesPerView: 2,
-      spaceBetween: 12,
+      spaceBetween: 16,
       grid: isGrid ? { rows: 2 } : undefined
     },
     768: {
       slidesPerView: 3,
-      spaceBetween: 16,
-      grid: isGrid ? { rows: 2 } : undefined
-    },
-    1024: {
-      slidesPerView: isGrid ? 5 : 5,
       spaceBetween: 20,
       grid: isGrid ? { rows: 2 } : undefined
     },
+    1024: {
+      slidesPerView: 4,
+      spaceBetween: 24,
+      grid: isGrid ? { rows: 2 } : undefined
+    },
     1280: {
-      slidesPerView: isGrid ? 6 : 6,
+      slidesPerView: 4,
       spaceBetween: 24,
       grid: isGrid ? { rows: 2 } : undefined
     }

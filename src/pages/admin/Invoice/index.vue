@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { FilterMatchMode } from 'primevue/api'
 import axios from 'axios'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const router = useRouter()
 const toast = useToast()
 
@@ -25,6 +25,7 @@ const totalPages = ref(0)
 const from = ref(0)
 const to = ref(0)
 const links = ref([])
+const rowsPerPage = ref(10)
 
 // Initialize filters
 const initFilters = () => {
@@ -39,7 +40,7 @@ const fetchData = () => {
   axios.get('/api/invoice', {
     params: {
       page: currentPage.value,
-      limit: 10, // or use rowsPerPage if you want dynamic
+      limit: rowsPerPage.value,
       search: searchQuery.value || undefined
     }
   })
@@ -80,14 +81,19 @@ const goToPage = (page) => {
   }
 }
 
+const changeRowsPerPage = () => {
+  currentPage.value = 1
+  fetchData()
+}
+
 // Export CSV
 const exportCSV = () => {
   dt.value.exportCSV()
 }
 
-// View invoice detail (optional - create route if needed)
+// View invoice detail
 const viewInvoice = (id) => {
-  router.push({ name: 'invoice-show', params: { id } }) // adjust route name
+  router.push({ name: 'invoice-show', params: { id } })
 }
 
 // Lifecycle
@@ -146,11 +152,18 @@ onMounted(() => {
         >
           <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
 
-
+          <!-- New Owner Column handles translation automatically -->
+          <Column field="owner" :header="t('invoice.owner') || 'Owner'" sortable>
+            <template #body="slotProps">
+              <span v-if="slotProps.data.owner">
+                {{ locale === 'ar' ? slotProps.data.owner.ar : slotProps.data.owner.en }}
+              </span>
+            </template>
+          </Column>
 
           <Column field="number" :header="t('invoice.customerName')" sortable>
             <template #body="slotProps">
-              <strong>{{ slotProps.data.user.name }}</strong>
+              <strong>{{ slotProps.data.user?.name }}</strong>
             </template>
           </Column>
 
@@ -162,17 +175,15 @@ onMounted(() => {
 
           <Column field="number" :header="t('invoice.orderNumber')" sortable>
             <template #body="slotProps">
-              <strong>#{{ slotProps.data.order.id }}</strong>
+              <strong>#{{ slotProps.data.order?.id }}</strong>
             </template>
           </Column>
 
           <Column field="number" :header="t('invoice.customerNumber')" sortable>
             <template #body="slotProps">
-              <strong>{{ slotProps.data.user.phone }}</strong>
+              <strong>{{ slotProps.data.user?.phone }}</strong>
             </template>
           </Column>
-
-
 
           <Column field="total_price" :header="t('invoice.total')" sortable>
             <template #body="slotProps">

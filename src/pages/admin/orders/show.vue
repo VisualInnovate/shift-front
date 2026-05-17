@@ -95,7 +95,6 @@ const confirmAndGenerateInvoice = async () => {
   displayConfirmationModal.value = false
   isGeneratingInvoice.value = true
   try {
-    // Map all item IDs from orderData instead of using a selection ref
     const allItemIds = orderData.value.order_items.map(i => i.id)
 
     const res = await axios.post('/api/invoice', {
@@ -148,9 +147,9 @@ onMounted(fetchOrderData)
             <h1 class="text-xl md:text-2xl font-black text-slate-800">
               {{ t('order.details') }} <span class="text-[#0b3baa]">#{{ orderData.id }}</span>
             </h1>
-            <div class="flex items-center justify-center gap-4">
+            <div class="flex items-center gap-4">
               <p class="text-slate-400 text-sm font-medium">{{ formatDate(orderData.created_at) }}</p>
-              <p class="text-slate-400 text-sm font-medium">otp: {{ orderData.otp || '—' }}</p>
+              <p class="text-slate-400 text-sm font-medium">OTP: {{ orderData.otp || '—' }}</p>
             </div>
           </div>
         </div>
@@ -164,7 +163,7 @@ onMounted(fetchOrderData)
           <Button
             :label="t('order.generateInvoice')"
             icon="pi pi-file-pdf"
-            :disabled="orderData.has_invoice "
+            :disabled="orderData.has_invoice"
             class="!bg-[#0b3baa] !border-none !rounded-xl px-6 py-3 shadow-md hover:shadow-lg transition-all"
             :loading="isGeneratingInvoice"
             @click="openGenerateInvoiceModal"
@@ -216,6 +215,13 @@ onMounted(fetchOrderData)
                 <span class="text-slate-500 text-sm">{{ t('order.storeName') }}</span>
                 <span class="font-bold text-slate-800">{{ lang === 'ar' ? orderData.store?.name_ar : orderData.store?.name_en }}</span>
               </div>
+
+              <!-- Added Owner Details Row -->
+              <div v-if="orderData.owner" class="flex justify-between items-center mb-3">
+                <span class="text-slate-500 text-sm">{{ t('order.owner') || 'Owner' }}</span>
+                <span class="font-bold text-slate-800">{{ lang === 'ar' ? orderData.owner.ar : orderData.owner.en }}</span>
+              </div>
+
               <div class="flex justify-between items-center">
                  <span class="text-slate-500 text-sm">{{ t('order.storeStatus') }}</span>
                  <Tag
@@ -338,7 +344,6 @@ onMounted(fetchOrderData)
               responsiveLayout="scroll"
               :rowHover="true"
             >
-              <!-- Selection column removed -->
               <Column :header="t('order.product')" class="pl-6">
                 <template #body="{ data }">
                   <div class="flex items-center gap-4 py-2">

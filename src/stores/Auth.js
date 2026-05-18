@@ -25,6 +25,7 @@ export const useAuthStore = defineStore('Auth', {
     token: useStorage('token', ''),
     msg: '',
     loading: ref(false),
+    otpLoading: ref(false),
     router: useRouter(),
   }),
   getters: {
@@ -40,7 +41,7 @@ export const useAuthStore = defineStore('Auth', {
       }
     },
     async handleLogin(data) {
-      this.authErrors = ["Invalid credentials. Please try again."]
+      this.authErrors = ['Invalid credentials. Please try again.']
       this.loading = true
       this.resetAuthStore()
 
@@ -50,8 +51,9 @@ export const useAuthStore = defineStore('Auth', {
           password: data.password,
           user_type: 'admin',
         })
-
-        if (response.data.data?.access_token) {
+        if (response.data.data?.requires_otp) {
+          this.router.push({ name: 'otp', params: { email: data.email, otp_type: 'email' } })
+        } else if (response.data.data?.access_token) {
           const responseData = response.data.data
           const user = responseData.user || {}
           const permissions = Array.isArray(user.permissions) ? user.permissions : []
@@ -95,7 +97,7 @@ export const useAuthStore = defineStore('Auth', {
 
           await this.router.push({ name: 'dashboard' })
         } else {
-          this.authErrors = ["Invalid credentials. Please try again."]
+          this.authErrors = ['Invalid credentials. Please try again.']
         }
       } catch (error) {
         if (error.response) {
@@ -103,17 +105,17 @@ export const useAuthStore = defineStore('Auth', {
           if (error.response.status === 422) {
             this.authErrors = error.response.data.errors
               ? Object.values(error.response.data.errors).flat()
-              : ["Validation failed. Please check your inputs."]
+              : ['Validation failed. Please check your inputs.']
           } else if (error.response.status === 401) {
-            this.authErrors = ["Invalid email or password."]
+            this.authErrors = ['Invalid email or password.']
           } else {
-            this.authErrors = [error.response.data.message || "An error occurred during login."]
+            this.authErrors = [error.response.data.message || 'An error occurred during login.']
           }
         } else if (error.request) {
           // The request was made but no response was received
-          this.authErrors = ["Network error. Please check your connection."]
+          this.authErrors = ['Network error. Please check your connection.']
         } else {
-          this.authErrors = ["Invalid email or password."]
+          this.authErrors = ['Invalid email or password.']
         }
       } finally {
         this.loading = false
@@ -138,9 +140,9 @@ export const useAuthStore = defineStore('Auth', {
         if (error.response?.status === 422) {
           this.authErrors = error.response.data.errors
             ? Object.values(error.response.data.errors).flat()
-            : ["Validation failed. Please check your inputs."]
+            : ['Validation failed. Please check your inputs.']
         } else {
-          this.authErrors = [error.response?.data?.message || "Registration failed. Please try again."]
+          this.authErrors = [error.response?.data?.message || 'Registration failed. Please try again.']
         }
       } finally {
         this.loading = false
@@ -148,13 +150,18 @@ export const useAuthStore = defineStore('Auth', {
     },
     async handleLogout() {
       console.log('Logging out user:', this.token)
-       axios.post('/api/logout', {}, {
-        headers: { Authorization: `Bearer ${this.token}` },
-      }).catch(() => {
-        resetAuthStore()
-        // Handle logout error if needed, but proceed to clear data regardless
-      });
-
+      axios
+        .post(
+          '/api/logout',
+          {},
+          {
+            headers: { Authorization: `Bearer ${this.token}` },
+          },
+        )
+        .catch(() => {
+          resetAuthStore()
+          // Handle logout error if needed, but proceed to clear data regardless
+        })
     },
     async forgotPassword(data) {
       try {
@@ -168,7 +175,7 @@ export const useAuthStore = defineStore('Auth', {
         if (error.response?.status === 422) {
           this.authErrors = Object.values(error.response.data.errors).flat()
         } else {
-          this.authErrors = [error.response?.data?.message || "Password reset request failed."]
+          this.authErrors = [error.response?.data?.message || 'Password reset request failed.']
         }
       }
     },
@@ -180,8 +187,59 @@ export const useAuthStore = defineStore('Auth', {
         if (error.response?.status === 422) {
           this.authErrors = Object.values(error.response.data.errors).flat()
         } else {
-          this.authErrors = [error.response?.data?.message || "Password reset failed."]
+          this.authErrors = [error.response?.data?.message || 'Password reset failed.']
         }
+      }
+    },
+    async handleSendOtp({ email, otp_type }) {
+      this.authErrors = []
+      this.otpLoading = true
+      try {
+        await axios.post('/api/send-otp', { email, otp_type })
+      } catch (error) {
+        if (error.response?.status === 422) {
+          this.authErrors = error.response.data.errors
+            ? Object.values(error.response.data.errors).flat()
+            : ['Validation failed.']
+        } else {
+          this.authErrors = [error.response?.data?.message || 'Failed to send OTP.']
+        }
+      } finally {
+        this.otpLoading = false
+      }
+    },
+    async handleVerifyOtp({ email, otp }) {
+      this.authErrors = []
+      this.loading = true
+      try {
+        const response = await axios.post('/api/verify-email', { email, otp })
+        if (response.data.data?.access_token) {
+          const responseData = response.data.data
+          const user = responseData.user || {}
+          const permissions = Array.isArray(user.permissions) ? user.permissions : []
+
+          this.authenticated = true
+          this.token = responseData.access_token
+          this.authUser = user
+          this.userPermissions = permissions
+          persistAdminSession({ token: responseData.access_token, user, permissions })
+
+          await this.router.push({ name: 'dashboard' })
+        } else {
+          this.authErrors = ['Verification failed. Please try again.']
+        }
+      } catch (error) {
+        if (error.response?.status === 422) {
+          this.authErrors = error.response.data.errors
+            ? Object.values(error.response.data.errors).flat()
+            : ['Invalid OTP. Please try again.']
+        } else if (error.response?.status === 401) {
+          this.authErrors = ['Invalid OTP.']
+        } else {
+          this.authErrors = [error.response?.data?.message || 'Verification failed.']
+        }
+      } finally {
+        this.loading = false
       }
     },
     resetAuthStore() {

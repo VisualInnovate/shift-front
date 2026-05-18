@@ -15,22 +15,22 @@ const routes: Array<RouteRecordRaw> = [
     redirect: { name: 'dashboard' },
   },
 
- {
-        name: 'order-details',
-        path: '/order-details/:id',
-        component: () => import('../pages/admin/orders/Noauthshow.vue'),
+  {
+    name: 'order-details',
+    path: '/order-details/:id',
+    component: () => import('../pages/admin/orders/Noauthshow.vue'),
 
-      },
-     {
-        name: 'terms-condition',
-        path: '/terms-condition',
-        component: () => import('../pages/admin/frontend/pages/terms-condition.vue'),
-      },
-       {
-        name: 'Privacy-Policy',
-        path: '/Privacy-Policy',
-        component: () => import('../pages/admin/frontend/pages/Privacy-Policy.vue'),
-      },
+  },
+  {
+    name: 'terms-condition',
+    path: '/terms-condition',
+    component: () => import('../pages/admin/frontend/pages/terms-condition.vue'),
+  },
+  {
+    name: 'Privacy-Policy',
+    path: '/Privacy-Policy',
+    component: () => import('../pages/admin/frontend/pages/Privacy-Policy.vue'),
+  },
   {
     name: '',
     path: '/',
@@ -49,7 +49,7 @@ const routes: Array<RouteRecordRaw> = [
           }
         },
       },
-       {
+      {
         name: 'follow-us',
         path: '/follow-us',
         component: () => import('../pages/admin/frontend/pages/follow-us.vue'),
@@ -64,12 +64,12 @@ const routes: Array<RouteRecordRaw> = [
         path: '/produts-category/:id',
         component: () => import('../pages/admin/frontend/pages/products/produts-category.vue'),
       },
-       {
+      {
         name: 'products-brand',
         path: '/products-brand/:id',
         component: () => import('../pages/admin/frontend/pages/products/brand-products.vue'),
       },
-       {
+      {
         name: 'products-exclusive',
         path: '/products-exclusive/:id',
         component: () => import('../pages/admin/frontend/pages/products/products-exclusive.vue'),
@@ -81,7 +81,7 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/admin/frontend/pages/media-links/media-products.vue'),
 
       },
-       {
+      {
         name: 'media-category',
         path: '/media-category/:id',
         component: () => import('../pages/admin/frontend/pages/media-links/media-category.vue'),
@@ -95,18 +95,18 @@ const routes: Array<RouteRecordRaw> = [
           title: route.query.title
         })
       },
-       {
+      {
         name: 'customtap-category',
         path: '/customtap-category/:id',
         component: () => import('../pages/admin/frontend/pages/customtap/customtap-category.vue'),
-         props: route => ({
+        props: route => ({
           title: route.query.title
         })
       }, {
         name: 'customtap-brand',
         path: '/customtap-brand/:id',
         component: () => import('../pages/admin/frontend/pages/customtap/customtap-brand.vue'),
-         props: route => ({
+        props: route => ({
           title: route.query.title
         })
       },
@@ -141,7 +141,7 @@ const routes: Array<RouteRecordRaw> = [
         name: 'favorites',
         path: '/favorites',
         component: () => import('../pages/admin/frontend/pages/favorites.vue'),
-         beforeEnter: (to, from, next) => {
+        beforeEnter: (to, from, next) => {
           const isAuthenticated = localStorage.getItem('authenticatedweb') === 'true';
           if (isAuthenticated) {
             next();
@@ -177,11 +177,11 @@ const routes: Array<RouteRecordRaw> = [
           }
         },
       },
-       {
+      {
         name: 'add-addres',
         path: '/add-addres',
-         props: (route) => ({
-           id: route.query.id,
+        props: (route) => ({
+          id: route.query.id,
 
         }),
         component: () => import('../pages/admin/frontend/pages/profile/add-addres.vue'),
@@ -305,7 +305,7 @@ const routes: Array<RouteRecordRaw> = [
         path: 'Permission',
         component: () => import('../pages/admin/Permissions/index.vue'),
       },
-       {
+      {
         name: 'shiftmartfile',
         path: 'shiftmartfile',
         component: () => import('../pages/admin/products/shiftmartfile/index.vue'),
@@ -456,7 +456,7 @@ const routes: Array<RouteRecordRaw> = [
             path: 'stores',
             component: () => import('../pages/admin/store/index.vue'),
           },
-           {
+          {
             name: 'store-shipping-settings',
             path: 'store-shipping-settings/:id',
             component: () => import('../pages/admin/store/shipping-setting.vue'),
@@ -471,18 +471,18 @@ const routes: Array<RouteRecordRaw> = [
             path: 'market-shipping-settings/:id',
             component: () => import('../pages/admin/products/markets/shipping-setting.vue'),
           },
-           {
+          {
             name: 'category-shipping-settings',
             path: 'category-shipping-settings/:id',
             component: () => import('../pages/admin/products/category/shipping-setting.vue'),
           },
-           {
+          {
             name: 'inventory',
             path: 'inventory',
             component: () => import('../pages/admin/inventory/index.vue'),
           },
 
-            {
+          {
             name: 'inventory-quantity',
             path: 'inventory-quantity/:id',
             component: () => import('../pages/admin/inventory/update.vue'),
@@ -492,7 +492,7 @@ const routes: Array<RouteRecordRaw> = [
             path: 'order',
             component: () => import('../pages/admin/orders/index.vue'),
           },
-            {
+          {
             name: 'direct-orders',
             path: 'direct-orders',
             component: () => import('../pages/admin/orders/direct-orders.vue'),
@@ -529,19 +529,19 @@ const routes: Array<RouteRecordRaw> = [
             path: 'shipping-update',
             component: () => import('../pages/admin/shipping-setting/update.vue'),
           },
-         {
+          {
             name: 'media-links',
             path: 'media-links/:id/:type',
             component: () => import('../pages/admin/store/mediaLinks.vue'),
           },
 
 
-            {
+          {
             name: 'template-notification',
             path: 'template-notification',
             component: () => import('../pages/admin/template-notification/index.vue'),
           },
-         {
+          {
             name: 'attributes',
             path: 'attributes',
             component: () => import('../pages/admin/settings/Attributes/index.vue'),
@@ -551,7 +551,7 @@ const routes: Array<RouteRecordRaw> = [
             path: 'invoices',
             component: () => import('../pages/admin/Invoice/index.vue'),
           },
-           {
+          {
             name: 'invoice-show',
             path: 'invoices-show/:id',
             component: () => import('../pages/admin/Invoice/show.vue'),
@@ -619,6 +619,11 @@ const routes: Array<RouteRecordRaw> = [
         name: 'login',
         path: 'login',
         component: () => import('../pages/auth/login/Login.vue'),
+      },
+      {
+        name: 'otp',
+        path: 'otp/:email/:otp_type',
+        component: () => import('../pages/auth/login/otp.vue'),
       },
       {
         name: 'signup',

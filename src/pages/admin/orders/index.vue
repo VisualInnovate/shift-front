@@ -16,7 +16,7 @@ import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
 import Dropdown from 'primevue/dropdown'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const router = useRouter()
 const toast = useToast()
 
@@ -174,7 +174,6 @@ const exportCSV = () => {
   dt.value.exportCSV()
 }
 
-
 // Order status
 const ordersStatus = [
   { value: 1, label: t('order.pending'), color: 'info' },
@@ -184,7 +183,6 @@ const ordersStatus = [
   { value: 5, label: t('order.delivered'), color: 'success' },
   { value: 6, label: t('order.cancelled'), color: 'danger' }
 ]
-
 
 // Navigation function
 const viewOrder = (id) => {
@@ -242,15 +240,19 @@ onMounted(() => {
               </template>
             </Column>
 
-
-
-
-
             <Column field="data.user.name" :header="t('order.name')" :sortable="true">
               <template #body="slotProps">
                 {{ slotProps.data.user?.name }}
               </template>
             </Column>
+
+            <!-- Added Owner Column -->
+            <Column field="owner" :header="t('order.owner' || 'Owner')" :sortable="true">
+              <template #body="slotProps">
+                {{ locale === 'ar' ? slotProps.data.owner?.ar : slotProps.data.owner?.en }}
+              </template>
+            </Column>
+
             <Column field="total_price" :header="t('order.totalPrice')" :sortable="true">
               <template #body="slotProps">
                 {{ slotProps.data.total_price }} {{ $t("currencyLabel") }}
@@ -263,11 +265,13 @@ onMounted(() => {
                   :severity="ordersStatus.find(status => status.value == slotProps.data.status)?.color" />
               </template>
             </Column>
+
             <Column field="created_at" :header="t('order.createdAt')" :sortable="true">
               <template #body="slotProps">
                 {{ formatDate(slotProps.data.created_at) }}
               </template>
             </Column>
+
             <Column :header="t('actions')" header-style="min-width:16rem;">
               <template #body="slotProps">
                 <div class="flex gap-2 align-items-center">

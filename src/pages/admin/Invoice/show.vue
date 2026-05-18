@@ -59,6 +59,10 @@
                 <span class="text-slate-500">{{ t('invoice.customerNumber') }}</span>
                 <span class="font-bold">{{ invoice.user?.phone || '-' }}</span>
               </div>
+               <div class="flex justify-between">
+                <span class="text-slate-500">{{ t('invoice.customerNumber') }}</span>
+                <span class="font-bold">{{ locale === 'ar' ? slotProps.data.owner.ar : slotProps.data.owner.en || '-' }}</span>
+              </div>
             </div>
 
             <Divider v-if="invoice.address" />
@@ -253,8 +257,8 @@ import Divider from 'primevue/divider'
 import ProgressSpinner from 'primevue/progressspinner'
 import Toast from 'primevue/toast'
 import Tag from 'primevue/tag'
+const { t, locale } = useI18n()
 
-const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()

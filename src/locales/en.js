@@ -1,4 +1,5 @@
 export default {
+  downloading: 'Downloading...',
   Permissions: 'Permissions',
   users: 'Users',
   users_management: 'users management',
@@ -134,6 +135,7 @@ export default {
     statusUnknown: 'Unknown Status',
   },
   invoice: {
+    owner: 'Owner',
     customerNumber: 'Customer phone Number',
     orderNumber: 'Order Number',
     customerName: 'Customer Name',

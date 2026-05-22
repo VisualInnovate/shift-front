@@ -66,6 +66,9 @@ const updateShift7Dialog = ref(false)
 const selectedShift7File = ref(null)
 const updateShift7Loading = ref(false)
 
+// Export Loading
+const exportLoading = ref(false)
+
 // Filter Dialog
 const filterDialog = ref(false)
 
@@ -280,6 +283,7 @@ const deleteProduct = () => {
 
 // Export
 const exportxlsx = () => {
+  exportLoading.value = true
   const params = new URLSearchParams({
     search: searchQuery.value || '',
     category_id: selectedCategory.value || '',
@@ -300,9 +304,11 @@ const exportxlsx = () => {
     .catch(() => {
       toast.add({ severity: 'error', summary: t('error'), detail: t('product.exportError'), life: 3000 })
     })
+    .finally(() => { exportLoading.value = false })
 }
 
 const export_prices_featuresxlsx = () => {
+  exportLoading.value = true
   const params = new URLSearchParams({
     search: searchQuery.value || '',
     category_id: selectedCategory.value || '',
@@ -322,6 +328,7 @@ const export_prices_featuresxlsx = () => {
     .catch(() => {
       toast.add({ severity: 'error', summary: t('error'), detail: t('product.exportError'), life: 3000 })
     })
+    .finally(() => { exportLoading.value = false })
 }
 
 // Download examples
@@ -532,7 +539,8 @@ onMounted(() => {
                 @click="(e) => importMenu.toggle(e)" />
               <Menu ref="importMenu" :model="importItems" :popup="true" />
 
-              <Button :label="t('product.export')" icon="pi pi-upload" class="p-button-outlined"
+              <Button :label="exportLoading ? t('downloading') : t('product.export')" icon="pi pi-upload"
+                class="p-button-outlined" :loading="exportLoading" :disabled="exportLoading"
                 @click="(e) => exportMenu.toggle(e)" />
               <Menu ref="exportMenu" :model="exportItems" :popup="true" />
 

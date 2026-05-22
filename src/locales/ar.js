@@ -1,4 +1,5 @@
 export default {
+  downloading: 'جاري التحميل...',
   id: 'الفهرس',
   users: 'المستخدمين',
   Settings: 'الاعدادات',
@@ -471,6 +472,7 @@ export default {
   },
   viewOnMap: 'عرض على الخريطة',
   invoice: {
+    owner: 'المالك',
     customerNumber: 'رقم هاتف العميل',
     orderNumber: 'رقم الطلب',
     summary: 'ملخص الفاتورة',

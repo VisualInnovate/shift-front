@@ -178,6 +178,7 @@ export default {
       "notYet":       "لم يتم بعد",
       "minutes":      "دقيقة"
     },
+    "totalDiscounts": "إجمالي الخصومات",
     "procedures":   "مراحل الطلب",
     "phone":        "رقم الهاتف",
     "storeInfo":    "معلومات المتجر",
@@ -205,7 +206,7 @@ export default {
     shipped: 'تم الشحن',
     delivered: 'تم التسليم',
     cancelled: 'ملغى',
-    owner: 'الاونر',
+    owner: 'مالك الطلب',
     createdAt: 'تاريخ الطلب',
     unitPrice: 'سعر الوحدة',
     notes: 'ملاحظات الطلب',

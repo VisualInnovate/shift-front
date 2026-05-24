@@ -250,6 +250,10 @@ onMounted(fetchOrderData)
                 <span>{{ t('order.delivery') }}</span>
                 <span class="text-white">{{ formatCurrency(orderData.delivery_fee) }}</span>
               </div>
+               <div class="flex justify-between text-slate-400 text-sm">
+                <span>{{ t('order.totalDiscounts') }}</span>
+                <span class="text-white">{{ formatCurrency(orderData.total_discounts_fees) }}</span>
+              </div>
               <Divider class="!border-slate-700" />
               <div class="flex justify-between items-end">
                 <span class="text-[#F3B913] font-bold">{{ t('order.total') }}</span>

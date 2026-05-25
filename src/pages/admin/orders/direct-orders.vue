@@ -1,386 +1,491 @@
-<template>
-  <div class="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-900" :dir="lang === 'ar' ? 'rtl' : 'ltr'">
-    <Toast />
-    <ConfirmDialog />
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useToast } from 'primevue/usetoast'
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import axios from 'axios'
 
-    <!-- ── HEADER SECTION ── -->
-    <div class="max-w-7xl mx-auto mb-6">
-      <div
-        class="mb-2 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#0b3baa]"
-      >
-        <div class="flex items-center gap-4">
-          <div class="bg-slate-100 p-3 rounded-xl">
-            <i class="pi pi-box text-2xl text-[#0b3baa]"></i>
+const { t } = useI18n()
+const router = useRouter()
+const toast = useToast()
+
+// ── DATA & STATE ────────────────────────────────────────────────
+const orders = ref([])
+const loading = ref(true)
+const stats = ref({})
+const activeMobileTab = ref(2)
+const searchQuery = ref('')
+
+// ── STATUS CONFIG ───────────────────────────────────────────────
+const statusColumns = computed(() => [
+  {
+    value: 2,
+    label: t('order.status1') || 'Assign Distributor',
+    icon: 'pi-user-plus',
+    headerBg: 'bg-sky-500',
+    headerGradient: 'from-sky-400 to-sky-600',
+    cardBorder: 'border-l-sky-400',
+    badge: 'bg-sky-50 text-sky-600 ring-1 ring-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:ring-sky-800',
+    countBadge: 'bg-sky-500/20 text-white',
+    dotColor: 'bg-sky-400',
+    iconBg: 'bg-sky-100 dark:bg-sky-900/50',
+    iconColor: 'text-sky-500',
+    emptyIcon: 'pi-user-plus',
+    colBg: 'bg-sky-50/60 dark:bg-sky-950/20',
+    colBorder: 'border-sky-100 dark:border-sky-900/50',
+  },
+  {
+    value: 3,
+    label: t('order.status2') || 'Processed',
+    icon: 'pi-cog',
+    headerBg: 'bg-violet-500',
+    headerGradient: 'from-violet-400 to-violet-600',
+    cardBorder: 'border-l-violet-400',
+    badge: 'bg-violet-50 text-violet-600 ring-1 ring-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:ring-violet-800',
+    countBadge: 'bg-violet-500/20 text-white',
+    dotColor: 'bg-violet-400',
+    iconBg: 'bg-violet-100 dark:bg-violet-900/50',
+    iconColor: 'text-violet-500',
+    emptyIcon: 'pi-cog',
+    colBg: 'bg-violet-50/60 dark:bg-violet-950/20',
+    colBorder: 'border-violet-100 dark:border-violet-900/50',
+  },
+  {
+    value: 4,
+    label: t('order.status3') || 'Assign Driver',
+    icon: 'pi-car',
+    headerBg: 'bg-orange-500',
+    headerGradient: 'from-orange-400 to-orange-600',
+    cardBorder: 'border-l-orange-400',
+    badge: 'bg-orange-50 text-orange-600 ring-1 ring-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:ring-orange-800',
+    countBadge: 'bg-orange-500/20 text-white',
+    dotColor: 'bg-orange-400',
+    iconBg: 'bg-orange-100 dark:bg-orange-900/50',
+    iconColor: 'text-orange-500',
+    emptyIcon: 'pi-car',
+    colBg: 'bg-orange-50/60 dark:bg-orange-950/20',
+    colBorder: 'border-orange-100 dark:border-orange-900/50',
+  },
+  {
+    value: 5,
+    label: t('order.status4') || 'Delivering',
+    icon: 'pi-truck',
+    headerBg: 'bg-amber-500',
+    headerGradient: 'from-amber-400 to-amber-600',
+    cardBorder: 'border-l-amber-400',
+    badge: 'bg-amber-50 text-amber-600 ring-1 ring-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:ring-amber-800',
+    countBadge: 'bg-amber-500/20 text-white',
+    dotColor: 'bg-amber-400',
+    iconBg: 'bg-amber-100 dark:bg-amber-900/50',
+    iconColor: 'text-amber-500',
+    emptyIcon: 'pi-truck',
+    colBg: 'bg-amber-50/60 dark:bg-amber-950/20',
+    colBorder: 'border-amber-100 dark:border-amber-900/50',
+  },
+  {
+    value: 6,
+    label: t('order.status5') || 'Delivered',
+    icon: 'pi-box',
+    headerBg: 'bg-teal-500',
+    headerGradient: 'from-teal-400 to-teal-600',
+    cardBorder: 'border-l-teal-400',
+    badge: 'bg-teal-50 text-teal-600 ring-1 ring-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:ring-teal-800',
+    countBadge: 'bg-teal-500/20 text-white',
+    dotColor: 'bg-teal-400',
+    iconBg: 'bg-teal-100 dark:bg-teal-900/50',
+    iconColor: 'text-teal-500',
+    emptyIcon: 'pi-box',
+    colBg: 'bg-teal-50/60 dark:bg-teal-950/20',
+    colBorder: 'border-teal-100 dark:border-teal-900/50',
+  },
+  {
+    value: 7,
+    label: t('order.status6') || 'Completed',
+    icon: 'pi-check-circle',
+    headerBg: 'bg-emerald-500',
+    headerGradient: 'from-red-400 to-emerald-600',
+    cardBorder: 'border-l-red-400',
+    badge: 'bg-red-50 text-red-600 ring-1 ring-red-200 dark:bg-red-950 dark:text-red-300 dark:ring-red-800',
+    countBadge: 'bg-red-500/20 text-white',
+    dotColor: 'bg-emerald-400',
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/50',
+    iconColor: 'text-emerald-500',
+    emptyIcon: 'pi-check-circle',
+    colBg: 'bg-emerald-50/60 dark:bg-emerald-950/20',
+    colBorder: 'border-red-100 dark:border-emerald-900/50',
+  },
+])
+
+// ── NORMALIZE ORDER ─────────────────────────────────────────────
+const normalizeOrder = (raw) => ({
+  id: raw.id,
+  number: raw.number,
+  status: raw.status,
+  client: raw.user?.name || '—',
+  distributor: raw.market?.name_en || raw.store?.name_en || '—',
+  scheduled_at: raw.created_at
+    ? new Date(raw.created_at).toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    : '—',
+  total_price: raw.total_price ? `${parseFloat(raw.total_price).toFixed(2)}` : '—',
+  _raw: raw,
+})
+
+// ── GROUPED ORDERS ───────────────────────────────────────────────
+const groupedOrders = computed(() => {
+  const map = {}
+  statusColumns.value.forEach(s => { map[s.value] = [] })
+  const q = searchQuery.value.toLowerCase()
+  orders.value.forEach(order => {
+    if (map[order.status] !== undefined) {
+      if (!q || order.client.toLowerCase().includes(q) || order.number.toLowerCase().includes(q) || order.distributor.toLowerCase().includes(q)) {
+        map[order.status].push(order)
+      }
+    }
+  })
+  return map
+})
+
+const totalVisible = computed(() =>
+  statusColumns.value.reduce((sum, col) => sum + (groupedOrders.value[col.value]?.length ?? 0), 0)
+)
+
+const draggedOrder = ref(null)
+const dragOverColumn = ref(null)
+
+const onCardDragStart = (event, order) => {
+  draggedOrder.value = order
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', String(order.id))
+}
+
+const onCardDragEnd = () => {
+  draggedOrder.value = null
+  dragOverColumn.value = null
+}
+
+const onColumnDragOver = (event) => {
+  event.preventDefault()
+  event.dataTransfer.dropEffect = 'move'
+}
+
+const onColumnDragEnter = (colValue) => {
+  dragOverColumn.value = colValue
+}
+
+const onColumnDragLeave = (colValue) => {
+  if (dragOverColumn.value === colValue) {
+    dragOverColumn.value = null
+  }
+}
+
+const updateOrderStatus = async (order, targetStatus) => {
+  if (!order || order.status === targetStatus) return
+
+  const previousStatus = order.status
+  order.status = targetStatus
+
+  try {
+    await axios.post(`/api/order/change-status/${order.id}`, null, {
+      params: { status: targetStatus },
+    })
+    toast.add({
+      severity: 'success',
+      summary: t('success') || 'Success',
+      detail: t('order.statusUpdated') || 'Order status updated',
+      life: 3200,
+    })
+  } catch (err) {
+    order.status = previousStatus
+    toast.add({
+      severity: 'error',
+      summary: t('error') || 'Error',
+      detail: err.response?.data?.message || t('order.statusUpdateFailed') || 'Failed to update order status',
+      life: 4400,
+    })
+  }
+}
+
+const onColumnDrop = async (event, targetStatus) => {
+  event.preventDefault()
+  dragOverColumn.value = null
+  if (!draggedOrder.value) return
+
+  await updateOrderStatus(draggedOrder.value, targetStatus)
+}
+
+// ── API ─────────────────────────────────────────────────────────
+const fetchOrders = async () => {
+  loading.value = true
+  try {
+    const res = await axios.get('/api/order', { params: { page: 1, limit: 999 } })
+    const raw = res.data?.data?.data ?? res.data?.data ?? []
+    orders.value = Array.isArray(raw) ? raw.map(normalizeOrder) : []
+    stats.value = res.data?.stats ?? {}
+  } catch (err) {
+    toast.add({
+      severity: 'error',
+      summary: t('error') || 'Error',
+      detail: err.response?.data?.message || 'Failed to load orders',
+      life: 4400,
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+const viewDetails = (id) => {
+  router.push({ name: 'order-show', params: { id } })
+}
+
+onMounted(() => fetchOrders());
+</script>
+
+<template>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <Toast />
+
+    <!-- ── Top Bar ──────────────────────────────────────────────── -->
+    <div class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 sm:px-8 py-4 sticky top-0 z-30 shadow-sm">
+      <div class="max-w-screen-2xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+
+        <!-- Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-md shadow-orange-200 dark:shadow-orange-900/40">
+            <i class="pi pi-th-large text-white text-sm"></i>
           </div>
           <div>
-            <h1 class="text-2xl font-black tracking-tight text-slate-800 uppercase">
-              {{ t('order.management') }}
+            <h1 class="text-base font-bold text-gray-900 dark:text-white leading-tight">
+              {{ t('order.management') || 'Order Management' }}
             </h1>
-            <p class="text-slate-500 text-sm mt-1 font-medium">
-              {{ t('show') }} {{ pagination.from }} - {{ pagination.to }} {{ t('from') }} {{ pagination.total }}
-              {{ t('navigation.orders') }}
-            </p>
+
           </div>
         </div>
-        <Button
-          icon="pi pi-refresh"
-          :loading="loading"
-          class="!rounded-xl"
-          @click="fetchOrders(pagination.current_page)"
-        />
-      </div>
-      <span class="text-xs text-gray-400">{{ $t('order.dragAndDrop') }}</span>
-    </div>
 
-    <!-- ── LOADING STATE ── -->
-    <div v-if="loading && !orders.length" class="flex flex-col items-center justify-center h-64">
-      <ProgressSpinner strokeWidth="4" />
-      <p class="mt-4 text-[#0b3baa] font-bold animate-pulse">{{ t('loading') }}...</p>
-    </div>
-
-    <!-- ── KANBAN COLUMNS ── -->
-    <template v-else>
-      <div class="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        <div v-for="col in columns" :key="col.status" class="flex flex-col gap-4">
-          <!-- Column Header -->
-          <div class="flex items-center justify-between px-2">
-            <div class="flex items-center gap-2">
-              <!-- Inline style used to guarantee color works regardless of Tailwind Purge -->
-              <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: col.hex }"></span>
-              <h2 class="font-black text-slate-700 uppercase tracking-wider text-xs">{{ col.label }}</h2>
-            </div>
-            <span
-              class="text-white px-3 py-0.5 rounded-full text-xs font-black shadow-sm"
-              :style="{ backgroundColor: col.hex }"
-            >
-              {{ groupedOrders[col.status]?.length || 0 }}
-            </span>
+        <!-- Search + Refresh -->
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search orders…"
+              class="pl-8 pr-3 py-2 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition w-44 sm:w-56"
+            />
           </div>
-
-          <!-- Drag & Drop container — VueDraggable wraps the cards -->
-          <VueDraggable
-            v-model="groupedOrders[col.status]"
-            :animation="200"
-            group="orders"
-            ghostClass="kanban-ghost"
-            chosenClass="kanban-chosen"
-            dragClass="kanban-drag"
-            :touchStartThreshold="3"
-            :move="canMoveOrder"
-            :data-status="col.status"
-            class="kanban-column space-y-4 min-h-[300px] pb-10 rounded-2xl transition-all"
-            @start="onDragStart"
-            @end="onDragEnd"
+          <button
+            @click="fetchOrders"
+            class="w-9 h-9 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-center text-gray-500 hover:text-orange-500 hover:border-orange-300 dark:hover:border-orange-700 transition-colors"
+            :class="{ 'animate-spin': loading }"
+            title="Refresh"
           >
-            <!-- Empty placeholder (kept inside the draggable so cards can be dropped on empty columns) -->
-            <div
-              v-if="!groupedOrders[col.status]?.length"
-              class="bg-white/50 border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center opacity-60 pointer-events-none"
-            >
-              <i class="pi pi-inbox text-slate-300 text-3xl mb-2"></i>
-              <p class="text-slate-400 text-[10px] font-black uppercase">{{ t('order.noData') }}</p>
-            </div>
-
-            <div
-              v-for="order in groupedOrders[col.status]"
-              :key="order.id"
-              class="group bg-white rounded-2xl p-5 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all cursor-grab active:cursor-grabbing relative overflow-hidden"
-              @click="handleCardClick(order)"
-            >
-              <!-- Gold Hover Accent -->
-              <div
-                class="absolute top-0 inset-x-0 h-1 bg-[#F3B913] scale-x-0 group-hover:scale-x-100 transition-transform origin-left"
-              ></div>
-
-              <div class="flex justify-between items-start mb-4">
-                <div class="max-w-[70%]">
-                  <p class="text-xs font-bold text-[#0b3baa] truncate">#{{ order.id }}</p>
-                </div>
-                <div
-                  class="bg-slate-50 p-2 rounded-lg text-slate-400 group-hover:bg-[#0b3baa] group-hover:text-white transition-colors"
-                >
-                  <i class="pi pi-eye text-xs"></i>
-                </div>
-              </div>
-
-              <!-- Store & User Info -->
-              <div class="space-y-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <i class="pi pi-shopping-cart text-slate-500 text-xs"></i>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase leading-none">{{ t('store.default') }}</p>
-                    <p class="text-xs font-black text-slate-700 truncate">
-                      {{ lang === 'ar' ? order.store?.name_ar : order.store?.name_en }}
-                    </p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                    <i class="pi pi-user text-slate-500 text-xs"></i>
-                  </div>
-                  <div class="overflow-hidden">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase leading-none">
-                      {{ t('invoice.customer') }}
-                    </p>
-                    <p class="text-xs font-bold text-slate-600 truncate">{{ order.user?.name }}</p>
-                  </div>
-                </div>
-              </div>
-
-              <Divider class="!my-4 opacity-50" />
-
-              <div class="flex justify-between items-center">
-                <div class="flex items-center gap-1.5 text-slate-400">
-                  <i class="pi pi-calendar text-[10px]"></i>
-                  <span class="text-[10px] font-black uppercase tracking-tighter">{{
-                    formatDate(order.created_at)
-                  }}</span>
-                </div>
-                <span class="text-sm font-black text-slate-900"
-                  >{{ order.total_price }}
-                  <small class="text-[10px] text-slate-400">{{ $t('currencyLabel') }}</small></span
-                >
-              </div>
-            </div>
-          </VueDraggable>
+            <i class="pi pi-refresh text-xs"></i>
+          </button>
         </div>
       </div>
-    </template>
+    </div>
+
+    <div class="max-w-screen-2xl mx-auto px-4 sm:px-8 py-5">
+
+      <!-- ── Stats Strip ──────────────────────────────────────── -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div class="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+            <i class="pi pi-list text-gray-500 dark:text-gray-400 text-sm"></i>
+          </div>
+          <div>
+            <div class="text-xl font-black text-gray-900 dark:text-white leading-none">{{ stats.total_orders ?? orders.length }}</div>
+            <div class="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mt-0.5">{{ t('order.totalOrders') || 'Total Orders' }}</div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center flex-shrink-0">
+            <i class="pi pi-spinner text-amber-500 text-sm"></i>
+          </div>
+          <div>
+            <div class="text-xl font-black text-amber-500 leading-none">{{ stats.total_in_progress ?? 0 }}</div>
+            <div class="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mt-0.5">{{ t('order.inProgress') || 'In Progress' }}</div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center flex-shrink-0">
+            <i class="pi pi-check-circle text-emerald-500 text-sm"></i>
+          </div>
+          <div>
+            <div class="text-xl font-black text-emerald-500 leading-none">{{ stats.total_completed ?? 0 }}</div>
+            <div class="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mt-0.5">{{ t('order.completed') || 'Completed' }}</div>
+          </div>
+        </div>
+        <div class="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-950/40 flex items-center justify-center flex-shrink-0">
+            <i class="pi pi-eye text-sky-500 text-sm"></i>
+          </div>
+          <div>
+            <div class="text-xl font-black text-sky-500 leading-none">{{ totalVisible }}</div>
+            <div class="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mt-0.5">{{ t('order.visible') || 'Visible' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Loading ─────────────────────────────────────────── -->
+      <div v-if="loading" class="flex flex-col items-center justify-center h-72 gap-4">
+        <div class="relative">
+          <div class="w-14 h-14 rounded-2xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-200 dark:shadow-orange-900/40">
+            <i class="pi pi-box text-white text-xl"></i>
+          </div>
+          <div class="absolute -inset-1 rounded-3xl border-2 border-orange-300/50 animate-ping"></div>
+        </div>
+        <p class="text-xs font-semibold text-gray-400 tracking-wide">Loading orders…</p>
+      </div>
+
+      <div v-else>
+        <!-- ── Mobile Tab Navigation ─────────────────────────── -->
+        <div class="lg:hidden flex overflow-x-auto gap-2 pb-3 mb-4 no-scrollbar">
+          <button
+            v-for="col in statusColumns"
+            :key="col.value"
+            @click="activeMobileTab = col.value"
+            :class="[
+              'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[11px] font-bold whitespace-nowrap transition-all flex-shrink-0 border',
+              activeMobileTab === col.value
+                ? col.headerBg + ' text-white border-transparent shadow-md'
+                : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-800'
+            ]"
+          >
+            <i :class="['pi text-[10px]', col.icon]"></i>
+            {{ col.label }}
+            <span :class="[
+              'text-[10px] font-black px-1.5 py-0.5 rounded-full',
+              activeMobileTab === col.value ? 'bg-white/25 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+            ]">{{ groupedOrders[col.value]?.length ?? 0 }}</span>
+          </button>
+        </div>
+
+        <!-- ── Kanban Board ──────────────────────────────────── -->
+        <div class="overflow-x-auto pb-4">
+          <div class="flex flex-col lg:flex-row gap-4 items-start lg:min-w-max">
+            <div
+              v-for="col in statusColumns"
+              :key="col.value"
+              :class="[
+                'flex-col w-full lg:w-72 xl:w-80 flex-shrink-0',
+                activeMobileTab === col.value ? 'flex' : 'hidden lg:flex'
+              ]"
+            >
+              <!-- Column Header -->
+              <div :class="[
+                'bg-gradient-to-r rounded-xl px-3.5 py-3 flex items-center justify-between text-white mb-3 shadow-sm',
+                col.headerGradient
+              ]">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <i :class="['pi text-xs', col.icon]"></i>
+                  </div>
+                  <span class="font-bold text-[13px] tracking-tight">{{ col.label }}</span>
+                </div>
+                <span :class="['text-[11px] font-black px-2 py-0.5 rounded-lg', col.countBadge]">
+                  {{ groupedOrders[col.value]?.length ?? 0 }}
+                </span>
+              </div>
+
+              <!-- Column Body -->
+              <div :class="[
+                'rounded-xl border p-2 min-h-32 flex flex-col gap-2 transition-colors duration-200',
+                col.colBg, col.colBorder,
+                dragOverColumn === col.value ? 'ring-2 ring-orange-400/60 bg-orange-50/40 dark:bg-orange-900/20' : ''
+              ]"
+                @dragover.prevent="onColumnDragOver"
+                @dragenter.prevent="onColumnDragEnter(col.value)"
+                @dragleave="onColumnDragLeave(col.value)"
+                @drop.prevent="onColumnDrop($event, col.value)"
+              >
+
+                <!-- Empty State -->
+                <div
+                  v-if="!groupedOrders[col.value]?.length"
+                  class="flex flex-col items-center justify-center py-10 gap-3 opacity-60"
+                >
+                  <div class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 shadow-inner flex items-center justify-center">
+                    <i :class="['pi text-base text-gray-300 dark:text-gray-600', col.emptyIcon]"></i>
+                  </div>
+                  <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-600">
+                    {{ t('common.noData') || 'No orders here' }}
+                  </p>
+                </div>
+
+                <!-- Order Cards -->
+                <div
+                  v-for="order in groupedOrders[col.value]"
+                  :key="order.id"
+                  draggable="true"
+                  :class="[
+                    'bg-white dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-800 border-l-[3px] p-3.5 shadow-sm cursor-pointer',
+                    'hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200',
+                    col.cardBorder,
+                    draggedOrder?.id === order.id ? 'opacity-70' : ''
+                  ]"
+                  @dragstart="(e) => onCardDragStart(e, order)"
+                  @dragend="onCardDragEnd"
+                  @click="viewDetails(order.id)"
+                >
+                  <!-- Top Row: Number + Badge -->
+                  <div class="flex items-start justify-between gap-2 mb-3">
+                    <div class="min-w-0">
+                      <p class="text-[13px] font-black text-gray-900 dark:text-white leading-tight truncate">
+                        #{{ order.number.split('-')[0].toUpperCase() }}
+                      </p>
+                      <p class="text-[10px] text-gray-400 dark:text-gray-600 font-medium mt-0.5">ID {{ order.id }}</p>
+                    </div>
+                    <span :class="['text-[10px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0', col.badge]">
+                      {{ col.label }}
+                    </span>
+                  </div>
+
+                  <!-- Client -->
+                  <div class="flex items-center gap-2 mb-1.5">
+                    <div :class="['w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0', col.iconBg]">
+                      <i :class="['pi pi-user text-[10px]', col.iconColor]"></i>
+                    </div>
+                    <span class="text-[12px] font-semibold text-gray-800 dark:text-gray-200 truncate">
+                      {{ order.client }}
+                    </span>
+                  </div>
+
+                  <!-- Distributor -->
+                  <div class="flex items-center gap-2 mb-3">
+                    <div class="w-6 h-6 rounded-md bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                      <i class="pi pi-building text-[10px] text-gray-400"></i>
+                    </div>
+                    <span class="text-[11px] text-gray-400 dark:text-gray-500 truncate font-medium">
+                      {{ order.distributor }}
+                    </span>
+                  </div>
+
+                  <!-- Footer -->
+                  <div class="pt-2.5 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-1.5 text-[10px] text-gray-400 font-semibold">
+                      <i class="pi pi-calendar text-[10px]"></i>
+                      <span>{{ order.scheduled_at }}</span>
+                    </div>
+                    <span class="text-[13px] font-black text-gray-900 dark:text-white">
+                      {{ order.total_price }}{{ $t("currencyLabel") }}
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-<script setup>
-  import { ref, onMounted, onUnmounted } from 'vue'
-  import { useRouter } from 'vue-router'
-  import { useToast } from 'primevue/usetoast'
-  import { useConfirm } from 'primevue/useconfirm'
-  import { useI18n } from 'vue-i18n'
-  import axios from 'axios'
-
-  // PrimeVue Components
-  import Button from 'primevue/button'
-  import Divider from 'primevue/divider'
-  import ProgressSpinner from 'primevue/progressspinner'
-  import Toast from 'primevue/toast'
-  import ConfirmDialog from 'primevue/confirmdialog'
-
-  const { t } = useI18n()
-  const router = useRouter()
-  const toast = useToast()
-  const confirm = useConfirm()
-
-  let refreshInterval = null
-  const orders = ref([])
-  const loading = ref(true)
-  const lang = localStorage.getItem('appLang') || 'en'
-
-  // Drag flags — pause auto-refresh and suppress click after drop
-  const isDragging = ref(false)
-  const wasDragging = ref(false)
-
-  const pagination = ref({
-    current_page: 1,
-    total: 0,
-    per_page: 10,
-    from: 0,
-    to: 0,
-  })
-
-  const columns = [
-    { status: 1, label: t('order.pending'), hex: '#3B82F6' },
-    { status: 2, label: t('order.processing'), hex: '#F59E0B' },
-    { status: 3, label: t('order.ready'), hex: '#10B981' },
-    { status: 4, label: t('order.shipped'), hex: '#6366F1' },
-    { status: 5, label: t('order.delivered'), hex: '#22C55E' },
-  ]
-
-  // Reactive (not computed) so vue-draggable-plus can two-way bind on each column
-  const groupedOrders = ref({})
-
-  // Build groupedOrders from the flat orders list — called after every fetch
-  const groupOrders = () => {
-    const groups = {}
-    columns.forEach((c) => {
-      groups[c.status] = []
-    })
-    orders.value.forEach((order) => {
-      if (groups[order.status]) {
-        groups[order.status].push(order)
-      }
-    })
-    groupedOrders.value = groups
-  }
-
-  const fetchOrders = async (page = 1) => {
-    // Only show full loader on first fetch
-    if (orders.value.length === 0) loading.value = true
-
-    try {
-      const res = await axios.get(`/api/order?page=${page}`)
-      if (res.data?.is_success) {
-        const apiResponse = res.data.data
-        orders.value = apiResponse.data
-        pagination.value = {
-          current_page: apiResponse.current_page,
-          total: apiResponse.total,
-          per_page: apiResponse.per_page,
-          from: apiResponse.from,
-          to: apiResponse.to,
-        }
-        groupOrders()
-      }
-    } catch (error) {
-      console.error('Fetch Error:', error)
-      toast.add({ severity: 'error', summary: t('error'), detail: t('order.loadError'), life: 3000 })
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '-'
-    const date = new Date(dateString)
-    return date.toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  }
-
-  const viewDetails = (id) => {
-    router.push({ name: 'order-show', params: { id } })
-  }
-
-  // Suppress click immediately after a drag finishes
-  const handleCardClick = (order) => {
-    if (wasDragging.value) {
-      wasDragging.value = false
-      return
-    }
-    viewDetails(order.id)
-  }
-
-  // ── Drag & Drop logic ────────────────────────────────────────────────────────
-
-  // Block invalid moves: backwards transitions and any move out of Delivered
-  const canMoveOrder = (evt) => {
-    const draggedOrder = evt.draggedContext?.element
-    const targetStatus = Number(evt.to?.dataset?.status)
-
-    if (!draggedOrder || !targetStatus) return false
-    if (draggedOrder.status === 5) return false // Delivered is terminal
-    if (targetStatus < draggedOrder.status) return false // No backwards moves
-    return true
-  }
-
-  const onDragStart = () => {
-    isDragging.value = true
-    wasDragging.value = true
-  }
-
-  // Push the change to the server. On failure, rollback locally and show error.
-  const persistStatusChange = async (order, oldStatus, newStatus) => {
-    try {
-      await axios.post(`/api/order/change-status/${order.id}`, null, {
-        params: { status: newStatus },
-      })
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: t('order.changeStatusSuccess'),
-        life: 3000,
-      })
-    } catch (err) {
-      console.error('Status change failed:', err)
-      order.status = oldStatus
-      groupOrders()
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: t('order.statusChangeError'),
-        life: 5000,
-      })
-    }
-  }
-
-  const onDragEnd = (evt) => {
-    isDragging.value = false
-    setTimeout(() => {
-      wasDragging.value = false
-    }, 50)
-
-    const fromStatus = Number(evt.from?.dataset?.status)
-    const toStatus = Number(evt.to?.dataset?.status)
-    if (!fromStatus || !toStatus) return
-
-    // Same column reorder → no API call
-    if (fromStatus === toStatus) return
-
-    // Locate the order at its new position in the DESTINATION column
-    let order = groupedOrders.value[toStatus]
-    if (order.length == 1) {
-      order = order[0]
-    } else {
-      order = order[evt.newIndex]
-    }
-    if (!order || !order.id) return
-
-    const oldStatus = fromStatus
-    const newStatus = toStatus
-    // Optimistic update — the array move already happened via v-model
-    order.status = newStatus
-
-    confirm.require({
-      message: t('order.changeStatusConfirmMsg'),
-      header: t('order.changeStatusTitle'),
-      icon: 'pi pi-exclamation-triangle',
-      acceptLabel: t('yes'),
-      rejectLabel: t('no'),
-      accept: () => {
-        persistStatusChange(order, oldStatus, newStatus)
-      },
-      reject: () => {
-        // User cancelled — rollback the optimistic move
-        order.status = oldStatus
-        groupOrders()
-      },
-    })
-  }
-
-  onMounted(() => {
-    fetchOrders()
-    // Auto refresh every 10 seconds — skipped while the user is dragging
-    refreshInterval = setInterval(() => {
-      if (!isDragging.value) {
-        fetchOrders(pagination.value.current_page)
-      }
-    }, 10000)
-  })
-
-  onUnmounted(() => {
-    if (refreshInterval) clearInterval(refreshInterval)
-  })
-</script>
-
 <style scoped>
-  /* Drag visual states — picked up by vue-draggable-plus via the *Class props */
-  .kanban-ghost {
-    opacity: 0.4;
-  }
-  .kanban-chosen {
-    transform: scale(1.02);
-  }
-  .kanban-drag {
-    opacity: 0.8;
-  }
-
-  /* Highlight the column receiving a dragged card */
-  .kanban-column.sortable-drag-over,
-  .kanban-column:has(.kanban-ghost) {
-    background-color: rgba(11, 59, 170, 0.04);
-    outline: 2px dashed rgba(11, 59, 170, 0.35);
-    outline-offset: -4px;
-  }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>

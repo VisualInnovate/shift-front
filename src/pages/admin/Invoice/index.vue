@@ -179,11 +179,7 @@ onMounted(() => {
             </template>
           </Column>
 
-          <Column field="number" :header="t('invoice.customerNumber')" sortable>
-            <template #body="slotProps">
-              <strong>{{ slotProps.data.user?.phone }}</strong>
-            </template>
-          </Column>
+
 
           <Column field="total_price" :header="t('invoice.total')" sortable>
             <template #body="slotProps">

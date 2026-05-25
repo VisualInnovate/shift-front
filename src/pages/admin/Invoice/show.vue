@@ -47,10 +47,7 @@
                 <span class="text-slate-500">{{ t('invoice.orderNumber') }}</span>
                 <span class="font-bold text-[#0b3baa]">#{{ invoice.order?.id || '-' }}</span>
               </div>
-              <div class="flex justify-between">
-                <span class="text-slate-500">{{ t('invoice.customerNumber') }}</span>
-                <span class="font-bold">{{ invoice.user?.phone || '-' }}</span>
-              </div>
+
               <div class="flex justify-between">
                 <span class="text-slate-500">{{ t('invoice.owner') }}</span>
                 <span class="font-bold">{{ locale === 'ar' ? invoice.owner.ar : invoice.owner.en || '-' }}</span>

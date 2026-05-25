@@ -201,10 +201,7 @@ onMounted(fetchOrderData)
                 <span class="text-slate-500 text-sm">{{ t('order.name') }}</span>
                 <span class="font-bold text-slate-800">{{ orderData.user?.name }}</span>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-500 text-sm">{{ t('order.phone') }}</span>
-                <span class="font-bold text-slate-800 dir-ltr">{{ orderData.user?.phone }}</span>
-              </div>
+
             </div>
             <Divider />
             <div>

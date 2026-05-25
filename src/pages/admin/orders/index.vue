@@ -1,208 +1,264 @@
 <script setup>
-import { ref, onMounted, onBeforeMount, watch } from 'vue'
-import { useToast } from 'primevue/usetoast'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { FilterMatchMode } from 'primevue/api'
-import axios from 'axios'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-import Toolbar from 'primevue/toolbar'
-import Toast from 'primevue/toast'
-import Tag from 'primevue/tag'
-import Dialog from 'primevue/dialog'
-import ProgressSpinner from 'primevue/progressspinner'
-import Dropdown from 'primevue/dropdown'
+  import { ref, onMounted, onBeforeMount, watch, computed } from 'vue'
+  import { useToast } from 'primevue/usetoast'
+  import { useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
+  import { FilterMatchMode } from 'primevue/api'
+  import axios from 'axios'
+  import DataTable from 'primevue/datatable'
+  import Column from 'primevue/column'
+  import Button from 'primevue/button'
+  import InputText from 'primevue/inputtext'
+  import Toolbar from 'primevue/toolbar'
+  import Toast from 'primevue/toast'
+  import Tag from 'primevue/tag'
+  import Dialog from 'primevue/dialog'
+  import ProgressSpinner from 'primevue/progressspinner'
+  import Dropdown from 'primevue/dropdown'
+  import Calendar from 'primevue/calendar'
 
-const { t, locale } = useI18n()
-const router = useRouter()
-const toast = useToast()
+  const { t, locale } = useI18n()
+  const router = useRouter()
+  const toast = useToast()
 
-// State variables
-const loading = ref(true)
-const delete_id = ref('')
-const deleteDialog = ref(false)
-const statusDialog = ref(false)
-const pendingChange = ref({ orderId: null, status: null })
+  // State variables
+  const loading = ref(true)
+  const delete_id = ref('')
+  const deleteDialog = ref(false)
+  const statusDialog = ref(false)
+  const pendingChange = ref({ orderId: null, status: null })
 
-const orders = ref(null)
-const selectedOrders = ref(null)
-const dt = ref(null)
-const filters = ref({})
-const searchQuery = ref('')
+  const orders = ref(null)
+  const selectedOrders = ref(null)
+  const filters = ref({})
+  const searchQuery = ref('')
+  const from_date = ref(null)
+  const to_date = ref(null)
+  const status = ref(null)
+  const stor_id = ref(null)
+  const market_id = ref(null)
 
-// Pagination variables
-const currentPage = ref(1)
-const totalRecords = ref(0)
-const rowsPerPage = ref(10)
-const totalPages = ref(0)
-const from = ref(0)
-const to = ref(0)
-const links = ref([])
+  // Pagination variables
+  const currentPage = ref(1)
+  const totalRecords = ref(0)
+  const rowsPerPage = ref(10)
+  const totalPages = ref(0)
+  const from = ref(0)
+  const to = ref(0)
+  const links = ref([])
 
-// Initialize filters
-const initFilters = () => {
-  filters.value = {
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  }
-}
-
-// Fetch data
-const fetchData = () => {
-  loading.value = true
-  axios.get('/api/order', {
-    params: {
-      page: currentPage.value,
-      limit: rowsPerPage.value,
-      search: searchQuery.value || undefined
+  // Initialize filters
+  const initFilters = () => {
+    filters.value = {
+      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     }
-  })
-    .then((res) => {
-      orders.value = res.data.data.data
-      totalRecords.value = res.data.data.total
-      totalPages.value = res.data.data.last_page
-      from.value = res.data.data.from
-      to.value = res.data.data.to
-      links.value = res.data.data.links
-      loading.value = false
-    })
-    .catch((error) => {
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: t('order.loadError'),
-        life: 3000
+  }
+
+  const formatDateParam = (date) => {
+    if (!date) return undefined
+    const d = new Date(date)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+
+  // Fetch data
+  const fetchData = () => {
+    loading.value = true
+    axios
+      .get('/api/order', {
+        params: {
+          page: currentPage.value,
+          limit: rowsPerPage.value,
+          search: searchQuery.value || undefined,
+          from_date: from_date.value ? formatDateParam(from_date.value) : undefined,
+          to_date: to_date.value ? formatDateParam(to_date.value) : undefined,
+          status: status.value ?? undefined,
+        },
       })
-      loading.value = false
-      console.error('Error fetching data:', error)
-    })
-}
+      .then((res) => {
+        orders.value = res.data.data.data
+        totalRecords.value = res.data.data.total
+        totalPages.value = res.data.data.last_page
+        from.value = res.data.data.from
+        to.value = res.data.data.to
+        links.value = res.data.data.links
+        loading.value = false
+      })
+      .catch((error) => {
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: t('order.loadError'),
+          life: 3000,
+        })
+        loading.value = false
+        console.error('Error fetching data:', error)
+      })
+  }
 
-// Watch for search and rows per page changes
-watch([searchQuery, rowsPerPage], () => {
-  currentPage.value = 1
-  fetchData()
-})
+  // Watch for search, filters and rows per page changes
+  watch([searchQuery, rowsPerPage, from_date, to_date, status], () => {
+    currentPage.value = 1
+    fetchData()
+  })
 
-// Handle page navigation
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
+  // Handle page navigation
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+      currentPage.value = page
+      fetchData()
+    }
+  }
+
+  // Handle rows per page change
+  const changeRowsPerPage = (event) => {
+    rowsPerPage.value = event.value || event.target.value
+    currentPage.value = 1
     fetchData()
   }
-}
 
-// Handle rows per page change
-const changeRowsPerPage = (event) => {
-  rowsPerPage.value = event.value || event.target.value
-  currentPage.value = 1
-  fetchData()
-}
+  // Open status change confirmation dialog
+  const openStatusChange = (orderId, newStatus) => {
+    pendingChange.value = { orderId, status: newStatus }
+    statusDialog.value = true
+  }
 
-// Open status change confirmation dialog
-const openStatusChange = (orderId, newStatus) => {
-  pendingChange.value = { orderId, status: newStatus }
-  statusDialog.value = true
-}
+  const confirmStatusChange = () => {
+    performStatusChange(pendingChange.value.orderId, pendingChange.value.status)
+    statusDialog.value = false
+  }
 
-const confirmStatusChange = () => {
-  performStatusChange(pendingChange.value.orderId, pendingChange.value.status)
-  statusDialog.value = false
-}
+  const performStatusChange = (orderId, status) => {
+    loading.value = true
+    axios
+      .post(`/api/order/change-status/${orderId}`, null, {
+        params: { status },
+      })
+      .then(() => {
+        const statusLabel = ordersStatus.find((s) => s.value === status)?.label || status
+        toast.add({
+          severity: 'success',
+          summary: t('success'),
+          detail: `${t('order.statusChanged')}: ${statusLabel}`,
+          life: 3000,
+        })
+        fetchData()
+      })
+      .catch((error) => {
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: t('order.statusChangeError'),
+          life: 5000,
+        })
+        console.error('Status change failed:', error)
+      })
+      .finally(() => {
+        loading.value = false
+      })
+  }
 
-const performStatusChange = (orderId, status) => {
-  loading.value = true
-  axios.post(`/api/order/change-status/${orderId}`, null, {
-    params: { status }
+  // Delete order
+  const confirmDelete = (id) => {
+    delete_id.value = id
+    deleteDialog.value = true
+  }
+
+  const deleteOrder = () => {
+    axios
+      .delete(`/api/order/${delete_id.value}`)
+      .then(() => {
+        toast.add({
+          severity: 'success',
+          summary: t('success'),
+          detail: t('order.deleteSuccess'),
+          life: 3000,
+        })
+        fetchData()
+        deleteDialog.value = false
+      })
+      .catch(() => {
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: t('order.deleteError'),
+          life: 3000,
+        })
+      })
+  }
+
+  // Export CSV
+  const exportCSV = async () => {
+    try {
+      const response = await axios.get('/api/export/orders', {
+        params: {
+          search: searchQuery.value || undefined,
+          form_date: from_date.value ? formatDateParam(from_date.value) : undefined,
+          to_date: to_date.value ? formatDateParam(to_date.value) : undefined,
+          // status: undefined,
+          // store_id: undefined,
+          // market_id: undefined,
+        },
+        responseType: 'blob',
+      })
+
+      const contentType =
+        response.headers['content-type'] || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+      const blob = new Blob([response.data], {
+        type: contentType,
+      })
+
+      const url = window.URL.createObjectURL(blob)
+
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'orders.xlsx'
+      document.body.appendChild(link)
+      link.click()
+
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      toast.add({
+        severity: 'error',
+        summary: t('error'),
+        detail: t('order.exportError'),
+        life: 3000,
+      })
+    }
+  }
+
+  // Order status
+  const ordersStatus = [
+    { value: 1, label: t('order.pending'), color: 'info' },
+    { value: 2, label: t('order.processing'), color: 'warning' },
+    { value: 3, label: t('order.ready'), color: 'success' },
+    { value: 4, label: t('order.shipped'), color: 'primary' },
+    { value: 5, label: t('order.delivered'), color: 'success' },
+    { value: 6, label: t('order.cancelled'), color: 'danger' },
+  ]
+
+  const statusFilterOptions = computed(() => [{ value: null, label: t('order.filterAll') }, ...ordersStatus])
+
+  // Navigation function
+  const viewOrder = (id) => {
+    router.push({ name: 'order-show', params: { id } })
+  }
+
+  // format Date
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+    return new Date(dateString).toLocaleDateString(undefined, options)
+  }
+
+  // Lifecycle hooks
+  onBeforeMount(() => {
+    initFilters()
   })
-    .then(() => {
-      const statusLabel = ordersStatus.find(s => s.value === status)?.label || status
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: `${t('order.statusChanged')}: ${statusLabel}`,
-        life: 3000
-      })
-      fetchData()
-    })
-    .catch((error) => {
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: t('order.statusChangeError'),
-        life: 5000
-      })
-      console.error('Status change failed:', error)
-    })
-    .finally(() => {
-      loading.value = false
-    })
-}
 
-// Delete order
-const confirmDelete = (id) => {
-  delete_id.value = id
-  deleteDialog.value = true
-}
-
-const deleteOrder = () => {
-  axios.delete(`/api/order/${delete_id.value}`)
-    .then(() => {
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: t('order.deleteSuccess'),
-        life: 3000
-      })
-      fetchData()
-      deleteDialog.value = false
-    })
-    .catch(() => {
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: t('order.deleteError'),
-        life: 3000
-      })
-    })
-}
-
-// Export CSV
-const exportCSV = () => {
-  dt.value.exportCSV()
-}
-
-// Order status
-const ordersStatus = [
-  { value: 1, label: t('order.pending'), color: 'info' },
-  { value: 2, label: t('order.processing'), color: 'warning' },
-  { value: 3, label: t('order.ready'), color: 'success' },
-  { value: 4, label: t('order.shipped'), color: 'primary' },
-  { value: 5, label: t('order.delivered'), color: 'success' },
-  { value: 6, label: t('order.cancelled'), color: 'danger' }
-]
-
-// Navigation function
-const viewOrder = (id) => {
-  router.push({ name: 'order-show', params: { id } })
-}
-
-// format Date
-const formatDate = (dateString) => {
-  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-  return new Date(dateString).toLocaleDateString(undefined, options)
-}
-
-// Lifecycle hooks
-onBeforeMount(() => {
-  initFilters()
-})
-
-onMounted(() => {
-  fetchData()
-})
+  onMounted(() => {
+    fetchData()
+  })
 </script>
 
 <template>
@@ -215,13 +271,34 @@ onMounted(() => {
           </template>
 
           <template #end>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2 align-items-center justify-content-end">
+              <Calendar
+                v-model="from_date"
+                :placeholder="t('order.filterFromDate')"
+                dateFormat="yy-mm-dd"
+                showClear
+                class="p-inputtext-sm"
+                style="width: 170px"
+              />
+              <Calendar
+                v-model="to_date"
+                :placeholder="t('order.filterToDate')"
+                dateFormat="yy-mm-dd"
+                showClear
+                class="p-inputtext-sm"
+                style="width: 170px"
+              />
               <span class="p-input-icon-left">
                 <i class="pi pi-search" />
                 <InputText v-model="searchQuery" :placeholder="t('order.search')" />
               </span>
-              <Button :label="t('order.export')" icon="pi pi-upload" class="p-export" v-can="'export orders'"
-                @click="exportCSV" />
+              <Button
+                :label="t('order.export')"
+                icon="pi pi-upload"
+                class="p-export"
+                v-can="'export orders'"
+                @click="exportCSV"
+              />
             </div>
           </template>
         </Toolbar>
@@ -229,15 +306,24 @@ onMounted(() => {
         <Toast />
 
         <div class="card shadow-1 surface-0">
-          <DataTable ref="dt" :value="orders" :loading="loading" data-key="id" :paginator="false" :rows="rowsPerPage"
-            :filters="filters" :totalRecords="totalRecords" responsive-layout="scroll" stripedRows showGridlines
-            class="p-datatable-sm" v-can="'list orders'">
+          <DataTable
+            :value="orders"
+            :loading="loading"
+            data-key="id"
+            :paginator="false"
+            :rows="rowsPerPage"
+            :filters="filters"
+            :totalRecords="totalRecords"
+            responsive-layout="scroll"
+            stripedRows
+            showGridlines
+            class="p-datatable-sm"
+            v-can="'list orders'"
+          >
             <Column selection-mode="multiple" header-style="width: 3rem"></Column>
 
             <Column field="id" :header="t('order.id')" :sortable="true" header-style="width:10%; min-width:6rem;">
-              <template #body="slotProps">
-                #{{ slotProps.data.id }}
-              </template>
+              <template #body="slotProps"> #{{ slotProps.data.id }} </template>
             </Column>
 
             <Column field="data.user.name" :header="t('order.name')" :sortable="true">
@@ -254,15 +340,15 @@ onMounted(() => {
             </Column>
 
             <Column field="total_price" :header="t('order.totalPrice')" :sortable="true">
-              <template #body="slotProps">
-                {{ slotProps.data.total_price }} {{ $t("currencyLabel") }}
-              </template>
+              <template #body="slotProps"> {{ slotProps.data.total_price }} {{ $t('currencyLabel') }} </template>
             </Column>
 
             <Column field="status" :header="t('order.status')" :sortable="true">
               <template #body="slotProps">
-                <Tag :value="ordersStatus.find(status => status.value == slotProps.data.status)?.label"
-                  :severity="ordersStatus.find(status => status.value == slotProps.data.status)?.color" />
+                <Tag
+                  :value="ordersStatus.find((status) => status.value == slotProps.data.status)?.label"
+                  :severity="ordersStatus.find((status) => status.value == slotProps.data.status)?.color"
+                />
               </template>
             </Column>
 
@@ -276,16 +362,32 @@ onMounted(() => {
               <template #body="slotProps">
                 <div class="flex gap-2 align-items-center">
                   <!-- View Button -->
-                  <Button v-can="'show orders'" icon="pi pi-eye" class="p-button-rounded p-detail p-button-sm"
-                    @click="viewOrder(slotProps.data.id)" v-tooltip.top="t('order.view')" />
+                  <Button
+                    v-can="'show orders'"
+                    icon="pi pi-eye"
+                    class="p-button-rounded p-detail p-button-sm"
+                    @click="viewOrder(slotProps.data.id)"
+                    v-tooltip.top="t('order.view')"
+                  />
 
                   <!-- Status Dropdown -->
-                  <Dropdown v-can="'update orders'" :modelValue="slotProps.data.status" :options="ordersStatus"
-                    optionLabel="label" optionValue="value" :placeholder="t('order.changeStatus')" class="p-button-sm"
-                    style="min-width: 130px" @change="openStatusChange(slotProps.data.id, $event.value)">
+                  <Dropdown
+                    v-can="'update orders'"
+                    :modelValue="slotProps.data.status"
+                    :options="ordersStatus"
+                    optionLabel="label"
+                    optionValue="value"
+                    :placeholder="t('order.changeStatus')"
+                    class="p-button-sm"
+                    style="min-width: 130px"
+                    @change="openStatusChange(slotProps.data.id, $event.value)"
+                  >
                     <template #value="{ value }">
-                      <Tag v-if="value" :value="ordersStatus.find(s => s.value === value)?.label"
-                        :severity="ordersStatus.find(s => s.value === value)?.color" />
+                      <Tag
+                        v-if="value"
+                        :value="ordersStatus.find((s) => s.value === value)?.label"
+                        :severity="ordersStatus.find((s) => s.value === value)?.color"
+                      />
                     </template>
                     <template #option="{ option }">
                       <Tag :value="option.label" :severity="option.color" />
@@ -317,49 +419,77 @@ onMounted(() => {
               </span>
             </div>
             <div class="p-paginator-right-content flex align-items-center gap-3">
-              <button class="p-paginator-first p-paginator-element p-link" :disabled="currentPage === 1"
-                @click="goToPage(1)">
+              <button
+                class="p-paginator-first p-paginator-element p-link"
+                :disabled="currentPage === 1"
+                @click="goToPage(1)"
+              >
                 <span class="p-paginator-icon pi pi-angle-double-left"></span>
               </button>
-              <button class="p-paginator-prev p-paginator-element p-link" :disabled="currentPage === 1"
-                @click="goToPage(currentPage - 1)">
+              <button
+                class="p-paginator-prev p-paginator-element p-link"
+                :disabled="currentPage === 1"
+                @click="goToPage(currentPage - 1)"
+              >
                 <span class="p-paginator-icon pi pi-angle-left"></span>
               </button>
 
               <template v-for="(link, index) in links" :key="index">
-                <button v-if="link.label && !isNaN(parseInt(link.label))"
-                  class="p-paginator-page p-paginator-element p-link" :class="{ 'p-highlight': link.active }"
-                  @click="goToPage(parseInt(link.label))">
+                <button
+                  v-if="link.label && !isNaN(parseInt(link.label))"
+                  class="p-paginator-page p-paginator-element p-link"
+                  :class="{ 'p-highlight': link.active }"
+                  @click="goToPage(parseInt(link.label))"
+                >
                   {{ link.label }}
                 </button>
                 <span v-else-if="link.label === '...'" class="p-paginator-dots">...</span>
               </template>
 
-              <button class="p-paginator-next p-paginator-element p-link" :disabled="currentPage === totalPages"
-                @click="goToPage(currentPage + 1)">
+              <button
+                class="p-paginator-next p-paginator-element p-link"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(currentPage + 1)"
+              >
                 <span class="p-paginator-icon pi pi-angle-right"></span>
               </button>
-              <button class="p-paginator-last p-paginator-element p-link" :disabled="currentPage === totalPages"
-                @click="goToPage(totalPages)">
+              <button
+                class="p-paginator-last p-paginator-element p-link"
+                :disabled="currentPage === totalPages"
+                @click="goToPage(totalPages)"
+              >
                 <span class="p-paginator-icon pi pi-angle-double-right"></span>
               </button>
 
-              <Dropdown v-model="rowsPerPage" :options="[5, 10, 20, 30, 50]" @change="changeRowsPerPage" class="ml-3"
-                style="width: 80px" />
+              <Dropdown
+                v-model="rowsPerPage"
+                :options="[5, 10, 20, 30, 50]"
+                @change="changeRowsPerPage"
+                class="ml-3"
+                style="width: 80px"
+              />
             </div>
           </div>
         </div>
 
         <!-- Status Change Confirmation Dialog -->
-        <Dialog v-model:visible="statusDialog" :style="{ width: '450px' }" :header="t('order.changeStatus')"
-          :modal="true" :closable="false">
+        <Dialog
+          v-model:visible="statusDialog"
+          :style="{ width: '450px' }"
+          :header="t('order.changeStatus')"
+          :modal="true"
+          :closable="false"
+        >
           <div class="flex align-items-center justify-content-center gap-3">
             <i class="pi pi-exclamation-triangle" style="font-size: 2.5rem; color: var(--yellow-500)" />
             <span>
               {{ t('order.changeStatusConfirm') }}
               <strong>
-                <Tag :value="ordersStatus.find(s => s.value === pendingChange.status)?.label"
-                  :severity="ordersStatus.find(s => s.value === pendingChange.status)?.color" class="ml-1" />
+                <Tag
+                  :value="ordersStatus.find((s) => s.value === pendingChange.status)?.label"
+                  :severity="ordersStatus.find((s) => s.value === pendingChange.status)?.color"
+                  class="ml-1"
+                />
               </strong>
             </span>
           </div>
@@ -370,8 +500,12 @@ onMounted(() => {
         </Dialog>
 
         <!-- Delete Confirmation Dialog -->
-        <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" :header="t('order.deleteConfirmTitle')"
-          :modal="true">
+        <Dialog
+          v-model:visible="deleteDialog"
+          :style="{ width: '450px' }"
+          :header="t('order.deleteConfirmTitle')"
+          :modal="true"
+        >
           <div class="flex align-items-center justify-content-center">
             <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem; color: var(--red-500)" />
             <span>{{ t('order.deleteConfirmMessage') }}</span>

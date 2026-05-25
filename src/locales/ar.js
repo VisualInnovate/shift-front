@@ -160,6 +160,7 @@ export default {
   to: 'إلى',
   from: 'من',
   order: {
+    exportError: 'فشل في تصدير الطلبات',
     dragAndDrop: 'يمكنك سحب وإفلات الطلبات لإعادة ترتيبها',
     changeStatusTitle: 'تغيير حالة الطلب',
     changeStatusConfirmMsg: 'هل أنت متأكد من تغيير حالة الطلب',
@@ -301,6 +302,10 @@ export default {
     statusChanged: 'تم تغيير الحالة إلى',
     statusChangeError: 'فشل في تغيير حالة الطلب',
     changeStatusSuccess: 'تم تغيير حالة الطلب بنجاح',
+    filterFromDate: 'من تاريخ',
+    filterToDate: 'إلى تاريخ',
+    filterStatus: 'تصفية بالحالة',
+    filterAll: 'الكل',
   },
   yes: 'نعم',
   no: 'لا',

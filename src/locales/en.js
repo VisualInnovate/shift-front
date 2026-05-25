@@ -165,6 +165,7 @@ export default {
   error: 'Error',
   success: 'Success',
   order: {
+    exportError: 'Failed to export orders',
     dragAndDrop: 'You can drag and drop orders to reorder them',
     changeStatusTitle: 'Change Order Status',
     changeStatusConfirmMsg: 'Are you sure you want to change the order status',

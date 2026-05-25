@@ -107,7 +107,7 @@ try {
 }
 
 const channelName = `private-admin.notifications.${userId.value}`
-const unreadCount = computed(() => messages.value.filter(m => m.unread).length)
+const unreadCount = ref(0)
 
 let pusher = ref(null)
 let channel = ref(null)
@@ -156,6 +156,7 @@ async function loadNotifications(page = 1) {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     })
 
+    unreadCount.value = res.data.data.unread_count;
     const pagination = res.data.data || {}
     currentPage.value = pagination.current_page || 1
     totalPages.value = pagination.last_page || 1

@@ -1,5 +1,14 @@
 <template>
   <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 font-inter">
+    <div v-if="cartImage" class="mb-6 rounded-3xl overflow-hidden shadow-lg">
+      <img
+        :src="cartImage"
+        alt="Cart Banner"
+        class="w-full h-56 object-cover"
+        loading="lazy"
+      />
+    </div>
+
     <div class="flex lg:flex-row flex-col gap-10">
       <section class="flex-1 bg-white rounded-2xl shadow-lg p-6">
         <div v-if="loading" class="flex justify-center items-center py-12 gap-4">
@@ -363,6 +372,7 @@
   const stores = ref([])
   const selectedStores = ref([])
   const storeOrders = ref([])
+  const cartImage = ref('')
   const generateUniqueStoreId = (store) => `${store.store_id}-${store.market_id || 'default'}`
 
   const storesClose = ref([])
@@ -388,6 +398,8 @@
       const { data } = await axios.get('/api/cart')
 
       if (!data.is_success) return
+
+      cartImage.value = data.data.cart_image || ''
 
       const allProducts = []
       const uniqueStoresMap = new Map()

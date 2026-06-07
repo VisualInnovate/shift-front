@@ -196,27 +196,22 @@ const fetchSettings = async () => {
         terms_conditions_en: 'terms_conditions_en',
         cart_image: 'cart_image',
       }
- 
+
       data.forEach(item => {
         const fieldKey = mapping[item.key]
-        if (fieldKey && Object.prototype.hasOwnProperty.call(formData.value, fieldKey)) {
-          if (fieldKey === 'order_notification_emails') {
-            formData.value[fieldKey] = Array.isArray(item.value)
-              ? item.value
-              : (item.value ? JSON.parse(item.value) : [])
-          } else if (fieldKey === 'order_notification_whatsapp') {
-            formData.value[fieldKey] = Array.isArray(item.value)
-              ? item.value
-              : (item.value ? JSON.parse(item.value) : [])
-          }
+        if (!fieldKey) return
+
+        if (fieldKey === 'order_notification_emails' || fieldKey === 'order_notification_whatsapp') {
+          formData.value[fieldKey] = Array.isArray(item.value)
+            ? item.value
+            : (item.value ? JSON.parse(item.value) : [])
         } else if (fieldKey === 'cart_image') {
+          if (item.media && item.media.length > 0) {
+            cartImagePreview.value = item.media[0].url
+          }
           formData.value.cart_image = item.value || ''
-          if (item.media[0]?.url) {
-            cartImagePreview.value = item.media[0]?.url
-          }
-          else {
-            formData.value[fieldKey] = item.value || ''
-          }
+        } else {
+          formData.value[fieldKey] = item.value || ''
         }
       })
     }

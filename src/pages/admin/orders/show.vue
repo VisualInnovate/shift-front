@@ -46,7 +46,7 @@ const procedureSteps = computed(() => {
   if (!proc) return []
 
   const steps = [
-    { key: 'pending_at',    labelKey: 'order.proc.pending',    icon: 'pi pi-clock' },
+    { key: 'pending_at',     labelKey: 'order.proc.pending',    icon: 'pi pi-clock' },
     { key: 'processing_at', labelKey: 'order.proc.processing', icon: 'pi pi-spin pi-spinner' },
     { key: 'ready_at',      labelKey: 'order.proc.ready',      icon: 'pi pi-check-circle' },
     { key: 'shipped_at',    labelKey: 'order.proc.shipped',    icon: 'pi pi-send' },
@@ -139,7 +139,6 @@ onMounted(fetchOrderData)
   >
     <Toast />
 
-    <!-- Loading State -->
     <div v-if="loading" class="flex flex-col items-center justify-center h-[60vh]">
       <ProgressSpinner strokeWidth="3" fill="transparent" animationDuration=".5s" />
       <p class="mt-4 text-[#0b3baa] font-bold tracking-wider animate-pulse">{{ t('loading') }}</p>
@@ -147,7 +146,6 @@ onMounted(fetchOrderData)
 
     <div v-else-if="orderData" class="max-w-6xl mx-auto space-y-6">
 
-      <!-- Header Section -->
       <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 bg-[#0b3baa]/10 rounded-2xl flex items-center justify-center text-[#0b3baa]">
@@ -181,7 +179,6 @@ onMounted(fetchOrderData)
         </div>
       </header>
 
-      <!-- Alert: Notice Selection (تم نقلها للأعلى لتظهر دائماً عند عدم تحديد الكل) -->
       <transition name="fade">
         <div
           v-if="isNotAllSelected"
@@ -194,7 +191,6 @@ onMounted(fetchOrderData)
         </div>
       </transition>
 
-      <!-- Alert: Overdue -->
       <transition name="fade">
         <div
           v-if="isProcessingOverdue"
@@ -212,9 +208,7 @@ onMounted(fetchOrderData)
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- Left Column: Details -->
         <div class="lg:col-span-4 space-y-6">
-          <!-- Info Card: Customer & Store -->
           <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
             <div>
               <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -228,9 +222,10 @@ onMounted(fetchOrderData)
                 <span class="text-slate-500 text-sm">{{ t('order.phone') }}</span>
                 <span class="font-bold text-slate-800 dir-ltr">{{ orderData.user?.phone }}</span>
               </div>
-
             </div>
+
             <Divider />
+
             <div>
               <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                 <i class="pi pi-shop text-[#0b3baa]"></i> {{ t('order.storeInfo') }}
@@ -240,7 +235,6 @@ onMounted(fetchOrderData)
                 <span class="font-bold text-slate-800">{{ lang === 'ar' ? orderData.store?.name_ar : orderData.store?.name_en }}</span>
               </div>
 
-              <!-- Added Owner Details Row -->
               <div v-if="orderData.owner" class="flex justify-between items-center mb-3">
                 <span class="text-slate-500 text-sm">{{ t('order.owner') || 'Owner' }}</span>
                 <span class="font-bold text-slate-800">{{ lang === 'ar' ? orderData.owner.ar : orderData.owner.en }}</span>
@@ -257,7 +251,15 @@ onMounted(fetchOrderData)
             </div>
           </div>
 
-          <!-- Financial Summary -->
+          <div v-if="orderData.notes" class="bg-amber-50/60 rounded-3xl p-6 border border-amber-200/70 shadow-sm">
+            <h3 class="text-xs font-bold text-amber-800 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <i class="pi pi-comment text-amber-600"></i> {{ t('order.notes') || (lang === 'ar' ? 'ملاحظات العميل' : 'Customer Notes') }}
+            </h3>
+            <p class="text-sm text-slate-700 leading-relaxed bg-white/80 p-3 rounded-xl border border-amber-100 whitespace-pre-line">
+              {{ orderData.notes }}
+            </p>
+          </div>
+
           <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl shadow-slate-200 relative overflow-hidden">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-[#0b3baa] opacity-20 rounded-full"></div>
             <h3 class="text-xs font-bold text-[#F3B913] uppercase tracking-widest mb-6">{{ t('order.financialSummary') }}</h3>
@@ -288,7 +290,6 @@ onMounted(fetchOrderData)
         </div>
 
         <div class="lg:col-span-8 space-y-6">
-          <!-- Procedures -->
           <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-2 border-b border-slate-100 bg-slate-50/50">
               <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -355,7 +356,6 @@ onMounted(fetchOrderData)
             </div>
           </section>
 
-          <!-- Items Table -->
           <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
               <h3 class="font-bold text-slate-800 flex items-center gap-2">
@@ -373,7 +373,6 @@ onMounted(fetchOrderData)
               responsiveLayout="scroll"
               :rowHover="true"
             >
-              <!-- Checkbox Column Selection -->
               <Column selectionMode="multiple" headerStyle="width: 3rem" class="pl-6"></Column>
 
               <Column :header="t('order.product')">
@@ -403,7 +402,6 @@ onMounted(fetchOrderData)
       </div>
     </div>
 
-    <!-- Confirmation Modal -->
     <Dialog
       v-model:visible="displayConfirmationModal"
       modal

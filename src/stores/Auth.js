@@ -52,7 +52,7 @@ export const useAuthStore = defineStore('Auth', {
           user_type: 'admin',
         })
         if (response.data.data?.requires_otp) {
-          this.router.push({ name: 'otp', params: { email: data.email, otp_type: 'email' } })
+          this.router.push({ name: 'auth-otp', params: { email: data.email, otp_type: 'email' } })
         } else if (response.data.data?.access_token) {
           const responseData = response.data.data
           const user = responseData.user || {}

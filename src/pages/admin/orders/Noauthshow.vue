@@ -92,7 +92,7 @@ const getStatusSeverity = (status) => {
             <img src="../../../assets/shiftlogo.png" alt="Logo" class="h-14 w-auto object-contain" />
             <div>
               <h1 class="text-4xl font-black text-slate-900 tracking-tight uppercase">{{ t('invoice') }}</h1>
-              <p class="text-slate-500 font-mono text-sm mt-1 uppercase">{{ t('order.number') }}: {{ orderData.number }}</p>
+              <p class="text-slate-500 font-mono text-sm mt-1 uppercase">{{ t('order.number') }}: # {{ orderData.id }}</p>
             </div>
           </div>
 
@@ -103,17 +103,9 @@ const getStatusSeverity = (status) => {
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12 border-y border-slate-50 py-8">
-          <div>
-            <p class="text-xl font-bold text-slate-900">{{ orderData.user?.name }}</p>
-            <p class="text-[#F3B913] mt-1 flex items-center gap-2">
-               <i class="pi pi-phone text-xs text-slate-400"></i>
-               {{ orderData.user?.contact || t('noContact') }}
-            </p>
+        <div v-if="orderData.notes" class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12 border-y border-slate-50 py-8">
 
-          </div>
           <div class="md:text-right">
-            <p class="text-slate-900 font-semibold">{{ t('order.id') }}: <span class="text-[#F3B913] font-mono">#{{ orderData.id }}</span></p>
             <p v-if="orderData.notes" class="text-slate-500 italic mt-2 text-sm max-w-xs md:ml-auto">
                 <span class="text-slate-400 font-bold not-italic">"</span> {{ orderData.notes }} <span class="text-slate-400 font-bold not-italic">"</span>
             </p>

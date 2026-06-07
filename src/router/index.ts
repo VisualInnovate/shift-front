@@ -621,7 +621,7 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/auth/login/Login.vue'),
       },
       {
-        name: 'otp',
+        name: 'auth-otp',
         path: 'otp/:email/:otp_type',
         component: () => import('../pages/auth/login/otp.vue'),
       },

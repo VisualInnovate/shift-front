@@ -58,14 +58,16 @@ export const useAuthStore = defineStore('Auth', {
         if (response.data.is_success) {
           const responseData = response.data.data || {}
           const user = responseData.user || {}
-          this.authenticatedweb = true;
-          this.webToken = responseData.access_token;
-          this.webUser = user;
+        this.webUser = user;
+        const accessToken = responseData.access_token
+        const requiresOtp = responseData?.requires_otp
 
-          // If server requires OTP but user's email is already verified, skip OTP
-          if (responseData?.requires_otp && user?.email_verified_at) {
+        if (requiresOtp) {
+          if (user?.email_verified_at && accessToken) {
+            this.authenticatedweb = true;
+            this.webToken = accessToken;
             this.router.push({ name: 'home' })
-          } else if (responseData?.requires_otp) {
+          } else {
             this.router.push({
               name: 'otp',
               params: { type: 'login' },
@@ -75,11 +77,15 @@ export const useAuthStore = defineStore('Auth', {
                 otp_type: responseData?.verify_type || data.otp_type,
               },
             })
-          } else {
-            this.router.push({ name: 'home' })
           }
-
-
+        } else if (accessToken) {
+          this.authenticatedweb = true;
+          this.webToken = accessToken;
+          this.router.push({ name: 'home' })
+        } else {
+          this.errors = ['Invalid credentials. Please try again.'];
+          return { is_success: false, errors: this.errors };
+        }
 
 
           return { is_success: true, errors: null };

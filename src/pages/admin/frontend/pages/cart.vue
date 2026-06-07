@@ -4,7 +4,7 @@
       <img
         :src="cartImage"
         alt="Cart Banner"
-        class="w-full h-56 object-cover"
+        class="w-full  object-cover"
         loading="lazy"
       />
     </div>

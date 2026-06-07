@@ -51,11 +51,11 @@
             <div v-if="hasAddresses" class="relative flex gap-3 items-center">
               <select
                 v-model="selectedAddress"
-                class="flex-1 bg-amber-50 border border-amber-300 rounded-lg px-4 py-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                class="flex-1 bg-amber-50 border border-amber-300 rounded-lg px-2 py-1 text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-600"
               >
                 <option :value="null" disabled>{{ t('cart.selectAddressPlaceholder') }}</option>
                 <option v-for="address in addresses" :key="address.id" :value="address.id">
-                  {{ address.address_line_1 }}, {{ address.city }}
+                  {{ (address.address_line_1 ).slice(0, 30) }}, {{ address.city }}
                 </option>
               </select>
 

@@ -56,14 +56,32 @@ export const useAuthStore = defineStore('Auth', {
           : { email: data.email,user_type: 'user'};
         const response = await axios.post('/api/login', payload);
         if (response.data.is_success) {
+          const responseData = response.data.data || {}
+          const user = responseData.user || {}
           this.authenticatedweb = true;
-          this.webToken = response.data.data.access_token;
-          this.webUser = response.data.data.user;
-          this.router.push({ name: 'otp' , params: { type: 'login' }, query: {
-            email: data.type === 'email' ? data.email : undefined,
-            phone: data.type === 'phone' ? `${data.countryCode}${data.phoneNumber}` : undefined,
-            otp_type: data.otp_type,
-          },});
+          this.webToken = responseData.access_token;
+          this.webUser = user;
+
+          // If server requires OTP but user's email is already verified, skip OTP
+          if (responseData?.requires_otp && user?.email_verified_at) {
+            this.router.push({ name: 'home' })
+          } else if (responseData?.requires_otp) {
+            this.router.push({
+              name: 'otp',
+              params: { type: 'login' },
+              query: {
+                email: data.type === 'email' ? data.email : undefined,
+                phone: data.type === 'phone' ? `${data.countryCode}${data.phoneNumber}` : undefined,
+                otp_type: responseData?.verify_type || data.otp_type,
+              },
+            })
+          } else {
+            this.router.push({ name: 'home' })
+          }
+
+
+
+
           return { is_success: true, errors: null };
         }
         this.errors = ['Invalid credentials. Please try again.'];

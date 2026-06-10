@@ -388,7 +388,7 @@ onUnmounted(() => {
                   </div>
 
                   <!-- ── TIMER BADGE ────────────────────────────────── -->
-                  <template v-if="getTimerState(order) !== null">
+                  <template v-if="getTimerState(order) !== null && [2].includes(order.status)  ">
                     <div
                       :class="[
                         'flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg mb-2',

@@ -369,6 +369,8 @@
                     @click="viewOrder(slotProps.data.id)"
                     v-tooltip.top="t('order.view')"
                   />
+                    <Button v-can="'delete products'" icon="pi pi-trash" class="p-delete mx-2"
+                  @click="confirmDelete(slotProps.data.id)" v-tooltip.top="t('delete')" />
 
                   <!-- Status Dropdown -->
                   <Dropdown

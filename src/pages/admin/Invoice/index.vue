@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { FilterMatchMode } from 'primevue/api'
 import axios from 'axios'
+import Dialog from 'primevue/dialog'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -92,8 +93,42 @@ const exportCSV = () => {
 }
 
 // View invoice detail
+const deleteDialog = ref(false)
+const deleteInvoiceId = ref(null)
+
 const viewInvoice = (id) => {
   router.push({ name: 'invoice-show', params: { id } })
+}
+
+const confirmDelete = (id) => {
+  deleteInvoiceId.value = id
+  deleteDialog.value = true
+}
+
+const deleteInvoice = async () => {
+  if (!deleteInvoiceId.value) return
+
+  try {
+    await axios.delete(`/api/invoice/${deleteInvoiceId.value}`)
+    toast.add({
+      severity: 'success',
+      summary: t('success'),
+      detail: t('invoice.deleteSuccess') || 'Invoice deleted successfully',
+      life: 4000,
+    })
+    fetchData()
+  } catch (error) {
+    toast.add({
+      severity: 'error',
+      summary: t('error'),
+      detail: error.response?.data?.message || t('invoice.deleteError') || 'Failed to delete invoice',
+      life: 4000,
+    })
+    console.error('Error deleting invoice:', error)
+  } finally {
+    deleteDialog.value = false
+    deleteInvoiceId.value = null
+  }
 }
 
 // Lifecycle
@@ -207,13 +242,18 @@ onMounted(() => {
 
           <Column :header="t('actions')" headerStyle="width: 8rem; text-align: center">
             <template #body="slotProps">
-              <Button
-                icon="pi pi-eye"
-                class="p-button-rounded p-detail"
-                @click="viewInvoice(slotProps.data.id)"
-                v-tooltip.top="t('view')"
-                v-can="'show invoices'"
-              />
+              <div class="flex justify-content-center gap-2">
+                <Button
+                  icon="pi pi-eye"
+                  class="p-button-rounded p-detail"
+                  @click="viewInvoice(slotProps.data.id)"
+                  v-tooltip.top="t('view')"
+                  v-can="'show invoices'"
+                />
+                  <Button v-can="'delete products'" icon="pi pi-trash" class="p-delete mx-2"
+                  @click="confirmDelete(slotProps.data.id)" v-tooltip.top="t('delete')" />
+
+              </div>
             </template>
           </Column>
 
@@ -230,6 +270,17 @@ onMounted(() => {
             </div>
           </template>
         </DataTable>
+
+        <Dialog v-model:visible="deleteDialog" :style="{ width: '450px' }" :header="t('invoice.deleteConfirmTitle') || 'Confirm delete'" :modal="true">
+          <div class="flex align-items-center justify-content-center gap-3">
+            <i class="pi pi-exclamation-triangle" style="font-size: 2rem; color: var(--red-500)" />
+            <span>{{ t('invoice.deleteConfirmMessage') || 'Are you sure you want to delete this invoice?' }}</span>
+          </div>
+          <template #footer>
+            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="deleteDialog = false" />
+            <Button :label="t('yes')" icon="pi pi-check" class="p-button-text p-button-danger" @click="deleteInvoice" />
+          </template>
+        </Dialog>
 
         <!-- Custom Paginator -->
          <div class="p-paginator p-component p-unselectable-text p-paginator-bottom">

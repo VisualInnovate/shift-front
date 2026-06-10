@@ -165,6 +165,7 @@ export default {
     changeStatusTitle: 'تغيير حالة الطلب',
     changeStatusConfirmMsg: 'هل أنت متأكد من تغيير حالة الطلب',
     management: 'إدارة الطلبات',
+
     proc: {
       done: 'تمت',
       waiting: 'انتظار',
@@ -179,6 +180,7 @@ export default {
       notYet: 'لم يتم بعد',
       minutes: 'دقيقة',
     },
+    overdueBy:'متأخر بحلول',
     totalDiscounts: 'إجمالي الخصومات',
     procedures: 'مراحل الطلب',
     phone: 'رقم الهاتف',

@@ -180,7 +180,7 @@ export default {
       notYet: 'لم يتم بعد',
       minutes: 'دقيقة',
     },
-    overdueBy:'متأخر بحلول',
+    overdueBy:'متأخر ',
     totalDiscounts: 'إجمالي الخصومات',
     procedures: 'مراحل الطلب',
     phone: 'رقم الهاتف',

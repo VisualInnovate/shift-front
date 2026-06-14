@@ -5,7 +5,7 @@
      <settings-dropdown class="app-navbar-actions__item" />
     <language-dropdown style="width: 100% !important;text-align: justify !important;padding-right: 15px;font-size: 17px !important; " class="app-navbar-actions__item" />
     <profile-dropdown class="app-navbar-actions__item app-navbar-actions__item--profile text-black">
-      <span>Admin</span>
+      <span>{{ userName }}</span>
 
     </profile-dropdown>
   </div>
@@ -22,6 +22,7 @@ import axios from "axios";
   import * as PusherPushNotifications from "@pusher/push-notifications-web";
   import LocaleSelect from '../../LocaleSelect.vue'
   const x =ref(0)
+  const userName = JSON.parse(localStorage.getItem('authUser') || '{}').name
   onMounted(() => {
 
 

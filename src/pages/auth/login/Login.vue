@@ -28,8 +28,8 @@
             class="w-full px-4 py-4 rounded-xl border border-gray-200 transition-all duration-200 focus:border-[#0b3baa] focus:ring-4 focus:ring-[#0b3baa]/10 bg-gray-50/50 focus:bg-white outline-none text-gray-900 text-sm font-medium"
             v-model="form.email"
           />
-          <label for="email" class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold uppercase tracking-wider text-gray-400 transition-all duration-200 pointer-events-none">
-            البريد الإلكتروني
+          <label for="email" class="absolute inset-x-4 top-1/2 -translate-y-1/2 text-xs font-bold uppercase tracking-wider text-gray-400 transition-all duration-200 pointer-events-none">
+            {{ t('email') }}
           </label>
         </span>
       </div>
@@ -42,8 +42,8 @@
             class="w-full px-4 py-4 rounded-xl border border-gray-200 transition-all duration-200 focus:border-[#0b3baa] focus:ring-4 focus:ring-[#0b3baa]/10 bg-gray-50/50 focus:bg-white outline-none text-gray-900 text-sm font-medium"
             v-model="form.password"
           />
-          <label for="password" class="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold uppercase tracking-wider text-gray-400 transition-all duration-200 pointer-events-none">
-            كلمة المرور
+          <label for="password" class="absolute inset-x-4 top-1/2 -translate-y-1/2 text-xs font-bold uppercase tracking-wider text-gray-400 transition-all duration-200 pointer-events-none">
+            {{ t('password') }}
           </label>
         </span>
       </div>
@@ -85,8 +85,8 @@ const passwordErrors = ref<string[]>([])
 const formReady = computed(() => !emailErrors.value.length && !passwordErrors.value.length)
 
 function onsubmit() {
-  emailErrors.value = form.value.email ? [] : ['Email is required']
-  passwordErrors.value = form.value.password ? [] : ['Password is required']
+  emailErrors.value = form.value.email ? [] : [t('emailRequired')]
+  passwordErrors.value = form.value.password ? [] : [t('passwordreq')]
 
   if (!formReady.value) return
 

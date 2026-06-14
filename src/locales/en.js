@@ -1621,6 +1621,7 @@ export default {
   },
   auth: {
     loginnow: 'Login Now',
+     copyright: 'All rights reserved ',
     loginnote: 'Enter your information to enjoy a unique shopping experience',
     email: 'Email Address',
     emailreq: 'Email is required',

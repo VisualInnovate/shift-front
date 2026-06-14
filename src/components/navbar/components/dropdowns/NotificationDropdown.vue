@@ -1,10 +1,7 @@
 <template>
   <div class="notification-dropdown">
-    <!-- Hidden audio element for notification sound -->
     <audio ref="notificationSound" preload="auto">
-        <source src="../../../../assets/noti.wav" type="audio/mpeg">
-
-      <!-- Fallback to another free sound if needed -->
+      <source src="../../../../assets/noti.wav" type="audio/mpeg">
       Your browser does not support the audio element.
     </audio>
 
@@ -20,8 +17,8 @@
     <div v-if="isOpen" class="notification-content">
       <div class="header">
         <h3>الإشعارات ({{ totalNotifications }})</h3>
-        <button v-if="messages.length > 0" class="clear-btn" @click="clearLocal">
-          مسح المعروضة
+        <button v-if="messages.length > 0" class="clear-btn" @click="clearCurrentPageNotifications">
+          حذف المعروضة
         </button>
       </div>
 
@@ -41,9 +38,14 @@
           :class="{ unread: msg.unread }"
           @click="markAsRead(msg, index)"
         >
-          <p class="message-title">
-            <span class="msg-id">#{{ msg.id }}</span>: {{ msg.title }}
-          </p>
+          <div class="message-header-row">
+            <p class="message-title">
+              <span class="msg-id">#{{ msg.id }}</span>: {{ msg.title }}
+            </p>
+            <button class="item-delete-btn" @click.stop="deleteSingleNotification(msg.notification_id)">
+              🗑️
+            </button>
+          </div>
           <p class="message-body">{{ msg.body }}</p>
           <small class="message-time">{{ msg.time }}</small>
         </div>
@@ -53,7 +55,6 @@
         {{ error }}
       </div>
 
-      <!-- Pagination Controls -->
       <div v-if="!loading && totalPages > 1" class="pagination-controls">
         <button
           class="page-btn"
@@ -145,7 +146,7 @@ function initPusher() {
 }
 
 async function loadNotifications(page = 1) {
-  if (page < 1 || page > totalPages.value) return
+  if (page < 1 || (totalPages.value && page > totalPages.value)) return
 
   loading.value = true
   error.value = null
@@ -182,6 +183,7 @@ function mapNotification(item) {
     title: item.title || 'إشعار جديد',
     body: item.body || '',
     unread: item.is_seen === 0,
+    notification_id: item.id,
     time: formatArabicDate(item.created_at || new Date()),
   }
 }
@@ -198,6 +200,7 @@ function addRealTimeNotification(data) {
   // Avoid duplicates
   if (!messages.value.some(m => m.id === notification.id)) {
     messages.value.unshift(notification)
+    totalNotifications.value += 1
 
     // Play sound when new notification arrives
     playNotificationSound()
@@ -231,13 +234,43 @@ async function markAsRead(msg, index) {
   }
 }
 
+/**
+ * Global/Bulk delete API workflow handler
+ * @param {Array<number|string>} ids
+ */
+async function deleteNotificationsFromApi(ids) {
+  if (!ids || ids.length === 0) return
+
+  try {
+    // Converts array into comma separated query parameters format: ?ids=1,2,3
+    const idsParam = ids.join(',')
+    await axios.post(`/api/user-notification/delete/notifications?ids=${idsParam}`)
+
+    // Refresh the list seamlessly from current page or pull down remaining count items
+    if (messages.value.length === ids.length && currentPage.value > 1) {
+      await loadNotifications(currentPage.value - 1)
+    } else {
+      await loadNotifications(currentPage.value)
+    }
+  } catch (err) {
+    console.error('Delete request failed:', err)
+    error.value = 'تعذر حذف الإشعارات من الخادم'
+  }
+}
+
+function clearCurrentPageNotifications() {
+  const allIdsOnPage = messages.value.map(m => m.notification_id)
+  deleteNotificationsFromApi(allIdsOnPage)
+}
+
+function deleteSingleNotification(id) {
+  console.log('Deleting notification with ID:', id)
+  deleteNotificationsFromApi([id])
+}
+
 function changePage(page) {
   if (page === currentPage.value) return
   loadNotifications(page)
-}
-
-function clearLocal() {
-  messages.value = []
 }
 
 function toggleDropdown() {
@@ -256,7 +289,6 @@ function formatArabicDate(dateInput) {
 </script>
 
 <style lang="scss" scoped>
-/* Your existing styles remain exactly the same */
 .notification-dropdown {
   position: relative;
   direction: rtl;
@@ -308,7 +340,8 @@ function formatArabicDate(dateInput) {
 
   h3 { margin: 0; font-size: 1.1rem; }
   .clear-btn {
-    background: none; border: none; color: #2196f3; cursor: pointer; font-size: 0.85rem;
+    background: none; border: none; color: #e53935; cursor: pointer; font-size: 0.85rem;
+    &:hover { text-decoration: underline; }
   }
 }
 
@@ -340,11 +373,33 @@ function formatArabicDate(dateInput) {
   }
 }
 
+.message-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.item-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 4px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
 .message-title {
   margin: 0 0 5px;
   font-weight: bold;
   font-size: 0.95rem;
   color: #333;
+  flex-grow: 1;
 
   .msg-id {
     color: #2196f3;
@@ -367,6 +422,10 @@ function formatArabicDate(dateInput) {
   padding: 20px;
   text-align: center;
   color: #888;
+}
+
+.error-message {
+  color: #e53935;
 }
 
 .pagination-info {

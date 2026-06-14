@@ -193,10 +193,11 @@ if ('serviceWorker' in navigator) {
 
 app.mount('#app')
 
-if (localStorage.appLang == 'en')
-  document.body.dir = "ltr"
-else
-  document.body.dir = "rtl"
+if (localStorage.appLang === 'ar') {
+  document.body.dir = 'rtl'
+} else {
+  document.body.dir = 'ltr'
+}
 
 // Scroll to top on route change
 router.afterEach(() => {

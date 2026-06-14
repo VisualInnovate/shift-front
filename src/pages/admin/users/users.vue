@@ -1,162 +1,417 @@
-```vue
 <script setup>
-import { ref, onMounted, onBeforeMount, watch } from 'vue'
-import { useToast } from 'primevue/usetoast'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { FilterMatchMode } from 'primevue/api'
-import axios from 'axios'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import Button from 'primevue/button'
-import InputText from 'primevue/inputtext'
-import Toolbar from 'primevue/toolbar'
-import Toast from 'primevue/toast'
-import Tag from 'primevue/tag'
-import Dialog from 'primevue/dialog'
-import ProgressSpinner from 'primevue/progressspinner'
-import Dropdown from 'primevue/dropdown'
+  import { ref, onMounted, onBeforeMount, watch, nextTick } from 'vue'
+  import { useToast } from 'primevue/usetoast'
+  import { useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
+  import { FilterMatchMode } from 'primevue/api'
+  import axios from 'axios'
+  import DataTable from 'primevue/datatable'
+  import Column from 'primevue/column'
+  import Button from 'primevue/button'
+  import InputText from 'primevue/inputtext'
+  import Toolbar from 'primevue/toolbar'
+  import Toast from 'primevue/toast'
+  import Tag from 'primevue/tag'
+  import Dialog from 'primevue/dialog'
+  import ProgressSpinner from 'primevue/progressspinner'
+  import Dropdown from 'primevue/dropdown'
 
-const { t } = useI18n()
-const router = useRouter()
-const toast = useToast()
+  const { t } = useI18n()
+  const router = useRouter()
+  const toast = useToast()
 
-// State variables
-const loading = ref(true)
-const delete_id = ref('')
-const users = ref(null)
-const deleteDialog = ref(false)
-const selectedUsers = ref(null)
-const dt = ref(null)
-const filters = ref({})
-const searchQuery = ref('')
-
-// Pagination variables
-const currentPage = ref(1)
-const totalRecords = ref(0)
-const rowsPerPage = ref(10)
-const totalPages = ref(0)
-const firstPageUrl = ref('')
-const lastPageUrl = ref('')
-const nextPageUrl = ref('')
-const prevPageUrl = ref('')
-const from = ref(0)
-const to = ref(0)
-const links = ref([])
-
-// Initialize filters
-const initFilters = () => {
-  filters.value = {
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  }
-}
-
-// Fetch data
-const fetchData = () => {
-  loading.value = true
-  axios.get('/api/user', {
-    params: {
-      page: currentPage.value,
-      limit: rowsPerPage.value,
-      search: searchQuery.value || undefined
-    }
+  // State variables
+  const loading = ref(true)
+  const delete_id = ref('')
+  const users = ref(null)
+  const deleteDialog = ref(false)
+  const selectedUsers = ref(null)
+  const dt = ref(null)
+  const filters = ref({})
+  const searchQuery = ref('')
+  const resetPasswordDialog = ref(false)
+  const resetPasswordEmail = ref('')
+  const resetPasswordForm = ref({
+    email: '',
+    password: '',
+    password_confirmation: '',
   })
-    .then((res) => {
-      users.value = res.data.data.data
-      totalRecords.value = res.data.data.total
-      totalPages.value = res.data.data.last_page
-      firstPageUrl.value = res.data.data.first_page_url
-      lastPageUrl.value = res.data.data.last_page_url
-      nextPageUrl.value = res.data.data.next_page_url
-      prevPageUrl.value = res.data.data.prev_page_url
-      from.value = res.data.data.from
-      to.value = res.data.data.to
-      links.value = res.data.data.links
-      loading.value = false
-    })
-    .catch((error) => {
+  const otpLength = 6
+  const otpDigits = ref(Array(otpLength).fill(''))
+  const otpInputs = ref([])
+  const sendOtpLoading = ref(false)
+  const resetPasswordLoading = ref(false)
+  const resetPasswordErrors = ref([])
+
+  // Pagination variables
+  const currentPage = ref(1)
+  const totalRecords = ref(0)
+  const rowsPerPage = ref(10)
+  const totalPages = ref(0)
+  const firstPageUrl = ref('')
+  const lastPageUrl = ref('')
+  const nextPageUrl = ref('')
+  const prevPageUrl = ref('')
+  const from = ref(0)
+  const to = ref(0)
+  const links = ref([])
+
+  // Initialize filters
+  const initFilters = () => {
+    filters.value = {
+      global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    }
+  }
+
+  // Fetch data
+  const fetchData = () => {
+    loading.value = true
+    axios
+      .get('/api/user', {
+        params: {
+          page: currentPage.value,
+          limit: rowsPerPage.value,
+          search: searchQuery.value || undefined,
+        },
+      })
+      .then((res) => {
+        users.value = res.data.data.data
+        totalRecords.value = res.data.data.total
+        totalPages.value = res.data.data.last_page
+        firstPageUrl.value = res.data.data.first_page_url
+        lastPageUrl.value = res.data.data.last_page_url
+        nextPageUrl.value = res.data.data.next_page_url
+        prevPageUrl.value = res.data.data.prev_page_url
+        from.value = res.data.data.from
+        to.value = res.data.data.to
+        links.value = res.data.data.links
+        loading.value = false
+      })
+      .catch((error) => {
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: t('user.loadError'),
+          life: 3000,
+        })
+        loading.value = false
+        console.error('Error fetching data:', error)
+      })
+  }
+
+  // Watch for search and rows per page changes
+  watch([searchQuery, rowsPerPage], () => {
+    currentPage.value = 1
+    fetchData()
+  })
+
+  // Handle page navigation
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+      currentPage.value = page
+      fetchData()
+    }
+  }
+
+  // Handle rows per page change
+  const changeRowsPerPage = (event) => {
+    rowsPerPage.value = event.value
+    currentPage.value = 1
+    fetchData()
+  }
+
+  // Delete user
+  const confirmDelete = (id) => {
+    delete_id.value = id
+    deleteDialog.value = true
+  }
+
+  const deleteUser = () => {
+    axios
+      .delete(`/api/user/${delete_id.value}`)
+      .then(() => {
+        toast.add({
+          severity: 'success',
+          summary: t('success'),
+          detail: t('user.deleteSuccess'),
+          life: 3000,
+        })
+        fetchData()
+        deleteDialog.value = false
+      })
+      .catch((error) => {
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: t('user.deleteError'),
+          life: 3000,
+        })
+      })
+  }
+
+  const extractErrorMessages = (error, fallback) => {
+    const errors = error.response?.data?.errors
+
+    if (errors) {
+      return Object.values(errors).flat()
+    }
+
+    return [error.response?.data?.message || fallback]
+  }
+
+  const resetPasswordState = (email = '') => {
+    resetPasswordEmail.value = email
+    resetPasswordForm.value = {
+      email,
+      password: '',
+      password_confirmation: '',
+    }
+    otpDigits.value = Array(otpLength).fill('')
+    otpInputs.value = []
+    resetPasswordErrors.value = []
+  }
+
+  const setOtpInputRef = (el, index) => {
+    if (el) {
+      otpInputs.value[index] = el
+    }
+  }
+
+  const focusOtpInput = async (index = 0) => {
+    await nextTick()
+    otpInputs.value[index]?.focus()
+  }
+
+  const sendResetPasswordOtp = async (email) => {
+    if (!email) {
+      const message = t('user.resetPassword.missingEmail')
+      resetPasswordErrors.value = [message]
       toast.add({
         severity: 'error',
         summary: t('error'),
-        detail: t('user.loadError'),
-        life: 3000
+        detail: message,
+        life: 3000,
       })
-      loading.value = false
-      console.error('Error fetching data:', error)
-    })
-}
+      return false
+    }
 
-// Watch for search and rows per page changes
-watch([searchQuery, rowsPerPage], () => {
-  currentPage.value = 1
-  fetchData()
-})
+    sendOtpLoading.value = true
+    resetPasswordErrors.value = []
 
-// Handle page navigation
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-    fetchData()
-  }
-}
+    try {
+      const response = await axios.post('/api/send-otp', {
+        email,
+        otp_type: 'email',
+      })
 
-// Handle rows per page change
-const changeRowsPerPage = (event) => {
-  rowsPerPage.value = event.value
-  currentPage.value = 1
-  fetchData()
-}
+      if (response.data?.is_success === false) {
+        const message = response.data?.message || t('user.resetPassword.otpSentError')
+        resetPasswordErrors.value = [message]
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: message,
+          life: 3000,
+        })
+        return false
+      }
 
-// Delete user
-const confirmDelete = (id) => {
-  delete_id.value = id
-  deleteDialog.value = true
-}
-
-const deleteUser = () => {
-  axios.delete(`/api/user/${delete_id.value}`)
-    .then(() => {
       toast.add({
         severity: 'success',
         summary: t('success'),
-        detail: t('user.deleteSuccess'),
-        life: 3000
+        detail: response.data?.message || t('user.resetPassword.otpSentSuccess'),
+        life: 3000,
       })
-      fetchData()
-      deleteDialog.value = false
-    })
-    .catch((error) => {
+      return true
+    } catch (error) {
+      const messages = extractErrorMessages(error, t('user.resetPassword.otpSentError'))
+      resetPasswordErrors.value = messages
       toast.add({
         severity: 'error',
         summary: t('error'),
-        detail: t('user.deleteError'),
-        life: 3000
+        detail: messages.join(' '),
+        life: 4000,
       })
+      return false
+    } finally {
+      sendOtpLoading.value = false
+    }
+  }
+
+  const resetPassword = async (email) => {
+    resetPasswordState(email)
+    const otpSent = await sendResetPasswordOtp(email)
+
+    if (otpSent) {
+      resetPasswordDialog.value = true
+      focusOtpInput()
+    }
+  }
+
+  const resendResetPasswordOtp = async () => {
+    const otpSent = await sendResetPasswordOtp(resetPasswordForm.value.email)
+
+    if (otpSent) {
+      otpDigits.value = Array(otpLength).fill('')
+      focusOtpInput()
+    }
+  }
+
+  const handleOtpInput = (index, event) => {
+    const value = event.target.value.replace(/\D/g, '')
+
+    if (value.length > 1) {
+      value
+        .slice(0, otpLength - index)
+        .split('')
+        .forEach((digit, offset) => {
+          otpDigits.value[index + offset] = digit
+        })
+      const nextIndex = Math.min(index + value.length, otpLength - 1)
+      focusOtpInput(nextIndex)
+      return
+    }
+
+    otpDigits.value[index] = value.slice(0, 1)
+    event.target.value = otpDigits.value[index]
+
+    if (otpDigits.value[index] && index < otpLength - 1) {
+      focusOtpInput(index + 1)
+    }
+  }
+
+  const handleOtpBackspace = (index) => {
+    if (index > 0 && !otpDigits.value[index]) {
+      focusOtpInput(index - 1)
+    }
+  }
+
+  const handleOtpPaste = (index, event) => {
+    event.preventDefault()
+    const pasted = event.clipboardData?.getData('text').replace(/\D/g, '').slice(0, otpLength - index) || ''
+
+    pasted.split('').forEach((digit, offset) => {
+      otpDigits.value[index + offset] = digit
     })
-}
 
-// Export CSV
-const exportCSV = () => {
-  dt.value.exportCSV()
-}
+    const nextIndex = Math.min(index + pasted.length, otpLength - 1)
+    focusOtpInput(nextIndex)
+  }
 
-// Navigation functions
-const openNew = () => {
-  router.push({ name: 'user-create' })
-}
+  const validateResetPasswordForm = () => {
+    const errors = []
+    const otp = otpDigits.value.join('')
 
-const editUser = (id) => {
-  router.push({ name: 'user-edit', params: { id } })
-}
+    if (
+      !resetPasswordForm.value.email ||
+      !resetPasswordForm.value.password ||
+      !resetPasswordForm.value.password_confirmation
+    ) {
+      errors.push(t('user.resetPassword.requiredFields'))
+    }
 
-// Lifecycle hooks
-onBeforeMount(() => {
-  initFilters()
-})
+    if (otp.length !== otpLength || !/^\d{6}$/.test(otp)) {
+      errors.push(t('user.resetPassword.invalidOtp'))
+    }
 
-onMounted(() => {
-  fetchData()
-})
+    if (
+      resetPasswordForm.value.password &&
+      resetPasswordForm.value.password_confirmation &&
+      resetPasswordForm.value.password !== resetPasswordForm.value.password_confirmation
+    ) {
+      errors.push(t('user.resetPassword.passwordMismatch'))
+    }
+
+    resetPasswordErrors.value = errors
+
+    if (errors.length) {
+      toast.add({
+        severity: 'warn',
+        summary: t('warning'),
+        detail: errors[0],
+        life: 3000,
+      })
+    }
+
+    return errors.length === 0
+  }
+
+  const confirmResetPassword = async () => {
+    if (!validateResetPasswordForm()) {
+      return
+    }
+
+    resetPasswordLoading.value = true
+
+    try {
+      const response = await axios.post('/api/change-password', {
+        email: resetPasswordForm.value.email,
+        otp: otpDigits.value.join(''),
+        password: resetPasswordForm.value.password,
+        password_confirmation: resetPasswordForm.value.password_confirmation,
+      })
+
+      if (response.data?.is_success === false) {
+        const message = response.data?.message || t('user.resetPassword.passwordChangedError')
+        resetPasswordErrors.value = [message]
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: message,
+          life: 4000,
+        })
+        return
+      }
+
+      toast.add({
+        severity: 'success',
+        summary: t('success'),
+        detail: response.data?.message || t('user.resetPassword.passwordChangedSuccess'),
+        life: 3000,
+      })
+      resetPasswordDialog.value = false
+    } catch (error) {
+      const messages = extractErrorMessages(error, t('user.resetPassword.passwordChangedError'))
+      resetPasswordErrors.value = messages
+      toast.add({
+        severity: 'error',
+        summary: t('error'),
+        detail: messages.join(' '),
+        life: 4000,
+      })
+    } finally {
+      resetPasswordLoading.value = false
+    }
+  }
+
+  const closeResetPasswordDialog = () => {
+    if (!resetPasswordLoading.value) {
+      resetPasswordDialog.value = false
+    }
+  }
+
+  // Export CSV
+  const exportCSV = () => {
+    dt.value.exportCSV()
+  }
+
+  // Navigation functions
+  const openNew = () => {
+    router.push({ name: 'user-create' })
+  }
+
+  const editUser = (id) => {
+    router.push({ name: 'user-edit', params: { id } })
+  }
+
+  // Lifecycle hooks
+  onBeforeMount(() => {
+    initFilters()
+  })
+
+  onMounted(() => {
+    fetchData()
+  })
 </script>
 
 <template>
@@ -218,7 +473,12 @@ onMounted(() => {
               </template>
             </Column>
 
-            <Column field="email" :header="$t('user.email')" :sortable="true" header-style="width:14%; min-width:10rem;">
+            <Column
+              field="email"
+              :header="$t('user.email')"
+              :sortable="true"
+              header-style="width:14%; min-width:10rem;"
+            >
               <template #body="slotProps">
                 {{ slotProps.data.email }}
               </template>
@@ -230,15 +490,22 @@ onMounted(() => {
               </template>
             </Column>
 
-            <Column field="type_description" :header="t('user.type')" :sortable="true" header-style="width:14%; min-width:10rem;">
+            <Column
+              field="type_description"
+              :header="t('user.type')"
+              :sortable="true"
+              header-style="width:14%; min-width:10rem;"
+            >
               <template #body="slotProps">
                 <Tag
                   :value="slotProps.data.type_description"
-                  :severity="{
-                    'Admin': 'info',
-                    'Customer': 'success',
-                    'Guest': 'danger'
-                  }[slotProps.data.type_description] || 'warning'"
+                  :severity="
+                    {
+                      Admin: 'info',
+                      Customer: 'success',
+                      Guest: 'danger',
+                    }[slotProps.data.type_description] || 'warning'
+                  "
                 />
               </template>
             </Column>
@@ -258,6 +525,15 @@ onMounted(() => {
                   class="p-delete"
                   @click="confirmDelete(slotProps.data.id)"
                   v-tooltip.top="t('delete')"
+                />
+                <Button
+                  v-can="'edit users'"
+                  icon="pi pi-lock mx-2"
+                  class="p-detail"
+                  :loading="sendOtpLoading && resetPasswordEmail === slotProps.data.email && !resetPasswordDialog"
+                  :disabled="sendOtpLoading || resetPasswordLoading"
+                  @click="resetPassword(slotProps.data.email)"
+                  v-tooltip.top="t('resetPassword')"
                 />
               </template>
             </Column>
@@ -279,7 +555,9 @@ onMounted(() => {
           <!-- Custom Pagination -->
           <div class="p-paginator p-component p-unselectable-text p-paginator-bottom">
             <div class="p-paginator-left-content">
-              <span class="p-paginator-current">{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}</span>
+              <span class="p-paginator-current"
+                >{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}</span
+              >
             </div>
             <div class="p-paginator-right-content">
               <button
@@ -347,18 +625,127 @@ onMounted(() => {
             <span>{{ t('user.deleteConfirmMessage') }}</span>
           </div>
           <template #footer>
-            <Button
-              :label="t('no')"
-              icon="pi pi-times"
-              class="p-button-text"
-              @click="deleteDialog = false"
-            />
-            <Button
-              :label="t('yes')"
-              icon="pi pi-check"
-              class="p-button-text p-button-danger"
-              @click="deleteUser"
-            />
+            <Button :label="t('no')" icon="pi pi-times" class="p-button-text" @click="deleteDialog = false" />
+            <Button :label="t('yes')" icon="pi pi-check" class="p-button-text p-button-danger" @click="deleteUser" />
+          </template>
+        </Dialog>
+
+        <Dialog
+          v-model:visible="resetPasswordDialog"
+          class="reset-password-dialog"
+          :style="{ width: '560px', maxWidth: '95vw' }"
+          :header="t('user.resetPassword.dialogTitle')"
+          :modal="true"
+          :closable="!resetPasswordLoading"
+          @hide="resetPasswordState()"
+        >
+          <div class="reset-password-panel">
+            <div class="reset-password-heading">
+              <span class="reset-password-icon">
+                <i class="pi pi-lock" />
+              </span>
+              <div>
+                <h3>{{ t('user.resetPassword.dialogSubtitle') }}</h3>
+                <p>{{ t('user.resetPassword.dialogDescription') }}</p>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="reset-password-email" class="font-semibold">{{ t('user.resetPassword.emailLabel') }}</label>
+              <InputText
+                id="reset-password-email"
+                v-model="resetPasswordForm.email"
+                class="w-full reset-password-readonly mt-2"
+                readonly
+              />
+            </div>
+
+            <div class="field">
+              <label class="font-semibold">{{ t('user.resetPassword.otpLabel') }}</label>
+              <div class="reset-password-otp" dir="ltr">
+                <input
+                  v-for="(_, index) in otpDigits"
+                  :key="index"
+                  :ref="(el) => setOtpInputRef(el, index)"
+                  :value="otpDigits[index]"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="1"
+                  autocomplete="one-time-code"
+                  class="reset-password-otp-input"
+                  :aria-label="t('user.resetPassword.otpDigit', { number: index + 1 })"
+                  @input="handleOtpInput(index, $event)"
+                  @keydown.backspace="handleOtpBackspace(index)"
+                  @paste="handleOtpPaste(index, $event)"
+                />
+              </div>
+              <small class="text-color-secondary">{{ t('user.resetPassword.otpHelp') }}</small>
+            </div>
+
+            <div class="formgrid grid gap-4">
+              <div class="field col-12 md:col-6">
+                <label for="reset-password-new" class="font-semibold">{{ t('user.resetPassword.newPassword') }}</label>
+                <InputText
+                  id="reset-password-new"
+                  v-model="resetPasswordForm.password"
+                  type="password"
+                  class="w-full mt-2"
+                  autocomplete="new-password"
+                  :placeholder="t('user.resetPassword.newPasswordPlaceholder')"
+                />
+              </div>
+
+              <div class="field col-12 md:col-6">
+                <label for="reset-password-confirm" class="font-semibold">
+                  {{ t('user.resetPassword.confirmPassword') }}
+                </label>
+                <InputText
+                  id="reset-password-confirm"
+                  v-model="resetPasswordForm.password_confirmation"
+                  type="password"
+                  class="w-full mt-2"
+                  autocomplete="new-password"
+                  :placeholder="t('user.resetPassword.confirmPasswordPlaceholder')"
+                />
+              </div>
+            </div>
+
+            <div v-if="resetPasswordErrors.length" class="reset-password-errors">
+              <div v-for="error in resetPasswordErrors" :key="error">{{ error }}</div>
+            </div>
+
+            <div class="reset-password-resend">
+              <span>{{ t('user.resetPassword.noCode') }}</span>
+              <button
+                type="button"
+                class="reset-password-resend-button"
+                :disabled="sendOtpLoading || resetPasswordLoading"
+                @click="resendResetPasswordOtp"
+              >
+                <i v-if="sendOtpLoading" class="pi pi-spin pi-spinner" />
+                {{ sendOtpLoading ? t('user.resetPassword.sendingOtp') : t('user.resetPassword.resendOtp') }}
+              </button>
+            </div>
+          </div>
+
+          <template #footer>
+            <div class="reset-password-footer">
+              <Button
+                :label="t('cancel')"
+                icon="pi pi-times"
+                class="p-button-text"
+                :disabled="resetPasswordLoading"
+                @click="closeResetPasswordDialog"
+              />
+              <Button
+                :label="resetPasswordLoading ? t('user.resetPassword.confirming') : t('user.resetPassword.confirm')"
+                icon="pi pi-check"
+                class="p-button-success"
+                :loading="resetPasswordLoading"
+                :disabled="sendOtpLoading"
+                @click="confirmResetPassword"
+              />
+            </div>
           </template>
         </Dialog>
       </div>
@@ -367,5 +754,151 @@ onMounted(() => {
 </template>
 
 <style>
+.reset-password-dialog .p-dialog-content {
+  padding-top: 0;
+}
+
+.reset-password-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.reset-password-heading {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(215, 166, 72, 0.12), rgba(59, 130, 246, 0.08));
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: 8px;
+}
+
+.reset-password-icon {
+  display: inline-flex;
+  width: 2.65rem;
+  height: 2.65rem;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+  background: #d7a648;
+  border-radius: 8px;
+  box-shadow: 0 8px 18px rgba(215, 166, 72, 0.22);
+}
+
+.reset-password-heading h3 {
+  margin: 0 0 0.25rem;
+  color: var(--text-color, #1f2937);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.reset-password-heading p {
+  margin: 0;
+  color: var(--text-color-secondary, #64748b);
+  line-height: 1.55;
+}
+
+.reset-password-readonly {
+  color: #475569;
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.reset-password-otp {
+  display: flex;
+  gap: 0.55rem;
+  justify-content: center;
+  margin: 0.5rem 0;
+}
+
+.reset-password-otp-input {
+  width: 3rem;
+  height: 3.25rem;
+  color: #1f2937;
+  background: #faf7f2;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  text-align: center;
+  font-size: 1.35rem;
+  font-weight: 700;
+  caret-color: #d7a648;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.reset-password-otp-input:focus {
+  background: #fff;
+  border-color: #d7a648;
+  box-shadow: 0 0 0 3px rgba(215, 166, 72, 0.16);
+}
+
+.reset-password-errors {
+  padding: 0.75rem 1rem;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.reset-password-resend {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color-secondary, #64748b);
+  font-size: 0.9rem;
+}
+
+.reset-password-resend-button {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.25rem 0.35rem;
+  color: #b8841e;
+  background: transparent;
+  border: 0;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reset-password-resend-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.reset-password-footer {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .reset-password-heading {
+    padding: 0.85rem;
+  }
+
+  .reset-password-otp {
+    gap: 0.35rem;
+  }
+
+  .reset-password-otp-input {
+    width: 2.45rem;
+    height: 3rem;
+  }
+
+  .reset-password-footer {
+    flex-direction: column-reverse;
+  }
+
+  .reset-password-footer .p-button {
+    width: 100%;
+  }
+}
 </style>
-```

@@ -621,6 +621,19 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/auth/login/Login.vue'),
       },
       {
+        name: 'forgot-password',
+        path: 'forgot-password',
+        component: () => import('../pages/auth/login/ForgotPassword.vue'),
+      },
+      {
+        name: 'reset-password',
+        path: 'reset-password',
+        component: () => import('../pages/auth/login/resetPassword.vue'),
+        props: (route) => ({
+          email: route.query.email,
+        }),
+      },
+      {
         name: 'auth-otp',
         path: 'otp/:email/:otp_type',
         component: () => import('../pages/auth/login/otp.vue'),

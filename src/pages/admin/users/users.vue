@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, onMounted, onBeforeMount, watch, nextTick } from 'vue'
+  import { ref, onMounted, onBeforeMount, watch } from 'vue'
   import { useToast } from 'primevue/usetoast'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
@@ -30,16 +30,11 @@
   const filters = ref({})
   const searchQuery = ref('')
   const resetPasswordDialog = ref(false)
-  const resetPasswordEmail = ref('')
   const resetPasswordForm = ref({
-    email: '',
+    current_password: '',
     password: '',
     password_confirmation: '',
   })
-  const otpLength = 6
-  const otpDigits = ref(Array(otpLength).fill(''))
-  const otpInputs = ref([])
-  const sendOtpLoading = ref(false)
   const resetPasswordLoading = ref(false)
   const resetPasswordErrors = ref([])
 
@@ -159,159 +154,29 @@
     return [error.response?.data?.message || fallback]
   }
 
-  const resetPasswordState = (email = '') => {
-    resetPasswordEmail.value = email
+  const resetPasswordState = () => {
     resetPasswordForm.value = {
-      email,
+      current_password: '',
       password: '',
       password_confirmation: '',
     }
-    otpDigits.value = Array(otpLength).fill('')
-    otpInputs.value = []
     resetPasswordErrors.value = []
   }
 
-  const setOtpInputRef = (el, index) => {
-    if (el) {
-      otpInputs.value[index] = el
-    }
-  }
-
-  const focusOtpInput = async (index = 0) => {
-    await nextTick()
-    otpInputs.value[index]?.focus()
-  }
-
-  const sendResetPasswordOtp = async (email) => {
-    if (!email) {
-      const message = t('user.resetPassword.missingEmail')
-      resetPasswordErrors.value = [message]
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: message,
-        life: 3000,
-      })
-      return false
-    }
-
-    sendOtpLoading.value = true
-    resetPasswordErrors.value = []
-
-    try {
-      const response = await axios.post('/api/send-otp', {
-        email,
-        otp_type: 'email',
-      })
-
-      if (response.data?.is_success === false) {
-        const message = response.data?.message || t('user.resetPassword.otpSentError')
-        resetPasswordErrors.value = [message]
-        toast.add({
-          severity: 'error',
-          summary: t('error'),
-          detail: message,
-          life: 3000,
-        })
-        return false
-      }
-
-      toast.add({
-        severity: 'success',
-        summary: t('success'),
-        detail: response.data?.message || t('user.resetPassword.otpSentSuccess'),
-        life: 3000,
-      })
-      return true
-    } catch (error) {
-      const messages = extractErrorMessages(error, t('user.resetPassword.otpSentError'))
-      resetPasswordErrors.value = messages
-      toast.add({
-        severity: 'error',
-        summary: t('error'),
-        detail: messages.join(' '),
-        life: 4000,
-      })
-      return false
-    } finally {
-      sendOtpLoading.value = false
-    }
-  }
-
-  const resetPassword = async (email) => {
-    resetPasswordState(email)
-    const otpSent = await sendResetPasswordOtp(email)
-
-    if (otpSent) {
-      resetPasswordDialog.value = true
-      focusOtpInput()
-    }
-  }
-
-  const resendResetPasswordOtp = async () => {
-    const otpSent = await sendResetPasswordOtp(resetPasswordForm.value.email)
-
-    if (otpSent) {
-      otpDigits.value = Array(otpLength).fill('')
-      focusOtpInput()
-    }
-  }
-
-  const handleOtpInput = (index, event) => {
-    const value = event.target.value.replace(/\D/g, '')
-
-    if (value.length > 1) {
-      value
-        .slice(0, otpLength - index)
-        .split('')
-        .forEach((digit, offset) => {
-          otpDigits.value[index + offset] = digit
-        })
-      const nextIndex = Math.min(index + value.length, otpLength - 1)
-      focusOtpInput(nextIndex)
-      return
-    }
-
-    otpDigits.value[index] = value.slice(0, 1)
-    event.target.value = otpDigits.value[index]
-
-    if (otpDigits.value[index] && index < otpLength - 1) {
-      focusOtpInput(index + 1)
-    }
-  }
-
-  const handleOtpBackspace = (index) => {
-    if (index > 0 && !otpDigits.value[index]) {
-      focusOtpInput(index - 1)
-    }
-  }
-
-  const handleOtpPaste = (index, event) => {
-    event.preventDefault()
-    const pasted = event.clipboardData?.getData('text').replace(/\D/g, '').slice(0, otpLength - index) || ''
-
-    pasted.split('').forEach((digit, offset) => {
-      otpDigits.value[index + offset] = digit
-    })
-
-    const nextIndex = Math.min(index + pasted.length, otpLength - 1)
-    focusOtpInput(nextIndex)
+  const resetPassword = () => {
+    resetPasswordState()
+    resetPasswordDialog.value = true
   }
 
   const validateResetPasswordForm = () => {
     const errors = []
-    const otp = otpDigits.value.join('')
 
     if (
-      !resetPasswordForm.value.email ||
+      !resetPasswordForm.value.current_password ||
       !resetPasswordForm.value.password ||
       !resetPasswordForm.value.password_confirmation
     ) {
       errors.push(t('user.resetPassword.requiredFields'))
-    }
-
-    if (otp.length !== otpLength || !/^\d{6}$/.test(otp)) {
-      errors.push(t('user.resetPassword.invalidOtp'))
     }
 
     if (
@@ -344,9 +209,8 @@
     resetPasswordLoading.value = true
 
     try {
-      const response = await axios.post('/api/change-password', {
-        email: resetPasswordForm.value.email,
-        otp: otpDigits.value.join(''),
+      const response = await axios.post('/api/profile/change-password', {
+        current_password: resetPasswordForm.value.current_password,
         password: resetPasswordForm.value.password,
         password_confirmation: resetPasswordForm.value.password_confirmation,
       })
@@ -530,9 +394,8 @@
                   v-can="'edit users'"
                   icon="pi pi-lock mx-2"
                   class="p-detail"
-                  :loading="sendOtpLoading && resetPasswordEmail === slotProps.data.email && !resetPasswordDialog"
-                  :disabled="sendOtpLoading || resetPasswordLoading"
-                  @click="resetPassword(slotProps.data.email)"
+                  :disabled="resetPasswordLoading"
+                  @click="resetPassword"
                   v-tooltip.top="t('resetPassword')"
                 />
               </template>
@@ -651,80 +514,47 @@
             </div>
 
             <div class="field">
-              <label for="reset-password-email" class="font-semibold">{{ t('user.resetPassword.emailLabel') }}</label>
+              <label for="reset-password-current" class="font-semibold">
+                {{ t('user.resetPassword.currentPassword') }}
+              </label>
               <InputText
-                id="reset-password-email"
-                v-model="resetPasswordForm.email"
-                class="w-full reset-password-readonly mt-2"
-                readonly
+                id="reset-password-current"
+                v-model="resetPasswordForm.current_password"
+                type="password"
+                class="w-full mt-2"
+                autocomplete="current-password"
+                :placeholder="t('user.resetPassword.currentPasswordPlaceholder')"
               />
             </div>
 
             <div class="field">
-              <label class="font-semibold">{{ t('user.resetPassword.otpLabel') }}</label>
-              <div class="reset-password-otp" dir="ltr">
-                <input
-                  v-for="(_, index) in otpDigits"
-                  :key="index"
-                  :ref="(el) => setOtpInputRef(el, index)"
-                  :value="otpDigits[index]"
-                  type="text"
-                  inputmode="numeric"
-                  maxlength="1"
-                  autocomplete="one-time-code"
-                  class="reset-password-otp-input"
-                  :aria-label="t('user.resetPassword.otpDigit', { number: index + 1 })"
-                  @input="handleOtpInput(index, $event)"
-                  @keydown.backspace="handleOtpBackspace(index)"
-                  @paste="handleOtpPaste(index, $event)"
-                />
-              </div>
-              <small class="text-color-secondary">{{ t('user.resetPassword.otpHelp') }}</small>
+              <label for="reset-password-new" class="font-semibold">{{ t('user.resetPassword.newPassword') }}</label>
+              <InputText
+                id="reset-password-new"
+                v-model="resetPasswordForm.password"
+                type="password"
+                class="w-full mt-2"
+                autocomplete="new-password"
+                :placeholder="t('user.resetPassword.newPasswordPlaceholder')"
+              />
             </div>
 
-            <div class="formgrid grid gap-4">
-              <div class="field col-12 md:col-6">
-                <label for="reset-password-new" class="font-semibold">{{ t('user.resetPassword.newPassword') }}</label>
-                <InputText
-                  id="reset-password-new"
-                  v-model="resetPasswordForm.password"
-                  type="password"
-                  class="w-full mt-2"
-                  autocomplete="new-password"
-                  :placeholder="t('user.resetPassword.newPasswordPlaceholder')"
-                />
-              </div>
-
-              <div class="field col-12 md:col-6">
-                <label for="reset-password-confirm" class="font-semibold">
-                  {{ t('user.resetPassword.confirmPassword') }}
-                </label>
-                <InputText
-                  id="reset-password-confirm"
-                  v-model="resetPasswordForm.password_confirmation"
-                  type="password"
-                  class="w-full mt-2"
-                  autocomplete="new-password"
-                  :placeholder="t('user.resetPassword.confirmPasswordPlaceholder')"
-                />
-              </div>
+            <div class="field">
+              <label for="reset-password-confirm" class="font-semibold">
+                {{ t('user.resetPassword.confirmPassword') }}
+              </label>
+              <InputText
+                id="reset-password-confirm"
+                v-model="resetPasswordForm.password_confirmation"
+                type="password"
+                class="w-full mt-2"
+                autocomplete="new-password"
+                :placeholder="t('user.resetPassword.confirmPasswordPlaceholder')"
+              />
             </div>
 
             <div v-if="resetPasswordErrors.length" class="reset-password-errors">
               <div v-for="error in resetPasswordErrors" :key="error">{{ error }}</div>
-            </div>
-
-            <div class="reset-password-resend">
-              <span>{{ t('user.resetPassword.noCode') }}</span>
-              <button
-                type="button"
-                class="reset-password-resend-button"
-                :disabled="sendOtpLoading || resetPasswordLoading"
-                @click="resendResetPasswordOtp"
-              >
-                <i v-if="sendOtpLoading" class="pi pi-spin pi-spinner" />
-                {{ sendOtpLoading ? t('user.resetPassword.sendingOtp') : t('user.resetPassword.resendOtp') }}
-              </button>
             </div>
           </div>
 
@@ -742,7 +572,6 @@
                 icon="pi pi-check"
                 class="p-button-success"
                 :loading="resetPasswordLoading"
-                :disabled="sendOtpLoading"
                 @click="confirmResetPassword"
               />
             </div>
@@ -800,43 +629,6 @@
   line-height: 1.55;
 }
 
-.reset-password-readonly {
-  color: #475569;
-  background: #f8fafc;
-  font-weight: 600;
-}
-
-.reset-password-otp {
-  display: flex;
-  gap: 0.55rem;
-  justify-content: center;
-  margin: 0.5rem 0;
-}
-
-.reset-password-otp-input {
-  width: 3rem;
-  height: 3.25rem;
-  color: #1f2937;
-  background: #faf7f2;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  outline: none;
-  text-align: center;
-  font-size: 1.35rem;
-  font-weight: 700;
-  caret-color: #d7a648;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.reset-password-otp-input:focus {
-  background: #fff;
-  border-color: #d7a648;
-  box-shadow: 0 0 0 3px rgba(215, 166, 72, 0.16);
-}
-
 .reset-password-errors {
   padding: 0.75rem 1rem;
   color: #b91c1c;
@@ -844,32 +636,6 @@
   border: 1px solid #fecaca;
   border-radius: 8px;
   font-size: 0.9rem;
-}
-
-.reset-password-resend {
-  display: flex;
-  gap: 0.35rem;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-color-secondary, #64748b);
-  font-size: 0.9rem;
-}
-
-.reset-password-resend-button {
-  display: inline-flex;
-  gap: 0.35rem;
-  align-items: center;
-  padding: 0.25rem 0.35rem;
-  color: #b8841e;
-  background: transparent;
-  border: 0;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.reset-password-resend-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
 }
 
 .reset-password-footer {
@@ -882,15 +648,6 @@
 @media (max-width: 480px) {
   .reset-password-heading {
     padding: 0.85rem;
-  }
-
-  .reset-password-otp {
-    gap: 0.35rem;
-  }
-
-  .reset-password-otp-input {
-    width: 2.45rem;
-    height: 3rem;
   }
 
   .reset-password-footer {

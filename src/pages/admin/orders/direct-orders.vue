@@ -179,7 +179,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearInterval(clockInterval)
-})
+});
 </script>
 
 <template>
@@ -296,7 +296,7 @@ onUnmounted(() => {
         </div>
 
         <!-- ── Kanban Board ────────────────────────────────── -->
-        <div class="overflow-x-auto pb-4">
+        <div class="overflow-x-auto h-screen overflow-scroll pb-4">
           <div class="flex flex-col lg:flex-row gap-4 items-start lg:min-w-max">
             <div
               v-for="col in statusColumns"
@@ -321,7 +321,7 @@ onUnmounted(() => {
 
               <!-- Column Body -->
               <div :class="[
-                  'rounded-xl border p-2 min-h-32 flex flex-col gap-2 transition-colors duration-200',
+                  'rounded-xl border  p-2 min-h-32 flex flex-col gap-2 transition-colors duration-200',
                   col.colBg, col.colBorder,
                   dragOverColumn === col.value ? 'ring-2 ring-orange-400/60 bg-orange-50/40 dark:bg-orange-900/20' : ''
                 ]"
@@ -349,7 +349,7 @@ onUnmounted(() => {
                   :key="order.id"
                   draggable="true"
                   :class="[
-                    'bg-white dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-800 border-l-[3px] p-3.5 shadow-sm cursor-pointer',
+                    'bg-white dark:bg-gray-900 rounded-lg  border border-gray-100 dark:border-gray-800 border-l-[3px] p-3.5 shadow-sm cursor-pointer',
                     'hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200',
                     col.cardBorder,
                     draggedOrder?.id === order.id ? 'opacity-70' : ''
@@ -362,9 +362,9 @@ onUnmounted(() => {
                   <div class="flex items-start justify-between gap-2 mb-3">
                     <div class="min-w-0">
                       <p class="text-[13px] font-black text-gray-900 dark:text-white leading-tight truncate">
-                        #{{ order.number.split('-')[0].toUpperCase() }}
+                        #{{ order.id }}
                       </p>
-                      <p class="text-[10px] text-gray-400 font-medium mt-0.5">ID {{ order.id }}</p>
+
                     </div>
                     <span :class="['text-[10px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap flex-shrink-0', col.badge]">
                       {{ col.label }}

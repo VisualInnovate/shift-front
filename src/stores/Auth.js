@@ -82,18 +82,9 @@ export const useAuthStore = defineStore('Auth', {
             },
           })
 
-          const beamsClient = new PusherPushNotifications.Client({
-            instanceId: '140343aa-f173-4a2d-940a-7724c7c12be1',
-          })
 
-          beamsClient
-            .start()
-            .then(() => {
-              beamsClient.setUserId(`"${user.id}"`, beamsTokenProvider)
-            })
-            .catch((error) => {
-              console.error('Pusher Beams error:', error)
-            })
+
+
 
           await this.router.push({ name: 'dashboard' })
         } else {

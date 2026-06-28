@@ -520,11 +520,11 @@ const updateSettings = async () => {
           <div class="p-6">
             <TabView>
               <TabPanel :header="t('settings.privacy_policy_ar')">
-                <Editor v-model="formData.privacy_policy_ar" editorStyle="min-height: 320px" :modules="editorOptions.modules"
+                <Editor v-model="formData.privacy_policy_ar" editorStyle="height: 320px" :modules="editorOptions.modules"
                   class="overflow-hidden rounded-xl border border-slate-200" />
               </TabPanel>
               <TabPanel :header="t('settings.privacy_policy_en')">
-                <Editor v-model="formData.privacy_policy_en" editorStyle="min-height: 320px" :modules="editorOptions.modules"
+                <Editor v-model="formData.privacy_policy_en" editorStyle="height: 320px" :modules="editorOptions.modules"
                   class="overflow-hidden rounded-xl border border-slate-200" />
               </TabPanel>
             </TabView>
@@ -545,12 +545,12 @@ const updateSettings = async () => {
           <div class="p-6">
             <TabView>
               <TabPanel :header="t('settings.terms_conditions_ar')">
-                <Editor v-model="formData.terms_conditions_ar" editorStyle="min-height: 320px" :modules="editorOptions.modules"
+                <Editor v-model="formData.terms_conditions_ar" editorStyle="height: 320px" :modules="editorOptions.modules"
                   class="overflow-hidden rounded-xl border border-slate-200" />
               </TabPanel>
               <TabPanel :header="t('settings.terms_conditions_en')">
-                <Editor v-model="formData.terms_conditions_en" editorStyle="min-height: 320px" :modules="editorOptions.modules"
-                  class="overflow-hidden rounded-xl border border-slate-200" />
+                <Editor v-model="formData.terms_conditions_en" editorStyle="height: 320px" :modules="editorOptions.modules"
+                  class="overflow-hidden rounded-xl  border border-slate-200" />
               </TabPanel>
             </TabView>
           </div>

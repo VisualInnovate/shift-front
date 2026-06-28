@@ -364,6 +364,7 @@ export default {
   no: 'لا',
 
   settings: {
+    basicInfo: 'المعلومات الأساسية',
     order_notification_whatsappPlaceholder: 'أدخل رقم واتساب للإشعارات ثم اضغط إضافة',
     order_notification_whatsappEmpty: 'لم يتم إضافة أي رقم واتساب لإشعارات الطلب بعد.',
     order_notification_whatsapp: 'رقم واتساب لإشعارات الطلب',

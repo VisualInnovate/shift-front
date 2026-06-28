@@ -10,6 +10,8 @@ import Button from 'primevue/button'
 import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
 import Editor from 'primevue/editor'
+import TabView from 'primevue/tabview'
+import TabPanel from 'primevue/tabpanel'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -146,6 +148,7 @@ const addNotificationWhatsapp = () => {
 const removeNotificationWhatsapp = (index) => {
   formData.value.order_notification_whatsapp.splice(index, 1)
 }
+
 // Editor Configuration
 const editorOptions = {
   modules: {
@@ -296,152 +299,192 @@ const updateSettings = async () => {
 </script>
 
 <template>
-  <div class="mx-auto p-4 max-w-6xl">
-    <Card>
-      <template #title>
-        <h2 class="text-2xl font-bold">{{ t('settings.title') }}</h2>
-      </template>
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 px-4 py-8 md:px-8">
+    <div class="mx-auto max-w-6xl">
 
-      <template #content>
-        <!-- Loading Spinner -->
-        <div v-if="isLoading" class="flex justify-center py-12">
-          <ProgressSpinner style="width: 60px; height: 60px" />
-        </div>
+      <!-- Page Header -->
+      <div class="mb-8 flex flex-col gap-1">
+        <span class="inline-flex w-fit items-center gap-2 rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
+          <i class="pi pi-cog text-[11px]"></i>
+          {{ t('settings.badge') || 'Store Configuration' }}
+        </span>
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
+          {{ t('settings.title') }}
+        </h1>
 
-        <!-- Main Form -->
-        <div v-else class="space-y-10">
+      </div>
 
-          <!-- Basic Information -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Loading State -->
+      <div v-if="isLoading && !formData.email" class="flex flex-col items-center justify-center gap-4 rounded-3xl border border-slate-200 bg-white py-24 shadow-sm">
+        <ProgressSpinner style="width: 56px; height: 56px" strokeWidth="4" />
+        <p class="text-sm font-medium text-slate-400">{{ t('settings.loading') || 'Loading settings…' }}</p>
+      </div>
+
+      <!-- Main Form -->
+      <div v-else class="space-y-6">
+
+        <!-- Basic Information -->
+        <section class="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-sm shadow-slate-100">
+          <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-6 py-4">
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm">
+              <i class="pi pi-building text-sm"></i>
+            </span>
             <div>
-              <label class="block mb-2 font-medium">{{ t('settings.order_tax') }}</label>
-              <InputText v-model="formData.order_tax" class="w-full" />
+              <h2 class="text-base font-bold text-slate-800">{{ t('settings.basicInfo') || 'Basic Information' }}</h2>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">{{ t('settings.order_tax') }}</label>
+              <InputText v-model="formData.order_tax" class="w-full !rounded-xl !border-slate-200 !py-2.5" />
             </div>
 
             <div>
-              <label class="block mb-2 font-medium">{{ t('settings.phone') }}</label>
-              <InputText v-model="formData.phone" class="w-full" />
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">{{ t('settings.phone') }}</label>
+              <InputText v-model="formData.phone" class="w-full !rounded-xl !border-slate-200 !py-2.5" />
             </div>
 
             <div>
-              <label class="block mb-2 font-medium">{{ t('settings.email') }}</label>
-              <InputText v-model="formData.email" type="email" class="w-full" />
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">{{ t('settings.email') }}</label>
+              <InputText v-model="formData.email" type="email" class="w-full !rounded-xl !border-slate-200 !py-2.5" />
             </div>
 
+            <div>
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">{{ t('settings.address') }}</label>
+              <InputText v-model="formData.address" class="w-full !rounded-xl !border-slate-200 !py-2.5" />
+            </div>
+
+            <!-- Notification Emails -->
             <div class="md:col-span-2">
-              <label class="block mb-2 font-medium">{{ t('settings.order_notification_emails') }}</label>
-              <div class="flex gap-2 mb-3">
-                <InputText v-model="newNotificationEmail" type="email"
-                  :placeholder="t('settings.order_notification_emailsPlaceholder')" class="flex-1" />
-                <Button icon="pi pi-plus" @click="addNotificationEmail" />
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">{{ t('settings.order_notification_emails') }}</label>
+              <div class="flex gap-2">
+                <InputText v-model="newNotificationEmail" type="email" @keyup.enter="addNotificationEmail"
+                  :placeholder="t('settings.order_notification_emailsPlaceholder')"
+                  class="w-full !rounded-xl !border-slate-200 !py-2.5" />
+                <Button icon="pi pi-plus" @click="addNotificationEmail" class="!aspect-square !rounded-xl" />
               </div>
 
-              <div class="space-y-2">
-                <div v-for="(email, index) in formData.order_notification_emails" :key="index"
-                  class="flex items-center justify-between px-4 py-2 bg-white border rounded-lg">
-                  <span>{{ email }}</span>
-                  <Button icon="pi pi-times" severity="danger" text @click="removeNotificationEmail(index)" />
-                </div>
-                <p v-if="!formData.order_notification_emails.length" class="text-sm text-slate-500 italic">
+              <div class="mt-3 flex flex-wrap gap-2">
+                <span v-for="(email, index) in formData.order_notification_emails" :key="index"
+                  class="group inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700">
+                  <i class="pi pi-envelope text-[11px] text-indigo-400"></i>
+                  {{ email }}
+                  <button type="button" @click="removeNotificationEmail(index)"
+                    class="ml-1 flex h-4 w-4 items-center justify-center rounded-full text-indigo-400 transition hover:bg-indigo-200 hover:text-indigo-700">
+                    <i class="pi pi-times text-[10px]"></i>
+                  </button>
+                </span>
+                <p v-if="!formData.order_notification_emails.length" class="text-sm italic text-slate-400">
                   {{ t('settings.order_notification_emailsEmpty') }}
                 </p>
               </div>
             </div>
 
-            <hr class="w-full col-span-2 my-4">
-
+            <!-- Notification WhatsApp -->
             <div class="md:col-span-2">
-              <label class="block mb-2 font-medium">{{ t('settings.order_notification_whatsapp') }}</label>
-              <div class="flex gap-2 mb-3">
-                <InputText v-model="newNotificationWhatsapp" type="tel"
-                  :placeholder="t('settings.order_notification_whatsappPlaceholder')" class="flex-1" />
-                <Button icon="pi pi-plus" @click="addNotificationWhatsapp" />
+              <label class="mb-1.5 block text-sm font-semibold text-slate-700">{{ t('settings.order_notification_whatsapp') }}</label>
+              <div class="flex gap-2">
+                <InputText v-model="newNotificationWhatsapp" type="tel" @keyup.enter="addNotificationWhatsapp"
+                  :placeholder="t('settings.order_notification_whatsappPlaceholder')"
+                  class="w-full !rounded-xl !border-slate-200 !py-2.5" />
+                <Button icon="pi pi-plus" @click="addNotificationWhatsapp" class="!aspect-square !rounded-xl" />
               </div>
 
-              <div class="space-y-2">
-                <div v-for="(whatsapp, index) in formData.order_notification_whatsapp" :key="index"
-                  class="flex items-center justify-between px-4 py-2 bg-white border rounded-lg">
-                  <span>{{ whatsapp }}</span>
-                  <Button icon="pi pi-times" severity="danger" text @click="removeNotificationWhatsapp(index)" />
-                </div>
-                <p v-if="!formData.order_notification_whatsapp.length" class="text-sm text-slate-500 italic">
+              <div class="mt-3 flex flex-wrap gap-2">
+                <span v-for="(whatsapp, index) in formData.order_notification_whatsapp" :key="index"
+                  class="group inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700">
+                  <i class="pi pi-whatsapp text-[11px] text-emerald-400"></i>
+                  {{ whatsapp }}
+                  <button type="button" @click="removeNotificationWhatsapp(index)"
+                    class="ml-1 flex h-4 w-4 items-center justify-center rounded-full text-emerald-400 transition hover:bg-emerald-200 hover:text-emerald-700">
+                    <i class="pi pi-times text-[10px]"></i>
+                  </button>
+                </span>
+                <p v-if="!formData.order_notification_whatsapp.length" class="text-sm italic text-slate-400">
                   {{ t('settings.order_notification_whatsappEmpty') }}
                 </p>
               </div>
             </div>
+          </div>
+        </section>
 
+        <!-- Social Media -->
+        <section class="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-sm shadow-slate-100">
+          <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-6 py-4">
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-600 text-white shadow-sm">
+              <i class="pi pi-share-alt text-sm"></i>
+            </span>
+            <div>
+              <h2 class="text-base font-bold text-slate-800">{{ t('settings.socialLinks') }}</h2>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-2">
+            <div>
+              <label class="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <i class="pi pi-facebook text-blue-600"></i> Facebook
+              </label>
+              <InputText v-model="formData.facebook" placeholder="https://facebook.com/..." class="w-full !rounded-xl !border-slate-200 !py-2.5" />
+            </div>
+            <div>
+              <label class="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <i class="pi pi-instagram text-pink-600"></i> Instagram
+              </label>
+              <InputText v-model="formData.instagram" placeholder="https://instagram.com/..." class="w-full !rounded-xl !border-slate-200 !py-2.5" />
+            </div>
+            <div>
+              <label class="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <i class="pi pi-youtube text-red-600"></i> YouTube
+              </label>
+              <InputText v-model="formData.youtube" placeholder="https://youtube.com/..." class="w-full !rounded-xl !border-slate-200 !py-2.5" />
+            </div>
+            <div>
+              <label class="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <i class="pi pi-snapchat text-yellow-500"></i> Snapchat
+              </label>
+              <InputText v-model="formData.snapchat" placeholder="https://snapchat.com/..." class="w-full !rounded-xl !border-slate-200 !py-2.5" />
+            </div>
             <div class="md:col-span-2">
-              <label class="block mb-2 font-medium">{{ t('settings.address') }}</label>
-              <InputText v-model="formData.address" class="w-full" />
+              <label class="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <i class="pi pi-tiktok"></i> TikTok
+              </label>
+              <InputText v-model="formData.tiktok" placeholder="https://tiktok.com/..." class="w-full !rounded-xl !border-slate-200 !py-2.5" />
+            </div>
+          </div>
+        </section>
+
+        <!-- Cart Image -->
+        <section class="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-sm shadow-slate-100">
+          <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-6 py-4">
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
+              <i class="pi pi-image text-sm"></i>
+            </span>
+            <div>
+              <h2 class="text-base font-bold text-slate-800">{{ t('settings.cartImage') || 'Cart Image' }}</h2>
             </div>
           </div>
 
-          <!-- Social Media -->
-          <div class="border-t pt-8">
-            <h3 class="text-xl font-semibold mb-6 text-indigo-600">{{ t('settings.socialLinks') }}</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label class="block mb-2 font-medium flex items-center gap-2">
-                  <i class="pi pi-facebook text-blue-600"></i> Facebook
-                </label>
-                <InputText v-model="formData.facebook" placeholder="https://facebook.com/..." class="w-full" />
-              </div>
-              <div>
-                <label class="block mb-2 font-medium flex items-center gap-2">
-                  <i class="pi pi-instagram text-pink-600"></i> Instagram
-                </label>
-                <InputText v-model="formData.instagram" placeholder="https://instagram.com/..." class="w-full" />
-              </div>
-              <div>
-                <label class="block mb-2 font-medium flex items-center gap-2">
-                  <i class="pi pi-youtube text-red-600"></i> YouTube
-                </label>
-                <InputText v-model="formData.youtube" placeholder="https://youtube.com/..." class="w-full" />
-              </div>
-              <div>
-                <label class="block mb-2 font-medium flex items-center gap-2">
-                  <i class="pi pi-snapchat text-yellow-500"></i> Snapchat
-                </label>
-                <InputText v-model="formData.snapchat" placeholder="https://snapchat.com/..." class="w-full" />
-              </div>
-              <div class="md:col-span-2">
-                <label class="block mb-2 font-medium flex items-center gap-2">
-                  <i class="pi pi-tiktok"></i> TikTok
-                </label>
-                <InputText v-model="formData.tiktok" placeholder="https://tiktok.com/..." class="w-full" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Cart Image -->
-          <div class="border-t pt-8">
-            <h3 class="text-xl font-semibold mb-6 text-indigo-600">
-              {{ t('settings.cartImage') || 'Cart Image' }}
-            </h3>
-
+          <div class="p-6">
             <div class="max-w-md">
               <label @dragover.prevent="handleCartImageDragOver" @dragleave="handleCartImageDragLeave"
                 @drop.prevent="handleCartImageDrop"
-                class="block border-2 border-dashed rounded-2xl p-6 transition-all cursor-pointer min-h-[280px]" :class="{
-                  'border-indigo-500 bg-indigo-50': isDraggingCartImage,
-                  'border-gray-300 hover:border-gray-400': !isDraggingCartImage
-                }">
-                <input type="file" @change="e => handleCartImageSelect(e.target.files[0])" accept="image/*"
-                  class="hidden" />
+                class="block min-h-[280px] cursor-pointer rounded-2xl border-2 border-dashed p-6 transition-all duration-200"
+                :class="isDraggingCartImage
+                  ? 'border-indigo-500 bg-indigo-50 scale-[1.01]'
+                  : 'border-slate-300 bg-slate-50/40 hover:border-indigo-400 hover:bg-indigo-50/40'">
+                <input type="file" @change="e => handleCartImageSelect(e.target.files[0])" accept="image/*" class="hidden" />
 
                 <!-- Image Preview -->
-                <div v-if="cartImagePreview" class="relative group">
+                <div v-if="cartImagePreview" class="group relative">
                   <img :src="cartImagePreview" alt="Cart Image Preview"
-                    class="w-full h-64 object-contain rounded-xl shadow-md" />
-                  <div
-                    class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center rounded-xl">
+                    class="h-64 w-full rounded-xl object-contain shadow-md" />
+                  <div class="absolute inset-0 flex items-center justify-center rounded-xl bg-black/40 opacity-0 transition-all group-hover:opacity-100">
                     <div class="flex gap-3">
-                      <Button type="button" icon="pi pi-trash" severity="danger" rounded
-                        @click.stop="removeCartImage" />
-                      <label>
+                      <Button type="button" icon="pi pi-trash" severity="danger" rounded @click.stop="removeCartImage" />
+                      <label @click.stop>
                         <Button type="button" icon="pi pi-pencil" severity="secondary" rounded />
-                        <input type="file" @change="e => handleCartImageSelect(e.target.files[0])" accept="image/*"
-                          class="hidden" />
+                        <input type="file" @change="e => handleCartImageSelect(e.target.files[0])" accept="image/*" class="hidden" />
                       </label>
                     </div>
                   </div>
@@ -449,65 +492,79 @@ const updateSettings = async () => {
 
                 <!-- Upload Placeholder -->
                 <div v-else class="flex flex-col items-center justify-center py-12 text-center">
-                  <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                    <i class="pi pi-image text-indigo-600 text-4xl"></i>
+                  <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-indigo-100">
+                    <i class="pi pi-image text-4xl text-indigo-600"></i>
                   </div>
-                  <p class="font-medium text-gray-700">
+                  <p class="font-medium text-slate-700">
                     {{ t('brand.upload') || 'Click to upload' }}
-                    <span class="text-indigo-600">or drag & drop</span>
+                    <span class="text-indigo-600">{{ t('brand.orDrag') || 'or drag & drop' }}</span>
                   </p>
-                  <p class="text-xs text-gray-400 mt-2">PNG, JPG, JPEG</p>
+                  <p class="mt-2 text-xs text-slate-400">PNG, JPG, JPEG</p>
                 </div>
               </label>
             </div>
           </div>
+        </section>
 
-          <!-- Privacy Policy -->
-          <div class="border-t pt-8">
-            <h3 class="text-xl font-semibold mb-6 text-indigo-600">{{ t('settings.privacyPolicy') }}</h3>
-            <div class="mb-10">
-              <label class="block mb-3 font-medium text-lg">{{ t('settings.privacy_policy_ar') }}</label>
-              <Editor v-model="formData.privacy_policy_ar" editorStyle="min-height: 320px"
-                :modules="editorOptions.modules" />
-            </div>
-            <div class="mb-10">
-              <label class="block mb-3 font-medium text-lg">{{ t('settings.privacy_policy_en') }}</label>
-              <Editor v-model="formData.privacy_policy_en" editorStyle="min-height: 320px"
-                :modules="editorOptions.modules" />
+        <!-- Privacy Policy -->
+        <section class="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-sm shadow-slate-100">
+          <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-6 py-4">
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+              <i class="pi pi-shield text-sm"></i>
+            </span>
+            <div>
+              <h2 class="text-base font-bold text-slate-800">{{ t('settings.privacyPolicy') }}</h2>
             </div>
           </div>
 
-          <!-- Terms & Conditions -->
-          <div class="border-t pt-8">
-            <h3 class="text-xl font-semibold mb-6 text-indigo-600">{{ t('settings.termsConditions') }}</h3>
-            <div class="mb-10">
-              <label class="block mb-3 font-medium text-lg">{{ t('settings.terms_conditions_ar') }}</label>
-              <Editor v-model="formData.terms_conditions_ar" editorStyle="min-height: 320px"
-                :modules="editorOptions.modules" />
-            </div>
-            <div class="mb-10">
-              <label class="block mb-3 font-medium text-lg">{{ t('settings.terms_conditions_en') }}</label>
-              <Editor v-model="formData.terms_conditions_en" editorStyle="min-height: 320px"
-                :modules="editorOptions.modules" />
+          <div class="p-6">
+            <TabView>
+              <TabPanel :header="t('settings.privacy_policy_ar')">
+                <Editor v-model="formData.privacy_policy_ar" editorStyle="min-height: 320px" :modules="editorOptions.modules"
+                  class="overflow-hidden rounded-xl border border-slate-200" />
+              </TabPanel>
+              <TabPanel :header="t('settings.privacy_policy_en')">
+                <Editor v-model="formData.privacy_policy_en" editorStyle="min-height: 320px" :modules="editorOptions.modules"
+                  class="overflow-hidden rounded-xl border border-slate-200" />
+              </TabPanel>
+            </TabView>
+          </div>
+        </section>
+
+        <!-- Terms & Conditions -->
+        <section class="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-sm shadow-slate-100">
+          <div class="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-6 py-4">
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-600 text-white shadow-sm">
+              <i class="pi pi-file-edit text-sm"></i>
+            </span>
+            <div>
+              <h2 class="text-base font-bold text-slate-800">{{ t('settings.termsConditions') }}</h2>
             </div>
           </div>
 
-          <!-- Save Button -->
-          <div class="flex justify-end mt-12">
+          <div class="p-6">
+            <TabView>
+              <TabPanel :header="t('settings.terms_conditions_ar')">
+                <Editor v-model="formData.terms_conditions_ar" editorStyle="min-height: 320px" :modules="editorOptions.modules"
+                  class="overflow-hidden rounded-xl border border-slate-200" />
+              </TabPanel>
+              <TabPanel :header="t('settings.terms_conditions_en')">
+                <Editor v-model="formData.terms_conditions_en" editorStyle="min-height: 320px" :modules="editorOptions.modules"
+                  class="overflow-hidden rounded-xl border border-slate-200" />
+              </TabPanel>
+            </TabView>
+          </div>
+        </section>
+
+        <!-- Save Bar -->
+        <div class="sticky bottom-4 z-10 flex justify-end">
+          <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-lg shadow-slate-200/60 backdrop-blur">
             <Button :label="t('settings.updateButton')" icon="pi pi-check" :loading="isLoading"
-              class="px-10 py-3 text-lg" @click="updateSettings" />
+              class="!rounded-xl !px-8 !py-2.5 !text-base !font-semibold" @click="updateSettings" />
           </div>
-
         </div>
-      </template>
-    </Card>
+
+      </div>
+    </div>
   </div>
 </template>
-
-<style scoped>
-:deep(.p-editor-container .p-editor-content) {
-  min-height: 320px;
-  font-size: 1rem;
-  line-height: 1.6;
-}
-</style>

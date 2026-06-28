@@ -31,12 +31,15 @@
   const searchQuery = ref('')
   const resetPasswordDialog = ref(false)
   const resetPasswordForm = ref({
-    current_password: '',
     password: '',
     password_confirmation: '',
   })
   const resetPasswordLoading = ref(false)
   const resetPasswordErrors = ref([])
+
+  const userId = ref(null)
+  const generatePasswordDialog = ref(false)
+  const generatePasswordLoading = ref(false)
 
   // Pagination variables
   const currentPage = ref(1)
@@ -156,14 +159,14 @@
 
   const resetPasswordState = () => {
     resetPasswordForm.value = {
-      current_password: '',
       password: '',
       password_confirmation: '',
     }
     resetPasswordErrors.value = []
   }
 
-  const resetPassword = () => {
+  const resetPassword = (id) => {
+    userId.value = id
     resetPasswordState()
     resetPasswordDialog.value = true
   }
@@ -171,11 +174,7 @@
   const validateResetPasswordForm = () => {
     const errors = []
 
-    if (
-      !resetPasswordForm.value.current_password ||
-      !resetPasswordForm.value.password ||
-      !resetPasswordForm.value.password_confirmation
-    ) {
+    if (!resetPasswordForm.value.password || !resetPasswordForm.value.password_confirmation) {
       errors.push(t('user.resetPassword.requiredFields'))
     }
 
@@ -209,8 +208,7 @@
     resetPasswordLoading.value = true
 
     try {
-      const response = await axios.post('/api/profile/change-password', {
-        current_password: resetPasswordForm.value.current_password,
+      const response = await axios.post(`/api/user/${userId.value}/change-password`, {
         password: resetPasswordForm.value.password,
         password_confirmation: resetPasswordForm.value.password_confirmation,
       })
@@ -251,6 +249,49 @@
   const closeResetPasswordDialog = () => {
     if (!resetPasswordLoading.value) {
       resetPasswordDialog.value = false
+    }
+  }
+
+  const genaratePassword = (id) => {
+    userId.value = id
+    generatePasswordDialog.value = true
+  }
+
+  const confirmGeneratePassword = async () => {
+    generatePasswordLoading.value = true
+    try {
+      const response = await axios.post(`/api/user/${userId.value}/change-password`, {
+        generate: true,
+      })
+
+      if (response.data?.is_success === false) {
+        const message = response.data?.message || t('user.resetPassword.passwordChangedError')
+        toast.add({
+          severity: 'error',
+          summary: t('error'),
+          detail: message,
+          life: 4000,
+        })
+        return
+      }
+
+      toast.add({
+        severity: 'success',
+        summary: t('success'),
+        detail: response.data?.message || t('user.resetPassword.passwordChangedSuccess'),
+        life: 3000,
+      })
+      generatePasswordDialog.value = false
+    } catch (error) {
+      const messages = extractErrorMessages(error, t('user.resetPassword.passwordChangedError'))
+      toast.add({
+        severity: 'error',
+        summary: t('error'),
+        detail: messages.join(' '),
+        life: 4000,
+      })
+    } finally {
+      generatePasswordLoading.value = false
     }
   }
 
@@ -395,7 +436,15 @@
                   icon="pi pi-lock mx-2"
                   class="p-detail"
                   :disabled="resetPasswordLoading"
-                  @click="resetPassword"
+                  @click="resetPassword(slotProps.data.id)"
+                  v-tooltip.top="t('resetPassword')"
+                />
+                <Button
+                  v-can="'edit users'"
+                  icon="pi pi-cog mx-2"
+                  class="p-detail"
+                  :disabled="resetPasswordLoading"
+                  @click="genaratePassword(slotProps.data.id)"
                   v-tooltip.top="t('resetPassword')"
                 />
               </template>
@@ -514,20 +563,6 @@
             </div>
 
             <div class="field">
-              <label for="reset-password-current" class="font-semibold">
-                {{ t('user.resetPassword.currentPassword') }}
-              </label>
-              <InputText
-                id="reset-password-current"
-                v-model="resetPasswordForm.current_password"
-                type="password"
-                class="w-full mt-2"
-                autocomplete="current-password"
-                :placeholder="t('user.resetPassword.currentPasswordPlaceholder')"
-              />
-            </div>
-
-            <div class="field">
               <label for="reset-password-new" class="font-semibold">{{ t('user.resetPassword.newPassword') }}</label>
               <InputText
                 id="reset-password-new"
@@ -577,85 +612,115 @@
             </div>
           </template>
         </Dialog>
+
+        <!-- Generate Password Confirmation Dialog -->
+        <Dialog
+          v-model:visible="generatePasswordDialog"
+          :style="{ width: '450px' }"
+          :header="t('user.resetPassword.dialogTitle')"
+          :modal="true"
+          :closable="!generatePasswordLoading"
+        >
+          <div class="flex align-items-center justify-content-center">
+            <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem; color: var(--orange-500)" />
+            <span>{{ t('user.resetPassword.dialogDescription') }}</span>
+          </div>
+          <template #footer>
+            <Button
+              :label="t('cancel')"
+              icon="pi pi-times"
+              class="p-button-text"
+              :disabled="generatePasswordLoading"
+              @click="generatePasswordDialog = false"
+            />
+            <Button
+              :label="t('user.resetPassword.confirm')"
+              icon="pi pi-check"
+              class="p-button-success"
+              :loading="generatePasswordLoading"
+              @click="confirmGeneratePassword"
+            />
+          </template>
+        </Dialog>
       </div>
     </div>
   </div>
 </template>
 
 <style>
-.reset-password-dialog .p-dialog-content {
-  padding-top: 0;
-}
+  .reset-password-dialog .p-dialog-content {
+    padding-top: 0;
+  }
 
-.reset-password-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-}
+  .reset-password-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
 
-.reset-password-heading {
-  display: flex;
-  gap: 0.85rem;
-  align-items: flex-start;
-  padding: 1rem;
-  background: linear-gradient(135deg, rgba(215, 166, 72, 0.12), rgba(59, 130, 246, 0.08));
-  border: 1px solid var(--surface-border, #e5e7eb);
-  border-radius: 8px;
-}
-
-.reset-password-icon {
-  display: inline-flex;
-  width: 2.65rem;
-  height: 2.65rem;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: #fff;
-  background: #d7a648;
-  border-radius: 8px;
-  box-shadow: 0 8px 18px rgba(215, 166, 72, 0.22);
-}
-
-.reset-password-heading h3 {
-  margin: 0 0 0.25rem;
-  color: var(--text-color, #1f2937);
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-.reset-password-heading p {
-  margin: 0;
-  color: var(--text-color-secondary, #64748b);
-  line-height: 1.55;
-}
-
-.reset-password-errors {
-  padding: 0.75rem 1rem;
-  color: #b91c1c;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  font-size: 0.9rem;
-}
-
-.reset-password-footer {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-  width: 100%;
-}
-
-@media (max-width: 480px) {
   .reset-password-heading {
-    padding: 0.85rem;
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(215, 166, 72, 0.12), rgba(59, 130, 246, 0.08));
+    border: 1px solid var(--surface-border, #e5e7eb);
+    border-radius: 8px;
+  }
+
+  .reset-password-icon {
+    display: inline-flex;
+    width: 2.65rem;
+    height: 2.65rem;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #fff;
+    background: #d7a648;
+    border-radius: 8px;
+    box-shadow: 0 8px 18px rgba(215, 166, 72, 0.22);
+  }
+
+  .reset-password-heading h3 {
+    margin: 0 0 0.25rem;
+    color: var(--text-color, #1f2937);
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .reset-password-heading p {
+    margin: 0;
+    color: var(--text-color-secondary, #64748b);
+    line-height: 1.55;
+  }
+
+  .reset-password-errors {
+    padding: 0.75rem 1rem;
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    font-size: 0.9rem;
   }
 
   .reset-password-footer {
-    flex-direction: column-reverse;
-  }
-
-  .reset-password-footer .p-button {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
     width: 100%;
   }
-}
+
+  @media (max-width: 480px) {
+    .reset-password-heading {
+      padding: 0.85rem;
+    }
+
+    .reset-password-footer {
+      flex-direction: column-reverse;
+    }
+
+    .reset-password-footer .p-button {
+      width: 100%;
+    }
+  }
 </style>

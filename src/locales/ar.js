@@ -190,7 +190,7 @@ export default {
     resetPassword: {
       dialogTitle: 'إعادة تعيين كلمة المرور',
       dialogSubtitle: 'تغيير كلمة مرور الحساب',
-      dialogDescription: 'أدخل كلمة المرور الحالية، ثم اختر كلمة المرور الجديدة وأكدها.',
+      dialogDescription: 'سيتم انشاء كلمة سر جديدة وارسالها الى البريد الالكتروني الخاص بالمستخدم .',
       currentPassword: 'كلمة المرور الحالية',
       currentPasswordPlaceholder: 'أدخل كلمة المرور الحالية',
       newPassword: 'كلمة المرور الجديدة',

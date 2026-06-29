@@ -146,7 +146,7 @@ export default {
     resetPassword: {
       dialogTitle: 'Reset Password',
       dialogSubtitle: 'Change profile password',
-      dialogDescription: 'Enter the current password, then choose and confirm the new password.',
+      dialogDescription: 'A new password will be generated and sent to the user email address.',
       currentPassword: 'Current password',
       currentPasswordPlaceholder: 'Enter current password',
       newPassword: 'New password',

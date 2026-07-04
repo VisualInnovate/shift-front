@@ -1735,7 +1735,7 @@ export default {
     passwordRequirements: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل، بما في ذلك أحرف كبيرة وصغيرة ورقم ورمز خاص.',
     passwordMismatch: 'كلمات المرور غير متطابقة.',
   },
-  login: {
+  loginPage: {
     phoneTab: 'الهاتف',
     emailTab: 'البريد الإلكتروني',
     phonePlaceholder: 'أدخل رقم هاتفك',

@@ -1424,7 +1424,7 @@ export default {
       'Password must be at least 8 characters, including uppercase, lowercase, number, and special character.',
     passwordMismatch: 'Passwords do not match.',
   },
-  login: {
+  loginPage: {
     phoneTab: 'Phone',
     emailTab: 'Email',
     phonePlaceholder: 'Enter your phone number',

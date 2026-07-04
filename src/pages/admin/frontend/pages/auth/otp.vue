@@ -1,7 +1,6 @@
 <template>
   <div
     class="bg-gray-900 min-h-screen flex items-center justify-center p-4 overflow-hidden"
-    dir="rtl"
   >
     <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm my-8 text-center">
       <div class="flex flex-col items-center mb-8">
@@ -21,7 +20,7 @@
             type="text"
             maxlength="1"
             pattern="[0-9]"
-            class="w-12 h-12 text-center text-xl font-bold rounded-xl bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+            class="w-12 h-12 mx-2 text-center text-xl font-bold rounded-xl bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
             v-model="otpDigits[index]"
             @input="handleInput(index, $event)"
             @keydown.backspace="handleBackspace(index)"

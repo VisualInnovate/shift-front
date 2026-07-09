@@ -956,6 +956,8 @@ export default {
     logoutError: 'فشل تسجيل الخروج',
   },
   market: {
+    showStoreError: 'فشل في إظهار المتجر',
+    showStore: 'اظهار المتجر',
     serviceFinalPrice: 'السعر النهائي للخدمة',
     minAmountOrder: 'الحد الأدنى لمبلغ الطلب',
     enterMinAmountOrder: 'أدخل الحد الأدنى لمبلغ الطلب',

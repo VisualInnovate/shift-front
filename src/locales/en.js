@@ -536,6 +536,8 @@ export default {
     },
   },
   market: {
+    showStoreError: 'Error showing store',
+    showStore: 'Show Store',
     addServiceFee: 'Add Service Fee',
     addServiceFeeTitle: 'Set Service Fee',
     serviceFee: 'Service Fee',

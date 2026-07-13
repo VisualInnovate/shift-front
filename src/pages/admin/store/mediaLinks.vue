@@ -1,9 +1,9 @@
-```vue
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import { useToast } from 'primevue/usetoast';
+import Toast from 'primevue/toast';
 import { useI18n } from 'vue-i18n';
 import Card from 'primevue/card';
 import ProgressSpinner from 'primevue/progressspinner';
@@ -21,10 +21,9 @@ const appLanguage = ref(localStorage.getItem('appLang') || 'en');
 
 const fetchMedia = async () => {
   loading.value = true;
-  const type = route.params.type === '1' ? 'store' : route.params.type === '2' ? 'category' : null;
   const id = route.params.id;
 
-  if (!type || !id) {
+  if (!id) {
     toast.add({
       severity: 'error',
       summary: t('error'),
@@ -36,9 +35,13 @@ const fetchMedia = async () => {
   }
 
   try {
-    const response = await axios.get(`/api/product/get/product/category?type=${type}&id=${id}`);
-    if (response.data.is_success && response.data.data.success) {
-      mediaData.value = response.data.data.data || [];
+    const typeParam = route.params.type === '1' ? 'store' : 'category'; // Default to 'category' if not '1'
+    const response = await axios.get(`/api/${typeParam}/${id}/media-links`);
+
+    if (response.data.is_success) {
+      // The schema maps directly to response.data.data according to your API payload
+      mediaData.value = response.data.data || [];
+
       if (mediaData.value.length === 0) {
         toast.add({
           severity: 'warn',
@@ -48,10 +51,21 @@ const fetchMedia = async () => {
         });
       } else {
         mediaData.value.forEach(media => {
-          mediaSelections.value[media.id] = {
-            selectedType: media.media_links?.type?.toString() || route.params.type || '1',
-            selectedIds: media.media_links?.ids || [],
-            availableIds: [],
+          // Extract existing links if available
+          const existingIds = media.mediaLinks_data ? media.mediaLinks_data.map(item => item.id) : [];
+
+          // Map existing links to MultiSelect options structure so they show up correctly on load
+          const initialAvailable = media.mediaLinks_data ? media.mediaLinks_data.map(item => ({
+            label: appLanguage.value === 'ar'
+              ? (item.name_ar || item.name_en || `ID ${item.id}`)
+              : (item.name_en || item.name_ar || `ID ${item.id}`),
+            value: item.id
+          })) : [];
+
+          mediaSelections.value[media.media_id] = {
+            selectedType: media.mediaLink_type?.toString() || route.params.type || '1',
+            selectedIds: existingIds,
+            availableIds: initialAvailable,
             searchQuery: ''
           };
         });
@@ -75,7 +89,6 @@ const fetchMedia = async () => {
 const fetchAvailableIds = async (mediaId, typeValue) => {
   try {
     const endpoint = typeValue === '1' ? 'product' : 'category';
-    // Fetch initial list of available items
     const response = await axios.get(`/api/${endpoint}`, {
       params: {
         search: mediaSelections.value[mediaId].searchQuery || undefined
@@ -84,48 +97,29 @@ const fetchAvailableIds = async (mediaId, typeValue) => {
 
     let items = [];
     if (response.data.is_success) {
-      items = response.data.data.data || [];
-      mediaSelections.value[mediaId].availableIds = items.map(item => ({
+      // Dynamic fallback based on standard api list responses
+      items = response.data.data?.data || response.data.data || [];
+
+      const parsedItems = items.map(item => ({
         label: appLanguage.value === 'ar'
           ? (item.name_ar || item.name || `ID ${item.id}`)
           : (item.name_en || item.name || `ID ${item.id}`),
         value: item.id
       }));
+
+      // Merge newly fetched search items with already selected items to ensure labels aren't lost
+      const currentSelections = mediaSelections.value[mediaId].availableIds.filter(existing =>
+        mediaSelections.value[mediaId].selectedIds.includes(existing.value)
+      );
+
+      // Filter out duplicates from freshly fetched items
+      const uniqueNewItems = parsedItems.filter(newItem =>
+        !currentSelections.some(existing => existing.value === newItem.value)
+      );
+
+      mediaSelections.value[mediaId].availableIds = [...currentSelections, ...uniqueNewItems];
     } else {
       throw new Error(response.data.message || t('idFetchError'));
-    }
-
-    // Fetch details for pre-selected IDs not in the initial list
-    const selectedIds = mediaSelections.value[mediaId].selectedIds;
-    const missingIds = selectedIds.filter(id => !mediaSelections.value[mediaId].availableIds.some(item => item.value === id));
-
-    if (missingIds.length > 0) {
-      const additionalItems = [];
-      // Make individual API calls for each missing ID
-      for (const id of missingIds) {
-        try {
-          const idResponse = await axios.get(`/api/${endpoint}`, {
-            params: { search: id }
-          });
-          if (idResponse.data.is_success && idResponse.data.data.data.length > 0) {
-            const item = idResponse.data.data.data[0];
-            additionalItems.push({
-              label: appLanguage.value === 'ar'
-                ? (item.name_ar || item.name || `ID ${item.id}`)
-                : (item.name_en || item.name || `ID ${item.id}`),
-              value: item.id
-            });
-          }
-        } catch (error) {
-          console.warn(`Failed to fetch details for ID ${id}:`, error);
-        }
-      }
-      // Add unique items to availableIds, avoiding duplicates
-      additionalItems.forEach(item => {
-        if (!mediaSelections.value[mediaId].availableIds.some(existing => existing.value === item.value)) {
-          mediaSelections.value[mediaId].availableIds.push(item);
-        }
-      });
     }
   } catch (error) {
     console.error('Error fetching IDs:', error);
@@ -169,9 +163,11 @@ const submitMediaLink = async (mediaId) => {
         detail: t('mediaLinkCreated'),
         life: 3000
       });
-      mediaSelections.value[mediaId].selectedIds = [];
-      mediaSelections.value[mediaId].searchQuery = '';
-      await fetchAvailableIds(mediaId, selection.selectedType);
+      // Refresh options from database after submission
+      await fetchMedia();
+      for (const media of mediaData.value) {
+        await fetchAvailableIds(media.media_id, mediaSelections.value[media.media_id]?.selectedType || '1');
+      }
     } else {
       throw new Error(response.data.message || t('mediaLinkError'));
     }
@@ -196,7 +192,7 @@ const handleTypeChange = async (mediaId) => {
 onMounted(async () => {
   await fetchMedia();
   for (const media of mediaData.value) {
-    await fetchAvailableIds(media.id, mediaSelections.value[media.id]?.selectedType || '1');
+    await fetchAvailableIds(media.media_id, mediaSelections.value[media.media_id]?.selectedType || '1');
   }
 });
 
@@ -221,54 +217,54 @@ const typeOptions = [
     </div>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-      <Card v-for="media in mediaData" :key="media.id" class="shadow-md hover:shadow-lg transition-shadow duration-300">
+      <Card v-for="media in mediaData" :key="media.media_id" class="shadow-md hover:shadow-lg transition-shadow duration-300">
         <template #content>
           <div class="relative group">
             <img
-              :src="media.url"
-              :alt="media.name || `${route.params.type === '1' ? t('store.media') : t('category.media')} ${media.id}`"
-              class="w-full h-[50px] object-contain rounded-lg"
+              :src="media.media_url"
+              :alt="media.media_name || `${route.params.type === '1' ? t('store.media') : t('category.media')} ${media.media_id}`"
+              class="w-full h-[150px] object-contain rounded-lg"
             />
             <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
               <a
-                :href="media.url"
+                :href="media.media_url"
                 target="_blank"
                 class="opacity-0 group-hover:opacity-100 bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition"
-                :aria-label="t('viewMedia', { name: media.name || 'Media ' + media.id })"
+                :aria-label="t('viewMedia', { name: media.media_name || 'Media ' + media.media_id })"
               >
                 <i class="pi pi-link text-sm"></i>
               </a>
             </div>
           </div>
-          <p class="mt-2 text-center text-sm text-gray-600">{{ media.name || t('mediaItem') }}</p>
+          <p class="mt-2 text-center text-sm text-gray-600">{{ media.media_name || t('mediaItem') }}</p>
 
-          <div class="mt-4">
+          <div class="mt-4" v-if="mediaSelections[media.media_id]">
             <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('selectType') }}</label>
             <Dropdown
-              v-model="mediaSelections[media.id].selectedType"
+              v-model="mediaSelections[media.media_id].selectedType"
               :options="typeOptions"
               optionLabel="label"
               optionValue="value"
               class="w-full"
-              @change="handleTypeChange(media.id)"
+              @change="handleTypeChange(media.media_id)"
             />
           </div>
 
-          <div class="mt-4">
+          <div class="mt-4" v-if="mediaSelections[media.media_id]">
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              {{ mediaSelections[media.id].selectedType === '1' ? t('selectProducts') : t('selectCategories') }}
+              {{ mediaSelections[media.media_id].selectedType === '1' ? t('selectProducts') : t('selectCategories') }}
             </label>
             <MultiSelect
-              v-model="mediaSelections[media.id].selectedIds"
-              :options="mediaSelections[media.id].availableIds || []"
+              v-model="mediaSelections[media.media_id].selectedIds"
+              :options="mediaSelections[media.media_id].availableIds || []"
               optionLabel="label"
               optionValue="value"
-              :placeholder="mediaSelections[media.id].selectedType === '1' ? t('selectProducts') : t('selectCategories')"
+              :placeholder="mediaSelections[media.media_id].selectedType === '1' ? t('selectProducts') : t('selectCategories')"
               class="w-full"
               :maxSelectedLabels="3"
               filter
-              :filterPlaceholder="mediaSelections[media.id].selectedType === '1' ? t('searchProducts') : t('searchCategories')"
-              @filter="onIdFilter($event, media.id)"
+              :filterPlaceholder="mediaSelections[media.media_id].selectedType === '1' ? t('searchProducts') : t('searchCategories')"
+              @filter="onIdFilter($event, media.media_id)"
             />
           </div>
 
@@ -276,7 +272,7 @@ const typeOptions = [
             :label="t('linkMedia')"
             class="mt-4 w-full"
             severity="success"
-            @click="submitMediaLink(media.id)"
+            @click="submitMediaLink(media.media_id)"
           />
         </template>
       </Card>
@@ -307,4 +303,3 @@ const typeOptions = [
   opacity: 1;
 }
 </style>
-```

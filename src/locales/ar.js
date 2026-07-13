@@ -190,7 +190,7 @@ export default {
     resetPassword: {
       dialogTitle: 'إعادة تعيين كلمة المرور',
       dialogSubtitle: 'تغيير كلمة مرور الحساب',
-      dialogDescription: 'أدخل كلمة المرور الحالية، ثم اختر كلمة المرور الجديدة وأكدها.',
+      dialogDescription: 'سيتم انشاء كلمة سر جديدة وارسالها الى البريد الالكتروني الخاص بالمستخدم .',
       currentPassword: 'كلمة المرور الحالية',
       currentPasswordPlaceholder: 'أدخل كلمة المرور الحالية',
       newPassword: 'كلمة المرور الجديدة',
@@ -958,6 +958,8 @@ export default {
     logoutError: 'فشل تسجيل الخروج',
   },
   market: {
+    showStoreError: 'فشل في إظهار المتجر',
+    showStore: 'اظهار المتجر',
     serviceFinalPrice: 'السعر النهائي للخدمة',
     minAmountOrder: 'الحد الأدنى لمبلغ الطلب',
     enterMinAmountOrder: 'أدخل الحد الأدنى لمبلغ الطلب',
@@ -1737,7 +1739,7 @@ export default {
     passwordRequirements: 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل، بما في ذلك أحرف كبيرة وصغيرة ورقم ورمز خاص.',
     passwordMismatch: 'كلمات المرور غير متطابقة.',
   },
-  login: {
+  loginPage: {
     phoneTab: 'الهاتف',
     emailTab: 'البريد الإلكتروني',
     phonePlaceholder: 'أدخل رقم هاتفك',

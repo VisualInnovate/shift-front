@@ -146,7 +146,7 @@ export default {
     resetPassword: {
       dialogTitle: 'Reset Password',
       dialogSubtitle: 'Change profile password',
-      dialogDescription: 'Enter the current password, then choose and confirm the new password.',
+      dialogDescription: 'A new password will be generated and sent to the user email address.',
       currentPassword: 'Current password',
       currentPasswordPlaceholder: 'Enter current password',
       newPassword: 'New password',
@@ -536,6 +536,8 @@ export default {
     },
   },
   market: {
+    showStoreError: 'Error showing store',
+    showStore: 'Show Store',
     addServiceFee: 'Add Service Fee',
     addServiceFeeTitle: 'Set Service Fee',
     serviceFee: 'Service Fee',
@@ -1424,7 +1426,7 @@ export default {
       'Password must be at least 8 characters, including uppercase, lowercase, number, and special character.',
     passwordMismatch: 'Passwords do not match.',
   },
-  login: {
+  loginPage: {
     phoneTab: 'Phone',
     emailTab: 'Email',
     phonePlaceholder: 'Enter your phone number',

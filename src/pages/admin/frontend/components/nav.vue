@@ -195,7 +195,10 @@
             </svg>
 
             <!-- Tooltip with Cart Total -->
-            <div v-if="showCartTooltip && cartStore.cartTotal > 0" class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg whitespace-nowrap z-50 pointer-events-none shadow-lg">
+            <div
+              v-if="showCartTooltip && cartStore.cartTotal > 0"
+              class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg whitespace-nowrap z-50 pointer-events-none shadow-lg"
+            >
               <div class="font-semibold">{{ $t('cart.total') || 'Total' }}: {{ cartStore.cartTotal.toFixed(2) }}</div>
               <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
             </div>
@@ -222,31 +225,56 @@
     </nav>
 
     <!-- Mobile Bottom Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 h-[56px] bg-white border-t border-gray-200 z-50 md:hidden">
-      <div class="flex h-full justify-around items-center px-2">
-        <router-link to="/" class="flex flex-col items-center justify-center text-gray-600 hover:text-[#E6AC31] transition-colors">
+    <nav class="fixed bottom-0 left-0 right-0 h-[65px] bg-white border-t border-gray-200 z-50 md:hidden pb-1">
+      <div class="flex h-full justify-around items-center px-1">
+        <router-link
+          to="/"
+          active-class=""
+          exact-active-class="bg-[#4f46e5] !text-[#E6AC31] px-4 py-1.5 shadow-[0_4px_14px_rgba(79,70,229,0.39)]"
+          class="flex flex-col items-center justify-center text-gray-500 hover:text-[#E6AC31] transition-all duration-300 rounded-full"
+        >
           <i class="fa-solid fa-house text-lg mb-0.5"></i>
-          <span class="text-[10px]">{{ $t('الرئيسية') }}</span>
+          <span class="text-[10px] font-medium">{{ $t('الرئيسية') }}</span>
         </router-link>
 
-        <router-link to="/favorites" class="flex flex-col items-center justify-center text-gray-600 hover:text-[#E6AC31] transition-colors">
+        <router-link
+          to="/favorites"
+          class="flex flex-col items-center justify-center text-gray-500 hover:text-[#E6AC31] transition-all duration-300 rounded-full"
+          exact-active-class="bg-[#4f46e5] !text-[#E6AC31] px-4 py-1.5 shadow-[0_4px_14px_rgba(79,70,229,0.39)]"
+        >
           <i class="fa-solid fa-heart text-lg mb-0.5"></i>
-          <span class="text-[10px]">{{ $t('المفضلة') }}</span>
+          <span class="text-[10px] font-medium">{{ $t('المفضلة') }}</span>
         </router-link>
 
-        <router-link to="/cart" class="flex flex-col items-center justify-center text-gray-600 hover:text-[#E6AC31] transition-colors">
+        <router-link
+          to="/cart"
+          class="flex flex-col items-center justify-center text-gray-500 hover:text-[#E6AC31] transition-all duration-300 rounded-full"
+          exact-active-class="bg-[#4f46e5] !text-[#E6AC31] px-4 py-1.5 shadow-[0_4px_14px_rgba(79,70,229,0.39)]"
+        >
           <i class="fa-solid fa-cart-shopping text-lg mb-0.5"></i>
-          <span class="text-[10px]">{{ $t('السلة') }}</span>
+          <span class="text-[10px] font-medium">{{ $t('السلة') }}</span>
         </router-link>
 
-        <div @click="UserPage" class="flex flex-col items-center justify-center text-gray-600 cursor-pointer hover:text-[#E6AC31] transition-colors">
+        <div
+          @click="UserPage"
+          :class="[
+            'flex flex-col items-center justify-center cursor-pointer transition-all duration-300 rounded-full',
+            route.path === '/profile'
+              ? 'bg-[#4f46e5] text-[#E6AC31] px-4 py-1.5 shadow-[0_4px_14px_rgba(79,70,229,0.39)]'
+              : 'text-gray-500 hover:text-[#E6AC31]',
+          ]"
+        >
           <i class="fa-solid fa-user text-lg mb-0.5"></i>
-          <span class="text-[10px]">{{ $t('حسابي') }}</span>
+          <span class="text-[10px] font-medium">{{ $t('حسابي') }}</span>
         </div>
 
-        <router-link to="/stores" class="flex flex-col items-center justify-center text-gray-600 hover:text-[#E6AC31] transition-colors">
+        <router-link
+          to="/stores"
+          class="flex flex-col items-center justify-center text-gray-500 hover:text-[#E6AC31] transition-all duration-300 rounded-full"
+          exact-active-class="bg-[#4f46e5] !text-[#E6AC31] px-4 py-1.5 shadow-[0_4px_14px_rgba(79,70,229,0.39)]"
+        >
           <i class="fa-solid fa-store text-lg mb-0.5"></i>
-          <span class="text-[10px]">{{ $t('الماركت') }}</span>
+          <span class="text-[10px] font-medium">{{ $t('الماركت') }}</span>
         </router-link>
       </div>
     </nav>
@@ -254,180 +282,178 @@
 </template>
 
 <script setup>
-import { useRouter, useRoute } from 'vue-router'
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import axios from 'axios'
-import { useAuthStore } from '../../../../stores/WebAuth.js'
-import { useCartStore } from '../../../../stores/Cart.js'
-import Notifications from './Notification.vue'
-import SearchBar from './SearchBar.vue'
+  import { useRouter, useRoute } from 'vue-router'
+  import { ref, onMounted, onUnmounted, computed } from 'vue'
+  import axios from 'axios'
+  import { useAuthStore } from '../../../../stores/WebAuth.js'
+  import { useCartStore } from '../../../../stores/Cart.js'
+  import Notifications from './Notification.vue'
+  import SearchBar from './SearchBar.vue'
 
-// Fixed variable name + initialize correctly
-const currentText = ref('E')
+  // Fixed variable name + initialize correctly
+  const currentText = ref('E')
 
-const authStore = useAuthStore()
-const cartStore = useCartStore()
-const stores = ref([])
-const router = useRouter()
-const route = useRoute()
-const isDropdownOpen = ref(false)
-const isUserDropdownOpen = ref(false)
-const showCartTooltip = ref(false)
-const defaultStoreId = ref('')
-const defaultStore = ref(null)
-const hasMarket = ref(null)
-const isAuthenticated = ref(false)
-const webUser = ref({})
+  const authStore = useAuthStore()
+  const cartStore = useCartStore()
+  const stores = ref([])
+  const router = useRouter()
+  const route = useRoute()
+  const isDropdownOpen = ref(false)
+  const isUserDropdownOpen = ref(false)
+  const showCartTooltip = ref(false)
+  const defaultStoreId = ref('')
+  const defaultStore = ref(null)
+  const hasMarket = ref(null)
+  const isAuthenticated = ref(false)
+  const webUser = ref({})
 
-const storesDropdown = ref(null)
-const userDropdownDesktop = ref(null)
-const cartIconRef = ref(null)
+  const storesDropdown = ref(null)
+  const userDropdownDesktop = ref(null)
+  const cartIconRef = ref(null)
 
-const getStoreImage = (store) => {
-  const storeImage = store.media.find((mediaItem) => mediaItem.name === 'store_image')
-  return storeImage ? storeImage.url : null
-}
-
-const fetchStores = async () => {
-  try {
-    const response = await axios.get('api/home/get-stores')
-    stores.value = response.data.data.data
-    setDefaultStore()
-  } catch (error) {
-    console.error('Error fetching stores:', error)
+  const getStoreImage = (store) => {
+    const storeImage = store.media.find((mediaItem) => mediaItem.name === 'store_image')
+    return storeImage ? storeImage.url : null
   }
-}
 
-const setDefaultStore = () => {
-  const storedStoreId = localStorage.getItem('defaultStoreId')
-  const storedHasMarket = localStorage.getItem('hasMarket')
-  if (storedStoreId && storedHasMarket !== null) {
-    const selectedStore = stores.value.find((store) => store.id === parseInt(storedStoreId))
-    if (selectedStore) {
-      defaultStoreId.value = selectedStore.id
-      defaultStore.value = selectedStore
-      hasMarket.value = selectedStore.has_market
-      return
+  const fetchStores = async () => {
+    try {
+      const response = await axios.get('api/home/get-stores')
+      stores.value = response.data.data.data
+      setDefaultStore()
+    } catch (error) {
+      console.error('Error fetching stores:', error)
     }
   }
 
-}
-
-const linkToStore = (store) => (store.has_market ? { name: 'stores-hasmarket' } : { name: 'home' })
-
-const selectStoreSideEffects = (store) => {
-  defaultStoreId.value = store.id
-  defaultStore.value = store
-  hasMarket.value = store.has_market
-  localStorage.setItem('defaultStoreId', store.id)
-  localStorage.setItem('hasMarket', store.has_market)
-  isDropdownOpen.value = false
-}
-
-const selectStore = (store) => {
-  selectStoreSideEffects(store)
-  if (store.has_market) {
-    router.push({ name: 'stores-hasmarket' })
-  } else {
-    router.push({ name: 'home' })
-  }
-}
-
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value
-  isUserDropdownOpen.value = false
-}
-
-const toggleUserDropdown = () => {
-  isUserDropdownOpen.value = !isUserDropdownOpen.value
-  isDropdownOpen.value = false
-}
-
-// Fixed toggleLang: now correctly updates the button text after reload
-const toggleLang = () => {
-  localStorage.setItem('lastRoute', route.fullPath)
-  const currentLang = localStorage.getItem('appLang') || 'en'
-  const newLang = currentLang === 'en' ? 'ar' : 'en'
-  localStorage.setItem('appLang', newLang)
-
-  // Update button text immediately before reload
-  currentText.value = newLang === 'ar' ? 'A' : 'E'
-
-  window.location.reload()
-}
-
-const UserPage = () => {
-  if (isAuthenticated.value) {
-    router.push({ name: 'profile' })
-  } else {
-    router.push({ name: 'authlog' })
-  }
-}
-
-const logout = () => {
-  authStore.handleLogout()
-}
-
-const handleClickOutside = (event) => {
-  if (isDropdownOpen.value && storesDropdown.value && !storesDropdown.value.contains(event.target)) {
-    const storeIcon = event.target.closest('.icon-container')
-    if (!storeIcon || !storeIcon.querySelector('.fa-store')) {
-      isDropdownOpen.value = false
+  const setDefaultStore = () => {
+    const storedStoreId = localStorage.getItem('defaultStoreId')
+    const storedHasMarket = localStorage.getItem('hasMarket')
+    if (storedStoreId && storedHasMarket !== null) {
+      const selectedStore = stores.value.find((store) => store.id === parseInt(storedStoreId))
+      if (selectedStore) {
+        defaultStoreId.value = selectedStore.id
+        defaultStore.value = selectedStore
+        hasMarket.value = selectedStore.has_market
+        return
+      }
     }
   }
-  if (isUserDropdownOpen.value && userDropdownDesktop.value && !userDropdownDesktop.value.contains(event.target)) {
-    const userIcon = event.target.closest('.icon-container')
-    if (!userIcon || !userIcon.querySelector('svg')) {
-      isUserDropdownOpen.value = false
+
+  const linkToStore = (store) => (store.has_market ? { name: 'stores-hasmarket' } : { name: 'home' })
+
+  const selectStoreSideEffects = (store) => {
+    defaultStoreId.value = store.id
+    defaultStore.value = store
+    hasMarket.value = store.has_market
+    localStorage.setItem('defaultStoreId', store.id)
+    localStorage.setItem('hasMarket', store.has_market)
+    isDropdownOpen.value = false
+  }
+
+  const selectStore = (store) => {
+    selectStoreSideEffects(store)
+    if (store.has_market) {
+      router.push({ name: 'stores-hasmarket' })
+    } else {
+      router.push({ name: 'home' })
     }
   }
-}
 
-// Set correct language text on component mount
-const updateLangButton = () => {
-  const lang = localStorage.getItem('appLang') || 'en'
-  currentText.value = lang === 'ar' ? 'E' : 'Ar'
-}
-
-onMounted(() => {
-  const storedStoreId = localStorage.getItem('defaultStoreId')
-  const authStatus = localStorage.getItem('authenticatedweb')
-  const userData = localStorage.getItem('webUser')
-  const lastRoute = localStorage.getItem('lastRoute')
-
-  if (authStatus === 'true' && userData) {
-    isAuthenticated.value = true
-    webUser.value = JSON.parse(userData)
+  const toggleDropdown = () => {
+    isDropdownOpen.value = !isDropdownOpen.value
+    isUserDropdownOpen.value = false
   }
 
-  if (storedStoreId) {
-    defaultStoreId.value = parseInt(storedStoreId)
-    hasMarket.value = localStorage.getItem('hasMarket') === '1' ? 1 : 0
-    fetchStores()
-  } else {
-    fetchStores()
+  const toggleUserDropdown = () => {
+    isUserDropdownOpen.value = !isUserDropdownOpen.value
+    isDropdownOpen.value = false
   }
 
-  if (lastRoute && lastRoute !== '/') {
-    router.push(lastRoute)
-    localStorage.removeItem('lastRoute')
+  // Fixed toggleLang: now correctly updates the button text after reload
+  const toggleLang = () => {
+    localStorage.setItem('lastRoute', route.fullPath)
+    const currentLang = localStorage.getItem('appLang') || 'en'
+    const newLang = currentLang === 'en' ? 'ar' : 'en'
+    localStorage.setItem('appLang', newLang)
+
+    // Update button text immediately before reload
+    currentText.value = newLang === 'ar' ? 'A' : 'E'
+
+    window.location.reload()
   }
 
-  // This is the key fix:
-  updateLangButton()
+  const UserPage = () => {
+    if (isAuthenticated.value) {
+      router.push({ name: 'profile' })
+    } else {
+      router.push({ name: 'authlog' })
+    }
+  }
 
-  document.addEventListener('click', handleClickOutside)
-})
+  const logout = () => {
+    authStore.handleLogout()
+  }
 
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
+  const handleClickOutside = (event) => {
+    if (isDropdownOpen.value && storesDropdown.value && !storesDropdown.value.contains(event.target)) {
+      const storeIcon = event.target.closest('.icon-container')
+      if (!storeIcon || !storeIcon.querySelector('.fa-store')) {
+        isDropdownOpen.value = false
+      }
+    }
+    if (isUserDropdownOpen.value && userDropdownDesktop.value && !userDropdownDesktop.value.contains(event.target)) {
+      const userIcon = event.target.closest('.icon-container')
+      if (!userIcon || !userIcon.querySelector('svg')) {
+        isUserDropdownOpen.value = false
+      }
+    }
+  }
+
+  // Set correct language text on component mount
+  const updateLangButton = () => {
+    const lang = localStorage.getItem('appLang') || 'en'
+    currentText.value = lang === 'ar' ? 'E' : 'Ar'
+  }
+
+  onMounted(() => {
+    const storedStoreId = localStorage.getItem('defaultStoreId')
+    const authStatus = localStorage.getItem('authenticatedweb')
+    const userData = localStorage.getItem('webUser')
+    const lastRoute = localStorage.getItem('lastRoute')
+
+    if (authStatus === 'true' && userData) {
+      isAuthenticated.value = true
+      webUser.value = JSON.parse(userData)
+    }
+
+    if (storedStoreId) {
+      defaultStoreId.value = parseInt(storedStoreId)
+      hasMarket.value = localStorage.getItem('hasMarket') === '1' ? 1 : 0
+      fetchStores()
+    } else {
+      fetchStores()
+    }
+
+    if (lastRoute && lastRoute !== '/') {
+      router.push(lastRoute)
+      localStorage.removeItem('lastRoute')
+    }
+
+    // This is the key fix:
+    updateLangButton()
+
+    document.addEventListener('click', handleClickOutside)
+  })
+
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
+  })
 </script>
 
 <style scoped>
-/* Your existing styles remain unchanged */
-.icon-container {
-  @apply flex place-content-center p-2 rounded-md items-center text-[0.5rem] h-[28px] w-[28px] sm:h-[32px] sm:w-[32px] md:h-[36px] md:w-[36px] transition-all duration-200;
-}
-/* ... rest of your styles ... */
+  /* Your existing styles remain unchanged */
+  .icon-container {
+    @apply flex place-content-center p-2 rounded-md items-center text-[0.5rem] h-[28px] w-[28px] sm:h-[32px] sm:w-[32px] md:h-[36px] md:w-[36px] transition-all duration-200;
+  }
 </style>

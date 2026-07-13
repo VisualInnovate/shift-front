@@ -46,7 +46,23 @@ const formData = ref({
   terms_conditions_ar: '',
   terms_conditions_en: '',
   cart_image: '',           // Existing image URL from backend
+  faqs: []                  // مصفوفة الأسئلة والأجوبة الجديدة
 })
+
+// ==================== FAQ Handlers ====================
+
+const addFaqItem = () => {
+  formData.value.faqs.push({
+    question_ar: '',
+    answer_ar: '',
+    question_en: '',
+    answer_en: ''
+  })
+}
+
+const removeFaqItem = (index) => {
+  formData.value.faqs.splice(index, 1)
+}
 
 // ==================== Cart Image Handlers ====================
 
@@ -198,16 +214,17 @@ const fetchSettings = async () => {
         terms_conditions_ar: 'terms_conditions_ar',
         terms_conditions_en: 'terms_conditions_en',
         cart_image: 'cart_image',
+        faqs: 'faqs' // ربط مفتاح الـ FAQs
       }
 
       data.forEach(item => {
         const fieldKey = mapping[item.key]
         if (!fieldKey) return
 
-        if (fieldKey === 'order_notification_emails' || fieldKey === 'order_notification_whatsapp') {
+        if (fieldKey === 'order_notification_emails' || fieldKey === 'order_notification_whatsapp' || fieldKey === 'faqs') {
           formData.value[fieldKey] = Array.isArray(item.value)
             ? item.value
-            : (item.value ? JSON.parse(item.value) : [])
+            : (item.value ? JSON.parse(item.value) : (fieldKey === 'faqs' ? [] : []))
         } else if (fieldKey === 'cart_image') {
           if (item.media && item.media.length > 0) {
             cartImagePreview.value = item.media[0].url
@@ -243,7 +260,7 @@ const updateSettings = async () => {
       'facebook', 'instagram', 'youtube', 'snapchat', 'tiktok',
       'privacy_policy_ar', 'privacy_policy_en',
       'terms_conditions_ar', 'terms_conditions_en',
-      'cart_image'
+      'cart_image', 'faqs' // إضافة faqs هنا للإرسال
     ]
 
     fields.forEach((key, index) => {
@@ -254,8 +271,9 @@ const updateSettings = async () => {
         value = JSON.stringify(formData.value.order_notification_emails || [])
       } else if (key === 'order_notification_whatsapp') {
         value = JSON.stringify(formData.value.order_notification_whatsapp || [])
-      }
-      else if (key === 'cart_image') {
+      } else if (key === 'faqs') {
+        value = JSON.stringify(formData.value.faqs || [])
+      } else if (key === 'cart_image') {
         value = formData.value.cart_image || ''
       } else {
         value = formData.value[key] || ''
@@ -311,7 +329,6 @@ const updateSettings = async () => {
         <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
           {{ t('settings.title') }}
         </h1>
-
       </div>
 
       <!-- Loading State -->
@@ -502,6 +519,61 @@ const updateSettings = async () => {
                   <p class="mt-2 text-xs text-slate-400">PNG, JPG, JPEG</p>
                 </div>
               </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- FAQs Section (المصفوفة الجديدة للأسئلة والأجوبة) -->
+        <section class="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-sm shadow-slate-100">
+          <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/60 px-6 py-4">
+            <div class="flex items-center gap-3">
+              <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600 text-white shadow-sm">
+                <i class="pi pi-question-circle text-sm"></i>
+              </span>
+              <div>
+                <h2 class="text-base font-bold text-slate-800">{{ t('settings.faqs') || 'Frequently Asked Questions' }}</h2>
+              </div>
+            </div>
+            <Button :label="t('settings.addFaq') || 'Add Question'" icon="pi pi-plus" size="small" severity="secondary" @click="addFaqItem" class="!rounded-xl" />
+          </div>
+
+          <div class="p-6 space-y-4">
+            <div v-for="(faq, index) in formData.faqs" :key="index" class="relative rounded-2xl border border-slate-100 bg-slate-50/30 p-5 shadow-sm">
+              <div class="absolute rtl:left-0 rtl:top-1 ltr:left-0 ltr:top-0">
+                <Button icon="pi pi-trash" class="delete" text rounded @click="removeFaqItem(index)" />
+              </div>
+
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2 pt-4">
+                <!-- Arabic Translation -->
+                <div class="space-y-3 border-r border-slate-100 pr-0 md:pr-4">
+                  <span class="text-xs font-bold uppercase tracking-wider text-slate-400">العربية</span>
+                  <div>
+                    <label class="mb-1 block text-xs font-semibold text-slate-600">السؤال</label>
+                    <InputText v-model="faq.question_ar" class="w-full !rounded-xl !border-slate-200" placeholder="اكتب السؤال هنا..." />
+                  </div>
+                  <div>
+                    <label class="mb-1 block text-xs font-semibold text-slate-600">الإجابة</label>
+                    <InputText v-model="faq.answer_ar" class="w-full !rounded-xl !border-slate-200" placeholder="اكتب الإجابة هنا..." />
+                  </div>
+                </div>
+
+                <!-- English Translation -->
+                <div class="space-y-3">
+                  <span class="text-xs font-bold uppercase tracking-wider text-slate-400">English</span>
+                  <div>
+                    <label class="mb-1 block text-xs font-semibold text-slate-600">Question</label>
+                    <InputText v-model="faq.question_en" class="w-full !rounded-xl !border-slate-200" placeholder="Type question here..." />
+                  </div>
+                  <div>
+                    <label class="mb-1 block text-xs font-semibold text-slate-600">Answer</label>
+                    <InputText v-model="faq.answer_en" class="w-full !rounded-xl !border-slate-200" placeholder="Type answer here..." />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="!formData.faqs.length" class="text-center py-8 text-sm italic text-slate-400">
+              {{ t('settings.faqsEmpty') || 'No FAQs added yet. Click "Add Question" to start.' }}
             </div>
           </div>
         </section>

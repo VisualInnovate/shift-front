@@ -364,6 +364,8 @@ export default {
   no: 'لا',
 
   settings: {
+    faqs: 'الأسئلة الشائعة',
+    addFaq: 'إضافة سؤال جديد',
     basicInfo: 'المعلومات الأساسية',
     order_notification_whatsappPlaceholder: 'أدخل رقم واتساب للإشعارات ثم اضغط إضافة',
     order_notification_whatsappEmpty: 'لم يتم إضافة أي رقم واتساب لإشعارات الطلب بعد.',

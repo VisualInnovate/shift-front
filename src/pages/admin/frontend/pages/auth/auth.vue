@@ -5,7 +5,7 @@
         <img src="../../../../../assets/shiftlogo.png" alt="SHIFT7 Logo" class="h-16 w-16 object-contain" />
       </div>
 
-      <div class="bg-gray-100 rounded-xl p-1 mb-8 flex transition-all duration-300">
+      <!-- <div class="bg-gray-100 rounded-xl p-1 mb-8 flex transition-all duration-300">
         <button
           @click="selectedTab = 'phone'"
           :class="[
@@ -26,7 +26,7 @@
         >
           {{ t('loginPage.emailTab') }}
         </button>
-      </div>
+      </div> -->
 
       <form @submit.prevent="handleLogin" v-if="selectedTab === 'phone'" class="space-y-6">
         <div class="flex">

@@ -9,7 +9,7 @@
       </div>
 
       <!-- Tabs -->
-      <div class="bg-gray-100 rounded-xl p-1 mb-4 flex transition-all duration-300">
+      <!-- <div class="bg-gray-100 rounded-xl p-1 mb-4 flex transition-all duration-300">
         <button
           @click="selectTab('phone')"
           :class="[
@@ -30,7 +30,7 @@
         >
           {{ t('signup.emailTab') }}
         </button>
-      </div>
+      </div> -->
 
       <div class="space-y-4">
         <!-- Name Input -->

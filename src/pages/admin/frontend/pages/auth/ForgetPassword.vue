@@ -7,7 +7,7 @@
         <img src="../../../../../assets/shiftlogo.png" alt="SHIFT7 Logo" class="h-16 w-16 object-contain" />
       </div>
 
-      <div class="bg-gray-100 rounded-xl p-1 mb-4 flex transition-all duration-300">
+      <!-- <div class="bg-gray-100 rounded-xl p-1 mb-4 flex transition-all duration-300">
         <button
           @click="selectedTab = 'phone'"
           :class="[
@@ -28,7 +28,7 @@
         >
           {{ t('resetInitiation.emailTab') }}
         </button>
-      </div>
+      </div> -->
 
       <div class="space-y-4">
         <div v-if="selectedTab === 'phone'" class="flex">

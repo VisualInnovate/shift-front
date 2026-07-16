@@ -395,7 +395,7 @@ onMounted(fetchOrderData)
               </Column>
               <Column :header="t('order.price')" headerClass="text-end">
                 <template #body="{ data }">
-                  <span class="font-bold text-slate-800">{{ formatCurrency(data.variant_id ? data.variant.price : data.price) }}</span>
+                  <span class="font-bold text-slate-800">{{ formatCurrency(data.price) }}</span>
                 </template>
               </Column>
             </DataTable>

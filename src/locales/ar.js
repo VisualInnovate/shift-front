@@ -216,7 +216,7 @@ export default {
     changeStatusTitle: 'تغيير حالة الطلب',
     changeStatusConfirmMsg: 'هل أنت متأكد من تغيير حالة الطلب',
     management: 'إدارة الطلبات',
-
+    weight: 'الوزن',
     proc: {
       done: 'تمت',
       waiting: 'انتظار',

@@ -126,6 +126,7 @@ const confirmAndGenerateInvoice = async () => {
 
 const formatCurrency = (v) => `${parseFloat(v || 0).toFixed(2)} ${t('currencyLabel')}`
 const getProductName = (p) => lang === 'ar' ? p.name_ar : p.name_en
+const getProductNameVariant = (v) => lang === 'ar' ? v.value_ar : v.value_en
 const getProductImage = (p) => p.media?.[0]?.url || p.key_default_image || '/images/no-image.png'
 const formatDate = (d) => d ? new Date(d).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US') : '—'
 
@@ -381,6 +382,7 @@ onMounted(fetchOrderData)
                     <img :src="getProductImage(data.product)" class="w-12 h-12 rounded-xl object-cover ring-4 ring-slate-50" />
                     <div class="flex flex-col">
                       <span class="font-bold text-slate-800 text-sm leading-tight">{{ getProductName(data.product) }}</span>
+                      <span v-if="data.variant_id" class="text-slate-800 text-xs leading-tight">{{ $t("order.weight") }} : {{ getProductNameVariant(data.variant.attribute_values[0]) }}</span>
                       <span class="text-[10px] text-slate-400 mt-1 uppercase font-medium">SKU: {{ data.product?.code || 'N/A' }}</span>
                     </div>
                   </div>
@@ -393,7 +395,7 @@ onMounted(fetchOrderData)
               </Column>
               <Column :header="t('order.price')" headerClass="text-end">
                 <template #body="{ data }">
-                  <span class="font-bold text-slate-800">{{ formatCurrency(data.price) }}</span>
+                  <span class="font-bold text-slate-800">{{ formatCurrency(data.variant_id ? data.variant.price : data.price) }}</span>
                 </template>
               </Column>
             </DataTable>

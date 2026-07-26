@@ -22,6 +22,7 @@
 
   // State variables
   const loading = ref(true)
+  const exportLoading = ref(false)
   const delete_id = ref('')
   const users = ref(null)
   const deleteDialog = ref(false)
@@ -295,9 +296,55 @@
     }
   }
 
-  // Export CSV
-  const exportCSV = () => {
-    dt.value.exportCSV()
+  // Export Users API Request
+  const exportUsers = async () => {
+    exportLoading.value = true
+    try {
+      const response = await axios.get('/api/export/users', {
+        params: {
+          search: searchQuery.value || undefined,
+        },
+        responseType: 'blob',
+      })
+
+      // Try to read content-disposition header or default to timestamped filename
+      let filename = `users_export_${new Date().toISOString().slice(0, 10)}.xlsx`
+      const contentDisposition = response.headers['content-disposition']
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^";]+)"?/)
+        if (match && match[1]) {
+          filename = match[1]
+        }
+      }
+
+      // Create a blob URL and click it programmatically
+      const blob = new Blob([response.data])
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+
+      toast.add({
+        severity: 'success',
+        summary: t('success'),
+        detail: t('user.exportSuccess') || 'Export downloaded successfully',
+        life: 3000,
+      })
+    } catch (error) {
+      console.error('Export error:', error)
+      toast.add({
+        severity: 'error',
+        summary: t('error'),
+        detail: t('user.exportError') || 'Failed to export users data',
+        life: 4000,
+      })
+    } finally {
+      exportLoading.value = false
+    }
   }
 
   // Navigation functions
@@ -338,8 +385,9 @@
                 :label="$t('user.export')"
                 icon="pi pi-upload"
                 class="p-export"
+                :loading="exportLoading"
                 v-can="'export users'"
-                @click="exportCSV"
+                @click="exportUsers"
               />
               <Button
                 v-can="'create users'"

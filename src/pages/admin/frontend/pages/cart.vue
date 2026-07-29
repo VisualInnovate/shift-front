@@ -235,7 +235,7 @@
               </div>
 
               <button
-                @click="submitSingleStoreOrder(order.unique_store_id)"
+                @click="openPaymentSheet('single', order.unique_store_id)"
                 :disabled="
                   !selectedAddress ||
                   order.delivery_status === 'not_available' ||
@@ -326,7 +326,7 @@
         </div>
 
         <button
-          @click="submitOrder"
+          @click="openPaymentSheet('all')"
           :disabled="!canCheckoutAllStores || storesClose.some((store) => !store.in_time_slots || store.is_busy)"
           class="w-full mt-8 py-4 bg-gray-900 text-white font-bold text-lg rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
         >
@@ -344,6 +344,105 @@
         </p>
       </aside>
     </div>
+
+
+
+    <Teleport to="body">
+      <Transition name="payment-sheet">
+        <div
+          v-if="isPaymentSheetOpen"
+          class="fixed inset-0 z-50 flex items-end bg-slate-950/45 p-0 sm:items-center sm:justify-center sm:p-6"
+          @click.self="closePaymentSheet"
+        >
+          <section
+            class="w-full max-w-xl rounded-t-[2rem] bg-white p-5 shadow-2xl sm:rounded-[2rem] sm:p-7"
+            :dir="locale === 'ar' ? 'rtl' : 'ltr'"
+            role="dialog"
+            aria-modal="true"
+            :aria-label="locale === 'ar' ? 'اختيار طريقة الدفع' : 'Choose payment method'"
+          >
+            <div class="mx-auto mb-5 h-1.5 w-12 rounded-full bg-slate-200 sm:hidden"></div>
+            <div class="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-yellow-600">
+                  {{ locale === 'ar' ? 'إتمام الطلب' : 'Checkout' }}
+                </p>
+                <h2 class="mt-1 text-xl font-bold text-slate-900">
+                  {{ locale === 'ar' ? 'اختر طريقة الدفع' : 'Choose a payment method' }}
+                </h2>
+              </div>
+              <button
+                type="button"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-800"
+                :aria-label="locale === 'ar' ? 'إغلاق' : 'Close'"
+                @click="closePaymentSheet"
+              >
+                <i class="pi pi-times"></i>
+              </button>
+            </div>
+
+            <div class="space-y-3">
+              <button
+                v-for="method in paymentOptions"
+                :key="method.id"
+                type="button"
+                :disabled="!method.enabled"
+                class="flex w-full items-center gap-4 rounded-2xl border p-4 text-start transition"
+                :class="[
+                  method.enabled
+                    ? selectedPaymentType === method.id
+                      ? 'border-yellow-500 bg-amber-50 shadow-sm ring-1 ring-yellow-500'
+                      : 'border-slate-200 bg-white hover:border-yellow-300 hover:bg-amber-50/50'
+                    : 'cursor-not-allowed border-slate-100 bg-slate-50 opacity-60',
+                ]"
+                @click="selectedPaymentType = method.id"
+              >
+                <span
+                  class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+                  :class="method.enabled ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-200 text-slate-400'"
+                >
+                  <i :class="[method.icon, 'text-lg']"></i>
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block font-bold text-slate-800">{{ method.title }}</span>
+                  <span class="mt-1 block text-xs leading-5 text-slate-500">{{ method.description }}</span>
+                </span>
+                <span
+                  v-if="!method.enabled"
+                  class="shrink-0 rounded-full bg-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-500"
+                >
+                  {{ locale === 'ar' ? 'قريباً' : 'Coming soon' }}
+                </span>
+                <span
+                  v-else
+                  class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
+                  :class="selectedPaymentType === method.id ? 'border-yellow-600 bg-yellow-600 text-white' : 'border-slate-300'"
+                >
+                  <i v-if="selectedPaymentType === method.id" class="pi pi-check text-[10px]"></i>
+                </span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              :disabled="isSubmittingPayment"
+              class="mt-6 w-full rounded-xl bg-gray-900 py-4 font-bold text-white transition hover:bg-gray-800 disabled:cursor-wait disabled:bg-slate-400"
+              @click="confirmPayment"
+            >
+              {{
+                isSubmittingPayment
+                  ? locale === 'ar'
+                    ? 'جاري إتمام الطلب...'
+                    : 'Placing order...'
+                  : locale === 'ar'
+                    ? 'تأكيد وإتمام الطلب'
+                    : 'Confirm and place order'
+              }}
+            </button>
+          </section>
+        </div>
+      </Transition>
+    </Teleport>
 
     <Toast />
   </div>
@@ -373,7 +472,77 @@
   const selectedStores = ref([])
   const storeOrders = ref([])
   const cartImage = ref('')
+  const isPaymentSheetOpen = ref(false)
+  const isSubmittingPayment = ref(false)
+  const selectedPaymentType = ref(1)
+  const checkoutTarget = ref(null)
   const generateUniqueStoreId = (store) => `${store.store_id}-${store.market_id || 'default'}`
+
+  const paymentOptions = computed(() => {
+    const isArabic = locale.value === 'ar'
+
+    return [
+      {
+        id: 1,
+        icon: 'pi pi-money-bill',
+        title: isArabic ? 'نقداً عند الاستلام' : 'Cash on delivery',
+        description: isArabic ? 'ادفع نقداً عند استلام طلبك.' : 'Pay with cash when your order arrives.',
+        enabled: true,
+      },
+      {
+        id: 2,
+        icon: 'pi pi-send',
+        title: isArabic ? 'الدفع عبر CliQ' : 'Pay with CliQ',
+        description: isArabic
+          ? 'سنقوم بتزويدك بالاسم المستعار بعد إتمام الطلب.'
+          : 'We will provide the alias after your order is placed.',
+        enabled: true,
+      },
+      {
+        id: 3,
+        icon: 'pi pi-credit-card',
+        title: isArabic ? 'بطاقة ائتمانية' : 'Credit card',
+        description: isArabic ? 'ادفع بالبطاقة عبر جهاز الدفع عند الاستلام.' : 'Pay by card at delivery.',
+        enabled: false,
+      },
+      {
+        id: 4,
+        icon: 'pi pi-globe',
+        title: isArabic ? 'بطاقة ائتمانية' : 'Credit card',
+        description: isArabic
+          ? 'ادفع مباشرة داخل التطبيق باستخدام بطاقتك الائتمانية.'
+          : 'Pay directly in the app using your credit card.',
+        enabled: false,
+      },
+    ]
+  })
+
+  const openPaymentSheet = (type, uniqueStoreId = null) => {
+    checkoutTarget.value = { type, uniqueStoreId }
+    isPaymentSheetOpen.value = true
+  }
+
+  const closePaymentSheet = () => {
+    isPaymentSheetOpen.value = false
+    checkoutTarget.value = null
+  }
+
+  const confirmPayment = async () => {
+    if (!checkoutTarget.value || isSubmittingPayment.value) return
+
+    isSubmittingPayment.value = true
+
+    try {
+      if (checkoutTarget.value?.type === 'single') {
+        await submitSingleStoreOrder(checkoutTarget.value.uniqueStoreId, selectedPaymentType.value)
+        return
+      }
+
+      await submitOrder(selectedPaymentType.value)
+    } finally {
+      isSubmittingPayment.value = false
+    }
+  }
 
   const storesClose = ref([])
 
@@ -657,7 +826,7 @@
     toast.add({ severity: 'success', summary: t('success'), detail: t('cart.couponApplied'), life: 3000 })
   }
 
-  const submitSingleStoreOrder = async (unique_store_id) => {
+  const submitSingleStoreOrder = async (unique_store_id, paymentType) => {
     const order = storeOrders.value.find((o) => o.unique_store_id === unique_store_id)
 
     if (!selectedAddress.value) {
@@ -690,6 +859,7 @@
     try {
       const payload = {
         address_id: selectedAddress.value,
+        payment_type: paymentType,
         items: itemsInThisStore.map((p) => ({
           product_id: p.product_id,
           variant_id: p.variant_id,
@@ -711,6 +881,7 @@
 
         products.value = products.value.filter((p) => p.unique_store_id !== unique_store_id)
         selectedStores.value = selectedStores.value.filter((id) => id !== unique_store_id)
+        closePaymentSheet()
         await fetchOrderTotals()
       }
     } catch (err) {
@@ -719,7 +890,7 @@
     }
   }
 
-  const submitOrder = async () => {
+  const submitOrder = async (paymentType) => {
     if (!canCheckoutAllStores.value) {
       if (!selectedAddress.value) {
         toast.add({ severity: 'error', summary: t('error'), detail: t('cart.selectAddressWarning'), life: 5000 })
@@ -742,6 +913,7 @@
     try {
       const payload = {
         address_id: selectedAddress.value,
+        payment_type: paymentType,
         items: filteredProducts.value.map((p) => ({
           product_id: p.product_id,
           variant_id: p.variant_id,
@@ -760,6 +932,7 @@
         selectedStores.value = []
         notes.value = ''
         couponCode.value = ''
+        closePaymentSheet()
       }
     } catch (err) {
       const msg = err.response?.data?.message || t('cart.orderError')
@@ -776,6 +949,26 @@
 </script>
 
 <style scoped>
+  .payment-sheet-enter-active,
+  .payment-sheet-leave-active {
+    transition: opacity 0.2s ease;
+  }
+
+  .payment-sheet-enter-active section,
+  .payment-sheet-leave-active section {
+    transition: transform 0.25s ease;
+  }
+
+  .payment-sheet-enter-from,
+  .payment-sheet-leave-to {
+    opacity: 0;
+  }
+
+  .payment-sheet-enter-from section,
+  .payment-sheet-leave-to section {
+    transform: translateY(100%);
+  }
+
   [dir='rtl'] .mr-4 {
     margin-right: 0;
     margin-left: 1rem;

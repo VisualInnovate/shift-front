@@ -260,7 +260,32 @@ onMounted(fetchOrderData)
             </p>
           </div>
 
-          <section v-if="orderData.coupon_code" class="my-4 p-2 rounded-2xl bg-white border border-slate-200 shadow-sm flex justify-center items-center"><span class="p-2 rounded-xl shadow-md bg-blue-800 md:text-sm text-xs text-white">{{ orderData.coupon_code }}</span></section>
+          <section
+            v-if="orderData.coupon_code"
+            class="my-4 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white shadow-sm"
+          >
+            <div class="flex items-center justify-between gap-3 p-4">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-800 text-white shadow-md shadow-blue-200">
+                  <i class="pi pi-ticket text-base"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-xs font-semibold uppercase tracking-wider text-blue-800">
+                    {{ lang === 'ar' ? 'كود الخصم' : 'Coupon code' }}
+                  </p>
+                  <p class="mt-0.5 text-xs text-slate-500">
+                    {{ lang === 'ar' ? 'تم تطبيقه على هذا الطلب' : 'Applied to this order' }}
+                  </p>
+                </div>
+              </div>
+              <span
+                dir="ltr"
+                class="shrink-0 rounded-xl border border-blue-200 bg-white px-3 py-2 font-mono text-xs font-bold tracking-wider text-blue-900 shadow-sm md:text-sm"
+              >
+                {{ orderData.coupon_code }}
+              </span>
+            </div>
+          </section>
 
           <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl shadow-slate-200 relative overflow-hidden">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-[#0b3baa] opacity-20 rounded-full"></div>

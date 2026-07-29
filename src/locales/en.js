@@ -1084,6 +1084,8 @@ export default {
   yes: 'Yes',
   no: 'No',
   cart: {
+    checkoutThisStoreOnly: "Check out This Store Only",
+    checkoutAll: "Check out All",
     selectStorePrompt: 'Please select a store to view cart items',
     selectStore: 'Select Store',
     selectStoreAria: 'Select store {name}',

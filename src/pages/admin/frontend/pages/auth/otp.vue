@@ -13,7 +13,7 @@
           {{ t('otpVerification.otpSent') }}
         </p>
 
-        <div class="flex justify-center space-x-2 space-x-reverse">
+        <div class="flex justify-center space-x-2" dir="ltr">
           <input
             v-for="(digit, index) in otpDigits"
             :key="index"
@@ -21,6 +21,7 @@
             maxlength="1"
             pattern="[0-9]"
             class="w-12 h-12 mx-2 text-center text-xl font-bold rounded-xl bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+            dir="ltr"
             v-model="otpDigits[index]"
             @input="handleInput(index, $event)"
             @keydown.backspace="handleBackspace(index)"

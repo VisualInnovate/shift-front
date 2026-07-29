@@ -12,7 +12,7 @@
       </p>
     </div>
 
-    <div class="flex justify-center gap-3">
+    <div class="flex justify-center gap-3" dir="ltr">
       <input
         v-for="(_, i) in digits"
         :key="i"
@@ -120,6 +120,7 @@ onMounted(() => {
   text-align: center;
   font-size: 1.5rem;
   font-weight: 700;
+  direction: ltr;
   color: #1a1a1a;
   background-color: #faf7f2;
   border: 2px solid #e5e7eb;

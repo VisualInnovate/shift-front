@@ -154,6 +154,70 @@
               </div>
             </div>
 
+             <div v-if="filteredProducts.length > 0" class="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-5">
+            <label for="payment-method" class="mb-2 block text-sm font-semibold text-gray-800">
+              {{ t('cart.paymentMethod') }}
+            </label>
+            <div class="relative" :dir="locale === 'ar' ? 'rtl' : 'ltr'">
+              <button
+                id="payment-method"
+                type="button"
+                class="flex w-full items-center gap-3 rounded-lg border border-amber-300 bg-white px-4 py-3 text-start text-gray-800 shadow-sm transition hover:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                :aria-expanded="isPaymentMethodMenuOpen"
+                aria-haspopup="listbox"
+                @click="isPaymentMethodMenuOpen = !isPaymentMethodMenuOpen"
+              >
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-yellow-100 text-yellow-700">
+                  <i :class="[selectedPaymentMethod?.icon || 'pi pi-wallet', 'text-lg']"></i>
+                </span>
+                <span class="flex-1 font-medium">{{ getPaymentMethodTitle(selectedPaymentMethod) }}</span>
+                <i
+                  class="pi text-sm text-yellow-700 transition-transform"
+                  :class="isPaymentMethodMenuOpen ? 'pi-chevron-up' : 'pi-chevron-down'"
+                ></i>
+              </button>
+
+              <div
+                v-if="isPaymentMethodMenuOpen"
+                class="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-amber-200 bg-white p-1 shadow-xl"
+                role="listbox"
+                :aria-labelledby="'payment-method'"
+              >
+                <button
+                  v-for="method in paymentOptions"
+                  :key="method.id"
+                  type="button"
+                  :disabled="!method.enabled"
+                  class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-start transition"
+                  :class="[
+                    method.enabled
+                      ? selectedPaymentType === method.id
+                        ? 'bg-amber-50 text-yellow-800'
+                        : 'text-gray-700 hover:bg-amber-50'
+                      : 'cursor-not-allowed text-gray-400',
+                  ]"
+                  role="option"
+                  :aria-selected="selectedPaymentType === method.id"
+                  @click="selectedPaymentType = method.id; isPaymentMethodMenuOpen = false"
+                >
+                  <span
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                    :class="method.enabled ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-400'"
+                  >
+                    <i :class="[method.icon, 'text-base']"></i>
+                  </span>
+                  <span class="flex-1 font-medium">
+                    {{ getPaymentMethodTitle(method) }}
+                    <span v-if="!method.enabled" class="block text-xs font-normal text-gray-400">
+                      {{ t('cart.comingSoon') }}
+                    </span>
+                  </span>
+                  <i v-if="selectedPaymentType === method.id" class="pi pi-check text-sm text-yellow-700"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          
             <!-- Store Orders -->
             <div
               v-for="order in storeOrders"
@@ -235,8 +299,9 @@
               </div>
 
               <button
-                @click="openPaymentSheet('single', order.unique_store_id)"
+                @click="submitSingleStoreOrder(order.unique_store_id, selectedPaymentType)"
                 :disabled="
+                  isSubmittingPayment ||
                   !selectedAddress ||
                   order.delivery_status === 'not_available' ||
                   isBelowMinAmount(order) ||
@@ -326,8 +391,12 @@
         </div>
 
         <button
-          @click="openPaymentSheet('all')"
-          :disabled="!canCheckoutAllStores || storesClose.some((store) => !store.in_time_slots || store.is_busy)"
+          @click="submitOrder(selectedPaymentType)"
+          :disabled="
+            isSubmittingPayment ||
+            !canCheckoutAllStores ||
+            storesClose.some((store) => !store.in_time_slots || store.is_busy)
+          "
           class="w-full mt-8 py-4 bg-gray-900 text-white font-bold text-lg rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
         >
           {{ t('cart.checkoutAll') }}
@@ -350,7 +419,7 @@
     <Teleport to="body">
       <Transition name="payment-sheet">
         <div
-          v-if="isPaymentSheetOpen"
+          v-if="false && isPaymentSheetOpen"
           class="fixed inset-0 z-50 flex items-end bg-slate-950/45 p-0 sm:items-center sm:justify-center sm:p-6"
           @click.self="closePaymentSheet"
         >
@@ -475,6 +544,7 @@
   const isPaymentSheetOpen = ref(false)
   const isSubmittingPayment = ref(false)
   const selectedPaymentType = ref(1)
+  const isPaymentMethodMenuOpen = ref(false)
   const checkoutTarget = ref(null)
   const generateUniqueStoreId = (store) => `${store.store_id}-${store.market_id || 'default'}`
 
@@ -516,6 +586,23 @@
       },
     ]
   })
+
+  const getPaymentMethodTitle = (method) => {
+    if (!method) return ''
+
+    const titles = {
+      1: t('cart.cashOnDelivery'),
+      2: t('cart.payWithCliq'),
+      3: t('cart.creditCard'),
+      4: t('cart.creditCard'),
+    }
+
+    return titles[method.id]
+  }
+
+  const selectedPaymentMethod = computed(() =>
+    paymentOptions.value.find((method) => method.id === selectedPaymentType.value),
+  )
 
   const openPaymentSheet = (type, uniqueStoreId = null) => {
     checkoutTarget.value = { type, uniqueStoreId }
@@ -856,6 +943,9 @@
       return
     }
 
+    if (isSubmittingPayment.value) return
+    isSubmittingPayment.value = true
+
     try {
       const payload = {
         address_id: selectedAddress.value,
@@ -887,6 +977,8 @@
     } catch (err) {
       const msg = err.response?.data?.message || t('cart.orderError')
       toast.add({ severity: 'error', summary: t('error'), detail: msg, life: 5000 })
+    } finally {
+      isSubmittingPayment.value = false
     }
   }
 
@@ -909,6 +1001,9 @@
       }
       return
     }
+
+    if (isSubmittingPayment.value) return
+    isSubmittingPayment.value = true
 
     try {
       const payload = {
@@ -937,6 +1032,8 @@
     } catch (err) {
       const msg = err.response?.data?.message || t('cart.orderError')
       toast.add({ severity: 'error', summary: t('error'), detail: msg, life: 5000 })
+    } finally {
+      isSubmittingPayment.value = false
     }
   }
 

@@ -327,6 +327,7 @@ onMounted(async () => {
   text-align: center;
   font-size: 1.5rem;
   font-weight: 800;
+  direction: ltr;
   color: #1a1a1a;
   background-color: #f8fafc;
   border: 2px solid #e5e7eb;

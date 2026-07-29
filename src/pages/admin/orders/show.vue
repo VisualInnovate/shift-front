@@ -206,7 +206,6 @@ onMounted(fetchOrderData)
           </div>
         </div>
       </transition>
-
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         <div class="lg:col-span-4 space-y-6">
@@ -261,6 +260,8 @@ onMounted(fetchOrderData)
             </p>
           </div>
 
+          <section v-if="orderData.coupon_code" class="my-4 p-2 rounded-2xl bg-white border border-slate-200 shadow-sm flex justify-center items-center"><span class="p-2 rounded-xl shadow-md bg-blue-800 md:text-sm text-xs text-white">{{ orderData.coupon_code }}</span></section>
+
           <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl shadow-slate-200 relative overflow-hidden">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-[#0b3baa] opacity-20 rounded-full"></div>
             <h3 class="text-xs font-bold text-[#F3B913] uppercase tracking-widest mb-6">{{ t('order.financialSummary') }}</h3>
@@ -276,6 +277,10 @@ onMounted(fetchOrderData)
               <div class="flex justify-between text-slate-400 text-sm">
                 <span>{{ t('order.delivery') }}</span>
                 <span class="text-white">{{ formatCurrency(orderData.delivery_fee) }}</span>
+              </div>
+              <div class="flex justify-between text-slate-400 text-sm">
+                <span>{{ t('order.coupon') }}</span>
+                <span class="text-white">{{ formatCurrency(orderData.coupon) }}</span>
               </div>
                <div class="flex justify-between text-slate-400 text-sm">
                 <span>{{ t('order.totalDiscounts') }}</span>

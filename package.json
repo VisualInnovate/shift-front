@@ -3,14 +3,14 @@
   "private": true,
   "version": "3.1.0",
   "scripts": {
-    "dev": "vite",
-    "build": "  vite build",
+    "dev": "node server.js",
+    "build": "vite build",
     "build:ci": "vite build",
     "start:ci": "serve -s ./dist",
     "prelint": "npm run format",
     "lint": "eslint --fix \"./src/**/*.{ts,js,vue}\"",
     "format": "prettier --write .",
-    "preview": "vite preview"
+    "preview": "node server.js"
   },
   "lint-staged": {
     "./src/**/*.{ts,js,vue}": [
@@ -29,6 +29,7 @@
     "axios": "^0.27.2",
     "chart.js": "^3.9.1",
     "epic-spinners": "^2.0.0",
+    "express": "^4.18.4",
     "filepond": "^4.30.4",
     "filepond-plugin-file-encode": "^2.1.11",
     "filepond-plugin-file-validate-type": "^1.2.8",

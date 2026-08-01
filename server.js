@@ -34,11 +34,24 @@ const replaceTitle = (html, title) => {
   return html.replace('</head>', `  <title>${escapedTitle}</title>\n</head>`)
 }
 
+const makeAbsoluteImage = (value) => {
+  if (!value) return null
+  if (value.startsWith('http://') || value.startsWith('https://')) return value
+  if (value.startsWith('//')) return `https:${value}`
+  if (value.startsWith('/')) return `https://shift7store.com${value}`
+  return `https://shift7store.com/${value}`
+}
+
 const injectProductMeta = async (html, product, pageUrl) => {
   const title = product.name_en || product.name_ar || 'Shift7'
   const description =
     product.description_en || product.description_ar || product.sub_name_en || product.sub_name_ar || title
-  const image = product.key_default_image || product.media?.[0]?.url || 'https://shift7store.com/og-image.png'
+  const imageSource =
+    product.key_default_image ||
+    product.media?.find((m) => m.name === 'product_main_image')?.url ||
+    product.media?.[0]?.url ||
+    'https://shift7store.com/og-image.png'
+  const image = makeAbsoluteImage(imageSource)
   const url = pageUrl
 
   let result = html
@@ -48,6 +61,7 @@ const injectProductMeta = async (html, product, pageUrl) => {
   result = replaceMeta(result, 'og:title', 'property', title)
   result = replaceMeta(result, 'og:description', 'property', description)
   result = replaceMeta(result, 'og:image', 'property', image)
+  result = replaceMeta(result, 'og:type', 'property', 'product')
   result = replaceMeta(result, 'twitter:title', 'name', title)
   result = replaceMeta(result, 'twitter:description', 'name', description)
   result = replaceMeta(result, 'twitter:image', 'name', image)

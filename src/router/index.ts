@@ -493,6 +493,11 @@ const routes: Array<RouteRecordRaw> = [
             component: () => import('../pages/admin/orders/index.vue'),
           },
           {
+            name: 'client-cart',
+            path: 'client-cart',
+            component: () => import('../pages/admin/clients-cart/index.vue'),
+          },
+          {
             name: 'direct-orders',
             path: 'direct-orders',
             component: () => import('../pages/admin/orders/direct-orders.vue'),
@@ -501,6 +506,11 @@ const routes: Array<RouteRecordRaw> = [
             name: 'order-show',
             path: 'order-show/:id',
             component: () => import('../pages/admin/orders/show.vue'),
+          },
+          {
+            name: 'client-cart-show',
+            path: 'client-cart-show/:id',
+            component: () => import('../pages/admin/clients-cart/show.vue'),
           },
           {
             name: 'store-create',

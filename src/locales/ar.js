@@ -58,6 +58,7 @@ export default {
   currencyLabel: 'د.أ',
 
   navigation: {
+    clientCart: 'سلة العميل',
     shiftmartfile: 'ملفات شيفت مارت',
     direct_orders: 'الطلبات المباشرة',
     invoices: 'الفواتير',

@@ -87,7 +87,7 @@ export default {
   },
   navigation: {
     invoices: 'invoices',
-
+    clientCart: 'client cart',
     inventory: 'inventory',
     shipping: ' Prepare delivery',
     markets: 'markets',

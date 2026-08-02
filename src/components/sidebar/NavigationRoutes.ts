@@ -166,6 +166,14 @@ export default {
       },
     },
     {
+      name: 'client-cart',
+      displayName: 'navigation.clientCart',
+      show: ['list orders'],
+      meta: {
+        icon: 'shopping_cart_checkout',
+      },
+    },
+    {
       name: 'invoices',
       displayName: 'navigation.invoices',
       show: ['list invoices'],

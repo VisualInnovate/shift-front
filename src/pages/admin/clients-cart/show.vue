@@ -32,10 +32,6 @@ const storeName = (item) => {
 
 const productImage = (item) => item.product?.media?.[0]?.url || item.product?.key_default_image
 
-const productPrice = (item) => Number(item.variant?.price ?? item.product?.base_price ?? 0)
-
-const formatPrice = (price) => Number(price || 0).toFixed(2)
-
 const fetchProducts = async () => {
   loading.value = true
 
@@ -120,18 +116,6 @@ onMounted(fetchProducts)
           <p class="product-card__store"><i class="pi pi-shop" /> {{ storeName(item) || '-' }}</p>
           <h2>{{ productName(item) || '-' }}</h2>
 
-          <div class="product-card__pricing">
-            <div>
-              <span>{{ t('cart.price') }}</span>
-              <strong>{{ formatPrice(productPrice(item)) }} {{ t('currencyLabel') }}</strong>
-            </div>
-            <div>
-              <span>{{ t('cart.total') }}</span>
-              <strong class="product-card__total">
-                {{ formatPrice(productPrice(item) * item.quantity) }} {{ t('currencyLabel') }}
-              </strong>
-            </div>
-          </div>
         </div>
       </article>
     </section>

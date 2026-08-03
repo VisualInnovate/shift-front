@@ -318,24 +318,6 @@
   import ProductOffers from '../../components/ProductOffers.vue'
   import { useAuthStore } from '../../../../../stores/WebAuth'
   import { useToast } from 'primevue/usetoast'
-  import { useHead } from '@unhead/vue'
-  import logoUrl from '@/assets/shiftlogo.png'
-
-  useHead({
-    title: 'test',
-    meta: [
-      {
-        property: 'og:title',
-        content: 'test title',
-        key: 'og:title',
-      },
-      {
-        property: 'og:image',
-        content: logoUrl,
-        key: 'og:image',
-      },
-    ],
-  })
 
   const { t, locale } = useI18n()
   const route = useRoute()

@@ -91,7 +91,6 @@ import './axios'
 
 import 'filepond/dist/filepond.min.css';
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css";
-import { createHead } from '@unhead/vue'
 
 const app = createApp(App)
 
@@ -102,9 +101,6 @@ app.use(i18n)
 app.use(PrimeVue, { ripple: true })
 app.use(DialogService)
 app.use(ConfirmationService)
-const head = createHead()
-
-app.use(head)
 
 app.directive('tooltip', Tooltip)
 app.directive('badge', BadgeDirective)

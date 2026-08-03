@@ -6,25 +6,10 @@ import { useI18n } from 'vue-i18n'
 import axios from 'axios'
 import Toast from 'primevue/toast'
 import ProgressSpinner from 'primevue/progressspinner'
-import { useHead } from '@unhead/vue'
 
 const route = useRoute()
 const toast = useToast()
 const { t, locale } = useI18n()
-
-useHead({
-  title: "test",
-  meta: [
-    {
-      property: 'og:title',
-      content: "test title",
-    },
-    {
-      property: 'og:image',
-      content: "../../../assets/shiftlogo.png",
-    },
-  ],
-})
 
 const loading = ref(true)
 const products = ref([])

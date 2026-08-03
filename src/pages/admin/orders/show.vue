@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useI18n } from 'vue-i18n'
@@ -15,7 +15,7 @@ import Toast from 'primevue/toast'
 import Divider from 'primevue/divider'
 import Dialog from 'primevue/dialog'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
@@ -25,10 +25,11 @@ const loading = ref(true)
 const isGeneratingInvoice = ref(false)
 const displayConfirmationModal = ref(false)
 
-// Array to hold the selected items checked by the user
 const selectedItems = ref([])
-
 const lang = localStorage.getItem('appLang') || 'en'
+
+// Map Container Ref
+const mapContainer = ref(null)
 
 // ─── Computed Logic ───────────────────────────────────────────────────────────
 
@@ -46,7 +47,7 @@ const procedureSteps = computed(() => {
   if (!proc) return []
 
   const steps = [
-    { key: 'pending_at',     labelKey: 'order.proc.pending',    icon: 'pi pi-clock' },
+    { key: 'pending_at',    labelKey: 'order.proc.pending',    icon: 'pi pi-clock' },
     { key: 'processing_at', labelKey: 'order.proc.processing', icon: 'pi pi-spin pi-spinner' },
     { key: 'ready_at',      labelKey: 'order.proc.ready',      icon: 'pi pi-check-circle' },
     { key: 'shipped_at',    labelKey: 'order.proc.shipped',    icon: 'pi pi-send' },
@@ -71,11 +72,20 @@ const sortedOrderItems = computed(() => {
   )
 })
 
-// تظهر الرسالة إذا كان عدد العناصر المحددة أقل من العدد الإجمالي (تشمل حالة الصفر وحالة الاختيار الجزئي)
 const isNotAllSelected = computed(() => {
   const totalItemsCount = orderData.value?.order_items?.length || 0
   const selectedCount = selectedItems.value.length
   return selectedCount < totalItemsCount
+})
+
+// Extract coordinates safely
+const addressCoords = computed(() => {
+  const addr = orderData.value?.address
+  if (!addr?.lat || !addr?.long) return null
+  return {
+    lat: parseFloat(addr.lat),
+    lng: parseFloat(addr.long)
+  }
 })
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -122,6 +132,12 @@ const confirmAndGenerateInvoice = async () => {
   }
 }
 
+const openGoogleMaps = () => {
+  if (!addressCoords.value) return
+  const { lat, lng } = addressCoords.value
+  window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank')
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const formatCurrency = (v) => `${parseFloat(v || 0).toFixed(2)} ${t('currencyLabel')}`
@@ -147,6 +163,7 @@ onMounted(fetchOrderData)
 
     <div v-else-if="orderData" class="max-w-6xl mx-auto space-y-6">
 
+      <!-- Header -->
       <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 bg-[#0b3baa]/10 rounded-2xl flex items-center justify-center text-[#0b3baa]">
@@ -180,6 +197,7 @@ onMounted(fetchOrderData)
         </div>
       </header>
 
+      <!-- Warnings & Alerts -->
       <transition name="fade">
         <div
           v-if="isNotAllSelected"
@@ -208,7 +226,10 @@ onMounted(fetchOrderData)
       </transition>
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
+        <!-- Left Column: Order Metadata & Address Map -->
         <div class="lg:col-span-4 space-y-6">
+
+          <!-- Customer & Store Info Card -->
           <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
             <div>
               <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -251,6 +272,57 @@ onMounted(fetchOrderData)
             </div>
           </div>
 
+          <!-- Address Map Card -->
+          <div v-if="orderData.address" class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <i class="pi pi-map-marker text-[#0b3baa]"></i> {{ lang === 'ar' ? 'عنوان التوصيل' : 'Delivery Address' }}
+              </h3>
+              <Button
+                v-if="addressCoords"
+                icon="pi pi-external-link"
+                text
+                rounded
+                size="small"
+                class="!text-[#0b3baa] !p-1"
+                v-tooltip.top="lang === 'ar' ? 'فتح في خرائط جوجل' : 'Open in Google Maps'"
+                @click="openGoogleMaps"
+              />
+            </div>
+
+            <!-- Address Text Info -->
+            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-xs space-y-1">
+              <p class="font-bold text-slate-800">
+                {{ orderData.address.address_line_1 }} <span v-if="orderData.address.address_line_2">, {{ orderData.address.address_line_2 }}</span>
+              </p>
+              <p class="text-slate-500">
+                {{ orderData.address.city }}<span v-if="orderData.address.governorate">, {{ orderData.address.governorate }}</span>
+              </p>
+            </div>
+
+            <!-- Embedded Interactive Map Frame -->
+            <div v-if="addressCoords" class="relative w-full h-44 rounded-2xl overflow-hidden border border-slate-200 shadow-inner group">
+              <iframe
+                width="100%"
+                height="100%"
+                frameborder="0"
+                scrolling="no"
+                marginheight="0"
+                marginwidth="0"
+                :src="`https://maps.google.com/maps?q=${addressCoords.lat},${addressCoords.lng}&hl=${lang}&z=15&output=embed`"
+                class="w-full h-full rounded-2xl filter contrast-[1.05]"
+              ></iframe>
+              <button
+                @click="openGoogleMaps"
+                class="absolute bottom-2 right-2 bg-white/90 hover:bg-white text-slate-800 text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-md backdrop-blur-sm transition-all flex items-center gap-1.5"
+              >
+                <i class="pi pi-[#0b3baa] pi-directions text-xs text-[#0b3baa]"></i>
+                {{ lang === 'ar' ? 'الاتجاهات' : 'Get Directions' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Customer Notes Card -->
           <div v-if="orderData.notes" class="bg-amber-50/60 rounded-3xl p-6 border border-amber-200/70 shadow-sm">
             <h3 class="text-xs font-bold text-amber-800 uppercase tracking-widest mb-3 flex items-center gap-2">
               <i class="pi pi-comment text-amber-600"></i> {{ t('order.notes') || (lang === 'ar' ? 'ملاحظات العميل' : 'Customer Notes') }}
@@ -260,33 +332,7 @@ onMounted(fetchOrderData)
             </p>
           </div>
 
-          <section
-            v-if="orderData.coupon_code"
-            class="my-4 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-white shadow-sm"
-          >
-            <div class="flex items-center justify-between gap-3 p-4">
-              <div class="flex items-center gap-3 min-w-0">
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-800 text-white shadow-md shadow-blue-200">
-                  <i class="pi pi-ticket text-base"></i>
-                </div>
-                <div class="min-w-0">
-                  <p class="text-xs font-semibold uppercase tracking-wider text-blue-800">
-                    {{ lang === 'ar' ? 'كود الخصم' : 'Coupon code' }}
-                  </p>
-                  <p class="mt-0.5 text-xs text-slate-500">
-                    {{ lang === 'ar' ? 'تم تطبيقه على هذا الطلب' : 'Applied to this order' }}
-                  </p>
-                </div>
-              </div>
-              <span
-                dir="ltr"
-                class="shrink-0 rounded-xl border border-blue-200 bg-white px-3 py-2 font-mono text-xs font-bold tracking-wider text-blue-900 shadow-sm md:text-sm"
-              >
-                {{ orderData.coupon_code }}
-              </span>
-            </div>
-          </section>
-
+          <!-- Financial Summary -->
           <div class="bg-slate-900 text-white rounded-3xl p-6 shadow-xl shadow-slate-200 relative overflow-hidden">
             <div class="absolute -right-4 -top-4 w-24 h-24 bg-[#0b3baa] opacity-20 rounded-full"></div>
             <h3 class="text-xs font-bold text-[#F3B913] uppercase tracking-widest mb-6">{{ t('order.financialSummary') }}</h3>
@@ -320,6 +366,7 @@ onMounted(fetchOrderData)
           </div>
         </div>
 
+        <!-- Right Column: Timeline & Items Table -->
         <div class="lg:col-span-8 space-y-6">
           <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="p-2 border-b border-slate-100 bg-slate-50/50">
@@ -434,6 +481,7 @@ onMounted(fetchOrderData)
       </div>
     </div>
 
+    <!-- Confirmation Modal -->
     <Dialog
       v-model:visible="displayConfirmationModal"
       modal

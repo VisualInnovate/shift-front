@@ -13,116 +13,209 @@
 
     <transition name="dropdown-fancy">
       <div
-        v-if="showSearchResults && (searchResults.products.length || searchResults.categories.length || searchResults.brands.length)"
-        class="absolute top-12 mt-2 left-0 right-0 lg:w-[500px] w-[220px] bg-white rounded-xl shadow-2xl z-50 overflow-y-auto dropdown-fancy"
+        v-if="showSearchResults && hasAnyResults"
+        class="absolute top-12 mt-2  lg:w-[500px] w-[290px] bg-white rounded-xl shadow-2xl z-50 flex flex-col dropdown-fancy"
         style="max-height: 70vh;"
         @mousedown.prevent
       >
-        <!-- Products Section -->
-        <router-link
-          v-for="result in searchResults.products"
-          :key="'product-' + result.id"
-          :to="{ name: 'Product-details', params: { id: result.id } }"
-          target="_blank"
-          rel="noopener noreferrer"
-          @click="cleanUpState"
-          class="flex items-center px-4 py-3 transition-all duration-300 cursor-pointer dropdown-item hover:bg-amber-50"
-        >
-          <div v-if="result.key_default_image || (result.media && result.media.length)" class="w-8 h-8 flex items-center justify-center overflow-hidden rounded-sm bg-gray-100 mx-2">
-            <img
-              :src="result.key_default_image || result.media[0].url"
-              :alt="displayName(result)"
-              class="max-w-full max-h-full object-contain"
-            />
-          </div>
-          <div v-else class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-sm mr-2">
-            <i class="fa-solid fa-box text-gray-400"></i>
-          </div>
-          <div class="flex-grow">
-            <span class="text-sm text-gray-700 font-medium block">
-              <template v-for="(part, index) in highlightMatch(result)" :key="index">
-                <span v-if="part.isMatch" class="bg-yellow-200">{{ part.text }}</span>
-                <span v-else>{{ part.text }}</span>
-              </template>
-            </span>
-            <span class="text-xs text-gray-500">{{ result.belongs_to ? (appLang == 'ar' ? result.belongs_to.name_ar : result?.belongs_to?.name_en) : '' }}</span>
-          </div>
-          <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">{{ t('search.product') }}</span>
-        </router-link>
+        <!-- Tabs -->
+        <div class="flex items-center border-b border-gray-100 px-2 pt-2 gap-1 shrink-0">
+          <button
+            v-for="tab in availableTabs"
+            :key="tab.key"
+            @click="activeTab = tab.key"
+            class="text-xs font-medium px-3 py-1.5 rounded-t-md transition-colors"
+            :class="activeTab === tab.key
+              ? 'bg-amber-50 text-amber-700 border-b-2 border-amber-500'
+              : 'text-gray-500 hover:text-gray-700'"
+          >
+            {{ tab.label }} <span class="text-gray-400">({{ tab.total }})</span>
+          </button>
+        </div>
 
-        <!-- Categories Section -->
-        <router-link
-          v-for="result in searchResults.categories"
-          :key="'category-' + result.id"
-          :to="getCategoryLink(result)"
-          @click="cleanUpState"
-          class="flex items-center px-4 py-3 transition-all duration-300 cursor-pointer dropdown-item hover:bg-amber-50"
-        >
-          <div v-if="result.media && result.media.length" class="w-8 h-8 flex items-center justify-center overflow-hidden rounded-sm bg-gray-100 mx-2">
-            <img
-              :src="result.media[0].url"
-              :alt="displayName(result)"
-              class="max-w-full max-h-full object-contain"
-            />
-          </div>
-          <div v-else class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-sm mr-2">
-            <i class="fa-solid fa-folder text-gray-400"></i>
-          </div>
-          <div class="flex-grow">
-            <span class="text-sm text-gray-700 font-medium block">
-              <template v-for="(part, index) in highlightMatch(result)" :key="index">
-                <span v-if="part.isMatch" class="bg-yellow-200">{{ part.text }}</span>
-                <span v-else>{{ part.text }}</span>
-              </template>
-            </span>
-            <span class="text-xs text-gray-500">{{ result.belongs_to ? (appLang === 'ar' ? result.belongs_to.name_ar : result.belongs_to.name_en) : '' }}</span>
-          </div>
-          <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">{{ t('search.category') }}</span>
-        </router-link>
+        <!-- Scrollable results -->
+        <div class="overflow-y-auto flex-grow">
+          <!-- Products Section -->
+          <template v-if="activeTab === 'all' || activeTab === 'products'">
+            <div v-if="searchResults.products.data.length" class="py-1">
+              <p v-if="activeTab === 'all'" class="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-400 font-semibold">
+                {{ t('search.product') }}
+              </p>
+              <router-link
+                v-for="result in searchResults.products.data"
+                :key="'product-' + result.id"
+                :to="{ name: 'Product-details', params: { id: result.id } }"
+                target="_blank"
+                rel="noopener noreferrer"
+                @click="cleanUpState"
+                class="flex items-center px-4 py-3 transition-all duration-300 cursor-pointer dropdown-item hover:bg-amber-50"
+              >
+                <div v-if="result.key_default_image || (result.media && result.media.length)" class="w-8 h-8 flex items-center justify-center overflow-hidden rounded-sm bg-gray-100 mx-2">
+                  <img
+                    :src="result.key_default_image || result.media[0].url"
+                    :alt="displayName(result)"
+                    class="max-w-full max-h-full object-contain"
+                  />
+                </div>
+                <div v-else class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-sm mr-2">
+                  <i class="fa-solid fa-box text-gray-400"></i>
+                </div>
+                <div class="flex-grow min-w-0">
+                  <span class="text-sm text-gray-700 font-medium block truncate">
+                    <template v-for="(part, index) in highlightMatch(result)" :key="index">
+                      <span v-if="part.isMatch" class="bg-yellow-200">{{ part.text }}</span>
+                      <span v-else>{{ part.text }}</span>
+                    </template>
+                  </span>
+                  <span class="text-xs text-gray-500 truncate block">{{ result.belongs_to ? (appLang == 'ar' ? result.belongs_to.name_ar : result?.belongs_to?.name_en) : '' }}</span>
+                </div>
+                <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full shrink-0">{{ t('search.product') }}</span>
+              </router-link>
 
-        <!-- Brands Section -->
-        <router-link
-          v-for="result in searchResults.brands"
-          :key="'brand-' + result.id"
-          :to="{ name: 'products-brand', params: { id: result.id } }"
-          @click="cleanUpState"
-          class="flex items-center px-4 py-3 transition-all duration-300 cursor-pointer dropdown-item hover:bg-amber-50"
-        >
-          <div v-if="result.media && result.media.length" class="w-8 h-8 flex items-center justify-center overflow-hidden rounded-sm bg-gray-100 mx-2">
-            <img
-              :src="result.media[0].url"
-              :alt="displayName(result)"
-              class="max-w-full max-h-full object-contain"
-            />
-          </div>
-          <div v-else class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-sm mr-2">
-            <i class="fa-solid fa-tag text-gray-400"></i>
-          </div>
-          <span class="flex-grow text-sm text-gray-700 font-medium">
-            <template v-for="(part, index) in highlightMatch(result)" :key="index">
-              <span v-if="part.isMatch" class="bg-yellow-200">{{ part.text }}</span>
-              <span v-else>{{ part.text }}</span>
-            </template>
-          </span>
-          <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">{{ t('search.brand') }}</span>
-        </router-link>
+              <!-- Load more / pagination -->
+              <div class="px-4 py-2">
+                <button
+                  v-if="searchResults.products.next_page_url"
+                  :disabled="loadingMore.products"
+                  @click="loadMore('products')"
+                  class="w-full text-xs font-medium text-amber-600 hover:text-amber-700 disabled:opacity-50 py-1.5"
+                >
+                  {{ loadingMore.products ? t('search.loading') : t('search.load_more') }}
+                  ({{ searchResults.products.data.length }} / {{ searchResults.products.total }})
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <!-- Categories Section -->
+          <template v-if="activeTab === 'all' || activeTab === 'categories'">
+            <div v-if="searchResults.categories.data.length" class="py-1 border-t border-gray-50">
+              <p v-if="activeTab === 'all'" class="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-400 font-semibold">
+                {{ t('search.category') }}
+              </p>
+              <router-link
+                v-for="result in searchResults.categories.data"
+                :key="'category-' + result.id"
+                :to="getCategoryLink(result)"
+                @click="cleanUpState"
+                class="flex items-center px-4 py-3 transition-all duration-300 cursor-pointer dropdown-item hover:bg-amber-50"
+              >
+                <div v-if="result.media && result.media.length" class="w-8 h-8 flex items-center justify-center overflow-hidden rounded-sm bg-gray-100 mx-2">
+                  <img
+                    :src="result.media[0].url"
+                    :alt="displayName(result)"
+                    class="max-w-full max-h-full object-contain"
+                  />
+                </div>
+                <div v-else class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-sm mr-2">
+                  <i class="fa-solid fa-folder text-gray-400"></i>
+                </div>
+                <div class="flex-grow min-w-0">
+                  <span class="text-sm text-gray-700 font-medium block truncate">
+                    <template v-for="(part, index) in highlightMatch(result)" :key="index">
+                      <span v-if="part.isMatch" class="bg-yellow-200">{{ part.text }}</span>
+                      <span v-else>{{ part.text }}</span>
+                    </template>
+                  </span>
+                  <span class="text-xs text-gray-500 truncate block">{{ result.belongs_to ? (appLang === 'ar' ? result.belongs_to.name_ar : result.belongs_to.name_en) : '' }}</span>
+                </div>
+                <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full shrink-0">{{ t('search.category') }}</span>
+              </router-link>
+
+              <div class="px-4 py-2">
+                <button
+                  v-if="searchResults.categories.next_page_url"
+                  :disabled="loadingMore.categories"
+                  @click="loadMore('categories')"
+                  class="w-full text-xs font-medium text-amber-600 hover:text-amber-700 disabled:opacity-50 py-1.5"
+                >
+                  {{ loadingMore.categories ? t('search.loading') : t('search.load_more') }}
+                  ({{ searchResults.categories.data.length }} / {{ searchResults.categories.total }})
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <!-- Brands Section -->
+          <template v-if="activeTab === 'all' || activeTab === 'brands'">
+            <div v-if="searchResults.brands.data.length" class="py-1 border-t border-gray-50">
+              <p v-if="activeTab === 'all'" class="px-4 pt-2 pb-1 text-[11px] uppercase tracking-wide text-gray-400 font-semibold">
+                {{ t('search.brand') }}
+              </p>
+              <router-link
+                v-for="result in searchResults.brands.data"
+                :key="'brand-' + result.id"
+                :to="{ name: 'products-brand', params: { id: result.id } }"
+                @click="cleanUpState"
+                class="flex items-center px-4 py-3 transition-all duration-300 cursor-pointer dropdown-item hover:bg-amber-50"
+              >
+                <div v-if="result.media && result.media.length" class="w-8 h-8 flex items-center justify-center overflow-hidden rounded-sm bg-gray-100 mx-2">
+                  <img
+                    :src="result.media[0].url"
+                    :alt="displayName(result)"
+                    class="max-w-full max-h-full object-contain"
+                  />
+                </div>
+                <div v-else class="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-sm mr-2">
+                  <i class="fa-solid fa-tag text-gray-400"></i>
+                </div>
+                <span class="flex-grow text-sm text-gray-700 font-medium truncate">
+                  <template v-for="(part, index) in highlightMatch(result)" :key="index">
+                    <span v-if="part.isMatch" class="bg-yellow-200">{{ part.text }}</span>
+                    <span v-else>{{ part.text }}</span>
+                  </template>
+                </span>
+                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full shrink-0">{{ t('search.brand') }}</span>
+              </router-link>
+
+              <div class="px-4 py-2">
+                <button
+                  v-if="searchResults.brands.next_page_url"
+                  :disabled="loadingMore.brands"
+                  @click="loadMore('brands')"
+                  class="w-full text-xs font-medium text-amber-600 hover:text-amber-700 disabled:opacity-50 py-1.5"
+                >
+                  {{ loadingMore.brands ? t('search.loading') : t('search.load_more') }}
+                  ({{ searchResults.brands.data.length }} / {{ searchResults.brands.total }})
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
       </div>
     </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, onUnmounted, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 
 const { t } = useI18n();
 const searchQuery = ref('');
-const searchResults = ref({
-  products: [],
-  categories: [],
-  brands: []
+const activeTab = ref('all'); // 'all' | 'products' | 'categories' | 'brands'
+
+const emptySection = () => ({
+  data: [],
+  current_page: 1,
+  last_page: 1,
+  next_page_url: null,
+  total: 0
 });
+
+const searchResults = ref({
+  products: emptySection(),
+  categories: emptySection(),
+  brands: emptySection()
+});
+
+const loadingMore = ref({
+  products: false,
+  categories: false,
+  brands: false
+});
+
 const showSearchResults = ref(false);
 let searchTimeout = null;
 
@@ -132,6 +225,31 @@ const appLang = localStorage.getItem('appLang') || 'en';
 // Computed property to display name based on language
 const displayName = computed(() => {
   return (result) => (appLang === 'ar' ? result.name_ar : result.name_en) || 'Unnamed';
+});
+
+const hasAnyResults = computed(() =>
+  searchResults.value.products.data.length ||
+  searchResults.value.categories.data.length ||
+  searchResults.value.brands.data.length
+);
+
+const availableTabs = computed(() => {
+  const tabs = [
+    { key: 'all', label: t('search.all'), total:
+      searchResults.value.products.total +
+      searchResults.value.categories.total +
+      searchResults.value.brands.total }
+  ];
+  if (searchResults.value.products.total) {
+    tabs.push({ key: 'products', label: t('search.product'), total: searchResults.value.products.total });
+  }
+  if (searchResults.value.categories.total) {
+    tabs.push({ key: 'categories', label: t('search.category'), total: searchResults.value.categories.total });
+  }
+  if (searchResults.value.brands.total) {
+    tabs.push({ key: 'brands', label: t('search.brand'), total: searchResults.value.brands.total });
+  }
+  return tabs;
 });
 
 // Function to highlight matched text
@@ -162,6 +280,17 @@ const normalizeQuery = (q) =>
     .trim()
     .replace(/\s+/g, " ");
 
+const mapSection = (section) => {
+  if (!section) return emptySection();
+  return {
+    data: section.data || [],
+    current_page: section.current_page || 1,
+    last_page: section.last_page || 1,
+    next_page_url: section.next_page_url || null,
+    total: section.total || 0
+  };
+};
+
 const handleSearch = async () => {
   clearTimeout(searchTimeout);
 
@@ -169,33 +298,71 @@ const handleSearch = async () => {
     const q = normalizeQuery(searchQuery.value);
 
     if (q.length < 1) {
-      searchResults.value = { products: [], categories: [], brands: [] };
+      resetResults();
       showSearchResults.value = false;
       return;
     }
 
     try {
       const response = await axios.get(`api/home/search?query=${encodeURIComponent(searchQuery.value)}`);
+      const data = response.data.data || {};
+
       searchResults.value = {
-        products: response.data.data?.products || [],
-        categories: response.data.data?.categories || [],
-        brands: response.data.data?.brands || []
+        products: mapSection(data.products),
+        categories: mapSection(data.categories),
+        brands: mapSection(data.brands)
       };
-      showSearchResults.value = !!(
-        searchResults.value.products.length ||
-        searchResults.value.categories.length ||
-        searchResults.value.brands.length
-      );
+
+      activeTab.value = 'all';
+      showSearchResults.value = !!hasAnyResults.value;
     } catch (error) {
       console.error('Error fetching search results:', error);
-      searchResults.value = { products: [], categories: [], brands: [] };
+      resetResults();
       showSearchResults.value = false;
     }
   }, 300);
 };
 
+// Load next page for a given section (products | categories | brands) and append
+const loadMore = async (type) => {
+  const section = searchResults.value[type];
+  if (!section.next_page_url || loadingMore.value[type]) return;
+
+  loadingMore.value[type] = true;
+
+  try {
+    const nextPage = section.current_page + 1;
+    const response = await axios.get(`api/home/search`, {
+      params: {
+        query: searchQuery.value,
+        [`${type}_page`]: nextPage
+      }
+    });
+
+    const newSection = mapSection(response.data.data?.[type]);
+
+    // Append new data to existing data, keep pagination meta from new response
+    searchResults.value[type] = {
+      ...newSection,
+      data: [...section.data, ...newSection.data]
+    };
+  } catch (error) {
+    console.error(`Error loading more ${type}:`, error);
+  } finally {
+    loadingMore.value[type] = false;
+  }
+};
+
+const resetResults = () => {
+  searchResults.value = {
+    products: emptySection(),
+    categories: emptySection(),
+    brands: emptySection()
+  };
+};
+
 const showResults = () => {
-  if (searchResults.value.products.length || searchResults.value.categories.length || searchResults.value.brands.length) {
+  if (hasAnyResults.value) {
     showSearchResults.value = true;
   }
 };
@@ -215,7 +382,8 @@ const getCategoryLink = (result) => {
 const cleanUpState = () => {
   showSearchResults.value = false;
   searchQuery.value = '';
-  searchResults.value = { products: [], categories: [], brands: [] };
+  resetResults();
+  activeTab.value = 'all';
 };
 
 onUnmounted(() => {

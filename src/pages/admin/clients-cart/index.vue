@@ -13,6 +13,7 @@
   import Toast from 'primevue/toast'
   import ProgressSpinner from 'primevue/progressspinner'
   import Dropdown from 'primevue/dropdown'
+  import Calendar from 'primevue/calendar'
 
   const { t } = useI18n()
   const toast = useToast()
@@ -22,6 +23,9 @@
   const users = ref([])
   const filters = ref({})
   const searchQuery = ref('')
+  const start_date = ref(null)
+  const end_date = ref(null)
+  const exportLoading = ref(false)
 
   const currentPage = ref(1)
   const totalRecords = ref(0)
@@ -37,6 +41,14 @@
     }
   }
 
+  const formatDateParam = (date) => {
+    if (!date) return undefined
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   const fetchData = async () => {
     loading.value = true
 
@@ -46,6 +58,8 @@
           page: currentPage.value,
           limit: rowsPerPage.value,
           search: searchQuery.value || undefined,
+          start_date: start_date.value ? formatDateParam(start_date.value) : undefined,
+          end_date: end_date.value ? formatDateParam(end_date.value) : undefined,
         },
       })
       const paginator = response.data?.data || {}
@@ -87,7 +101,55 @@
     router.push({ name: 'client-cart-show', params: { id } })
   }
 
-  watch(searchQuery, () => {
+  const exportUsersWithCarts = async () => {
+    exportLoading.value = true
+    try {
+      const response = await axios.get('/api/export/users-with-carts', {
+        params: {
+          search: searchQuery.value || undefined,
+          start_date: start_date.value ? formatDateParam(start_date.value) : undefined,
+          end_date: end_date.value ? formatDateParam(end_date.value) : undefined,
+        },
+        responseType: 'blob',
+      })
+
+      const contentDisposition = response.headers['content-disposition']
+      let filename = `users_with_carts_export_${new Date().toISOString().slice(0, 10)}.xlsx`
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^";]+)"?/)
+        if (match && match[1]) filename = match[1]
+      }
+
+      const blob = new Blob([response.data])
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+
+      toast.add({
+        severity: 'success',
+        summary: t('success'),
+        detail: t('user.exportSuccess') || 'Export downloaded successfully',
+        life: 3000,
+      })
+    } catch (error) {
+      console.error('Error exporting users with carts:', error)
+      toast.add({
+        severity: 'error',
+        summary: t('error'),
+        detail: t('cart.exportError') || t('user.exportError') || 'Failed to export data',
+        life: 3000,
+      })
+    } finally {
+      exportLoading.value = false
+    }
+  }
+
+  watch([searchQuery, start_date, end_date], () => {
     currentPage.value = 1
     fetchData()
   })
@@ -106,10 +168,36 @@
           </template>
 
           <template #end>
-            <span class="p-input-icon-left">
-              <i class="pi pi-search" />
-              <InputText v-model="searchQuery" :placeholder="t('user.search')" />
-            </span>
+            <div class="flex flex-wrap gap-2 align-items-center justify-content-end">
+              <Calendar
+                v-model="start_date"
+                :placeholder="t('cart.filterStartDate')"
+                dateFormat="yy-mm-dd"
+                showClear
+                class="p-inputtext-sm"
+                style="width: 170px"
+              />
+              <Calendar
+                v-model="end_date"
+                :placeholder="t('cart.filterEndDate')"
+                dateFormat="yy-mm-dd"
+                showClear
+                class="p-inputtext-sm"
+                style="width: 170px"
+              />
+              <span class="p-input-icon-left">
+                <i class="pi pi-search" />
+                <InputText v-model="searchQuery" :placeholder="t('user.search')" />
+              </span>
+              <Button
+                :label="t('cart.export')"
+                icon="pi pi-upload"
+                class="p-export"
+                :loading="exportLoading"
+                v-can="'export users'"
+                @click="exportUsersWithCarts"
+              />
+            </div>
           </template>
         </Toolbar>
 
@@ -130,15 +218,13 @@
             class="p-datatable-sm client-cart-table"
             v-can="'list orders'"
           >
-            <Column field="id" :header="t('order.id')" :sortable="true" >
+            <Column field="id" :header="t('order.id')" :sortable="true">
               <template #body="slotProps">#{{ slotProps.data.id }}</template>
             </Column>
 
             <Column field="name" :header="t('user.name')" :sortable="true">
               <template #body="slotProps">{{ slotProps.data.name || '-' }}</template>
             </Column>
-
-
 
             <Column field="last_cart_updated_at" :header="t('user.last_cart_updated_at')" :sortable="true">
               <template #body="slotProps">{{ slotProps.data.last_cart_updated_at || '-' }}</template>
@@ -176,9 +262,9 @@
 
           <div class="p-paginator p-component p-unselectable-text p-paginator-bottom">
             <div class="p-paginator-left-content">
-              <span class="p-paginator-current"
-                >{{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}</span
-              >
+              <span class="p-paginator-current">
+                {{ t('show') }} {{ from }} {{ t('to') }} {{ to }} {{ t('from') }} {{ totalRecords }}
+              </span>
             </div>
             <div class="p-paginator-right-content flex align-items-center gap-3">
               <button

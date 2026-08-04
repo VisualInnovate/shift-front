@@ -186,6 +186,7 @@ export default {
     create_User: 'إنشاء مستخدم',
     edit_User: 'تعديل المستخدم',
     update_User: 'تحديث المستخدم',
+    last_cart_updated_at: 'آخر تحديث للسلة',
     click_or_drag_to_change_photo: 'انقر أو اسحب لتغيير الصورة',
     select_a_brand: 'اختر علامة تجارية',
     resetPassword: {

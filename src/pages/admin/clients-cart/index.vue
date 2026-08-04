@@ -138,12 +138,10 @@
               <template #body="slotProps">{{ slotProps.data.name || '-' }}</template>
             </Column>
 
-            <Column field="type_description" :header="t('user.type')" :sortable="true">
-              <template #body="slotProps">{{ slotProps.data.type_description }}</template>
-            </Column>
 
-            <Column field="email" :header="t('user.email')" :sortable="true">
-              <template #body="slotProps">{{ slotProps.data.email || '-' }}</template>
+
+            <Column field="last_cart_updated_at" :header="t('user.last_cart_updated_at')" :sortable="true">
+              <template #body="slotProps">{{ slotProps.data.last_cart_updated_at || '-' }}</template>
             </Column>
 
             <Column field="phone" :header="t('user.phone')" :sortable="true">

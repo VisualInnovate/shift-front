@@ -1682,6 +1682,7 @@ export default {
     placeholder: 'بحث...',
     product: 'منتج',
     category: 'فئة',
+    all:"الكل",
     brand: 'علامة تجارية',
   },
   signup: {

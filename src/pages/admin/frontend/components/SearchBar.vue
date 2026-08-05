@@ -3,7 +3,7 @@
     <i class="fa-solid fa-magnifying-glass text-gray-500 px-2.5 text-sm md:px-3 md:text-base"></i>
     <input
       v-model="searchQuery"
-      class="flex-grow bg-transparent lg:w-[400px] text-sm placeholder-gray-400 focus:outline-none"
+      class="flex-grow bg-transparent lg:w-[500px] text-sm placeholder-gray-400 focus:outline-none"
       type="text"
       :placeholder="t('search.placeholder')"
       @input="handleSearch"
@@ -14,7 +14,7 @@
     <transition name="dropdown-fancy">
       <div
         v-if="showSearchResults && hasAnyResults"
-        class="absolute top-12 mt-2  lg:w-[500px] w-[290px] bg-white rounded-xl shadow-2xl z-50 flex flex-col dropdown-fancy"
+        class="absolute top-12 mt-2 left-0 right-0 lg:w-[500px] w-[290px] bg-white rounded-xl shadow-2xl z-50 flex flex-col dropdown-fancy"
         style="max-height: 70vh;"
         @mousedown.prevent
       >
@@ -222,23 +222,27 @@ let searchTimeout = null;
 // Get current language (fallback to 'en')
 const appLang = localStorage.getItem('appLang') || 'en';
 
-// Computed property to display name based on language
-const displayName = computed(() => {
-  return (result) => (appLang === 'ar' ? result.name_ar : result.name_en) || 'Unnamed';
-});
+// Helper function to display localized entity name
+const displayName = (result) => {
+  if (!result) return 'Unnamed';
+  return (appLang === 'ar' ? result.name_ar : result.name_en) || result.name_ar || result.name_en || 'Unnamed';
+};
 
 const hasAnyResults = computed(() =>
-  searchResults.value.products.data.length ||
-  searchResults.value.categories.data.length ||
-  searchResults.value.brands.data.length
+  searchResults.value.products.data.length > 0 ||
+  searchResults.value.categories.data.length > 0 ||
+  searchResults.value.brands.data.length > 0
 );
 
 const availableTabs = computed(() => {
   const tabs = [
-    { key: 'all', label: t('search.all'), total:
-      searchResults.value.products.total +
-      searchResults.value.categories.total +
-      searchResults.value.brands.total }
+    {
+      key: 'all',
+      label: t('search.all'),
+      total: searchResults.value.products.total +
+             searchResults.value.categories.total +
+             searchResults.value.brands.total
+    }
   ];
   if (searchResults.value.products.total) {
     tabs.push({ key: 'products', label: t('search.product'), total: searchResults.value.products.total });
@@ -252,9 +256,9 @@ const availableTabs = computed(() => {
   return tabs;
 });
 
-// Function to highlight matched text
+// Highlight matched query substring
 const highlightMatch = (result) => {
-  const name = displayName.value(result);
+  const name = displayName(result);
   const query = searchQuery.value.trim();
   if (!query) return [{ text: name, isMatch: false }];
 
@@ -275,19 +279,28 @@ const highlightMatch = (result) => {
   ];
 };
 
-const normalizeQuery = (q) =>
-  q
-    .trim()
-    .replace(/\s+/g, " ");
+const normalizeQuery = (q) => q.trim().replace(/\s+/g, ' ');
 
+// Normalizes both plain arrays and standard Laravel pagination objects
 const mapSection = (section) => {
   if (!section) return emptySection();
+
+  if (Array.isArray(section)) {
+    return {
+      data: section,
+      current_page: 1,
+      last_page: 1,
+      next_page_url: null,
+      total: section.length
+    };
+  }
+
   return {
     data: section.data || [],
     current_page: section.current_page || 1,
     last_page: section.last_page || 1,
     next_page_url: section.next_page_url || null,
-    total: section.total || 0
+    total: section.total ?? (section.data ? section.data.length : 0)
   };
 };
 
@@ -304,7 +317,7 @@ const handleSearch = async () => {
     }
 
     try {
-      const response = await axios.get(`api/home/search?query=${encodeURIComponent(searchQuery.value)}`);
+      const response = await axios.get(`api/home/search?query=${encodeURIComponent(q)}`);
       const data = response.data.data || {};
 
       searchResults.value = {
@@ -314,7 +327,7 @@ const handleSearch = async () => {
       };
 
       activeTab.value = 'all';
-      showSearchResults.value = !!hasAnyResults.value;
+      showSearchResults.value = hasAnyResults.value;
     } catch (error) {
       console.error('Error fetching search results:', error);
       resetResults();
@@ -323,7 +336,6 @@ const handleSearch = async () => {
   }, 300);
 };
 
-// Load next page for a given section (products | categories | brands) and append
 const loadMore = async (type) => {
   const section = searchResults.value[type];
   if (!section.next_page_url || loadingMore.value[type]) return;
@@ -341,7 +353,6 @@ const loadMore = async (type) => {
 
     const newSection = mapSection(response.data.data?.[type]);
 
-    // Append new data to existing data, keep pagination meta from new response
     searchResults.value[type] = {
       ...newSection,
       data: [...section.data, ...newSection.data]
@@ -390,7 +401,6 @@ onUnmounted(() => {
   clearTimeout(searchTimeout);
 });
 </script>
-
 <style scoped>
 .dropdown-fancy-enter-active,
 .dropdown-fancy-leave-active {

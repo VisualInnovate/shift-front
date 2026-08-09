@@ -247,6 +247,12 @@ export default {
     deliveryFee: 'Delivery Fee',
     coupon: 'Coupon Discount',
     totalPrice: 'Total Amount',
+    paymentMethod: 'Payment Method',
+    paymentMethods: {
+      cashOnDelivery: 'Cash on Delivery',
+      cliq: 'Pay with CliQ',
+      creditCard: 'Credit Card',
+    },
 
     userId: 'Customer ID',
     status: 'Order Status',

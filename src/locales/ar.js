@@ -284,6 +284,12 @@ export default {
     deliveryFee: 'رسوم التوصيل',
     coupon: 'خصم الكوبون',
     totalPrice: 'الإجمالي النهائي',
+    paymentMethod: 'طريقة الدفع',
+    paymentMethods: {
+      cashOnDelivery: 'الدفع عند الاستلام',
+      cliq: 'الدفع عبر كليك',
+      creditCard: 'بطاقة ائتمانية',
+    },
     status1: 'قيد الانتظار',
     status2: 'قيد التحضير',
     status3: 'جاهز',

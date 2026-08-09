@@ -217,7 +217,7 @@
               </div>
             </div>
           </div>
-          
+
             <!-- Store Orders -->
             <div
               v-for="order in storeOrders"
@@ -572,8 +572,10 @@
         id: 3,
         icon: 'pi pi-credit-card',
         title: isArabic ? 'بطاقة ائتمانية' : 'Credit card',
-        description: isArabic ? 'ادفع بالبطاقة عبر جهاز الدفع عند الاستلام.' : 'Pay by card at delivery.',
-        enabled: false,
+        description: isArabic
+          ? 'ادفع مباشرة داخل التطبيق باستخدام بطاقتك الائتمانية.'
+          : 'Pay directly in the app using your credit card.',
+        enabled: true,
       },
       {
         id: 4,

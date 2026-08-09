@@ -78,6 +78,20 @@ const isNotAllSelected = computed(() => {
   return selectedCount < totalItemsCount
 })
 
+const paymentMethod = computed(() => {
+  const paymentType = orderData.value?.payment_type
+  const paymentTypeId = typeof paymentType === 'object' ? paymentType?.id : paymentType
+
+  const paymentMethods = {
+    1: 'cashOnDelivery',
+    2: 'cliq',
+    3: 'creditCard',
+  }
+
+  const methodKey = paymentMethods[paymentTypeId]
+  return methodKey ? t(`order.paymentMethods.${methodKey}`) : null
+})
+
 // Extract coordinates safely
 const addressCoords = computed(() => {
   const addr = orderData.value?.address
@@ -361,6 +375,18 @@ onMounted(fetchOrderData)
               <div class="flex justify-between items-end">
                 <span class="text-[#F3B913] font-bold">{{ t('order.total') }}</span>
                 <span class="text-3xl font-black text-white">{{ formatCurrency(orderData.total_price) }}</span>
+              </div>
+              <div
+                v-if="paymentMethod"
+                class="flex items-center justify-between gap-3 rounded-2xl border border-[#F3B913]/30 bg-white/10 px-4 py-3"
+              >
+                <span class="flex items-center gap-2 text-sm font-medium text-slate-300">
+                  <i class="pi pi-credit-card text-[#F3B913]"></i>
+                  {{ t('order.paymentMethod') }}
+                </span>
+                <span class="rounded-full bg-[#F3B913] px-3 py-1 text-xs font-black text-slate-900">
+                  {{ paymentMethod }}
+                </span>
               </div>
             </div>
           </div>

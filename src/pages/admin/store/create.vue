@@ -19,6 +19,7 @@ const storeData = ref({
   has_market: false,
   min_amount_order: '',
   store_image: null,
+  popup_store_image: null,
   main_banner_image: null,
   sub_banner_image: null,
   slider_images_one: [],
@@ -28,6 +29,7 @@ const storeData = ref({
 
 // Image previews
 const storeImagePreview = ref(null);
+const popupStoreImagePreview = ref(null);
 const mainBannerPreview = ref(null);
 const subBannerPreview = ref(null);
 const sliderOnePreviews = ref([]);
@@ -36,6 +38,7 @@ const sliderThreePreviews = ref([]);
 
 // Drag states
 const isDraggingStoreImage = ref(false);
+const isDraggingPopupStoreImage = ref(false);
 const isDraggingMainBanner = ref(false);
 const isDraggingSubBanner = ref(false);
 const isDraggingSliderOne = ref(false);
@@ -51,6 +54,11 @@ const handleImageUpload = (file, type) => {
         storeData.value.store_image = file;
         storeImagePreview.value = e.target.result;
         isDraggingStoreImage.value = false;
+        break;
+      case 'popup_store':
+        storeData.value.popup_store_image = file;
+        popupStoreImagePreview.value = e.target.result;
+        isDraggingPopupStoreImage.value = false;
         break;
       case 'main_banner':
         storeData.value.main_banner_image = file;
@@ -118,6 +126,10 @@ const removeImage = (type) => {
       storeData.value.store_image = null;
       storeImagePreview.value = null;
       break;
+    case 'popup_store':
+      storeData.value.popup_store_image = null;
+      popupStoreImagePreview.value = null;
+      break;
     case 'main_banner':
       storeData.value.main_banner_image = null;
       mainBannerPreview.value = null;
@@ -155,6 +167,9 @@ const submitForm = async () => {
 
   if (storeData.value.store_image) {
     formData.append('store_image', storeData.value.store_image);
+  }
+  if (storeData.value.popup_store_image) {
+    formData.append('popup_store_image', storeData.value.popup_store_image);
   }
   if (storeData.value.main_banner_image) {
     formData.append('main_banner_image', storeData.value.main_banner_image);
@@ -288,6 +303,50 @@ const submitForm = async () => {
                     <button
                       type="button"
                       @click.stop="removeImage('store')"
+                      class="opacity-0 group-hover:opacity-100 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
+                    >
+                      <i class="pi pi-trash text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="p-4 flex flex-col items-center justify-center">
+                <div class="bg-blue-100 p-3 rounded-full mb-2">
+                  <i class="pi pi-image text-blue-500 text-xl"></i>
+                </div>
+                <p class="text-sm text-center text-gray-600">
+                  <span class="text-blue-500 font-medium">{{ t('store.clickToUpload') }}</span> {{ t('store.orDragDrop') }}
+                </p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Main Banner Image -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">Popup Store Image</label>
+          <div class="flex justify-center">
+            <label
+              @dragover.prevent="isDraggingPopupStoreImage = true"
+              @dragleave="isDraggingPopupStoreImage = false"
+              @drop.prevent="onImageUpload($event, 'popup_store')"
+              :class="{'border-blue-500 bg-blue-50': isDraggingPopupStoreImage, 'border-gray-300': !isDraggingPopupStoreImage}"
+              class="cursor-pointer w-full h-48 rounded-xl border-2 border-dashed transition-colors duration-300 flex items-center justify-center"
+            >
+              <input type="file" @change="onImageUpload($event, 'popup_store')" accept="image/*" class="hidden">
+
+              <div v-if="popupStoreImagePreview" class="p-4 w-full h-full">
+                <div class="relative group w-full h-full">
+                  <img
+                    :src="popupStoreImagePreview"
+                    alt="Popup Store Image"
+                    class="w-full h-full object-contain rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
+                  >
+                  <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-300 rounded-lg">
+                    <button
+                      type="button"
+                      @click.stop="removeImage('popup_store')"
                       class="opacity-0 group-hover:opacity-100 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition"
                     >
                       <i class="pi pi-trash text-sm"></i>

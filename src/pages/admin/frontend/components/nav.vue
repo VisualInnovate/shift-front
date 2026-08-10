@@ -278,6 +278,30 @@
         </router-link>
       </div>
     </nav>
+
+    <div
+      v-if="isStorePopupVisible"
+      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Store popup image"
+    >
+      <div class="relative max-h-[90vh] max-w-3xl">
+        <button
+          type="button"
+          class="absolute -right-3 -top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white text-xl text-gray-800 shadow-lg transition hover:bg-gray-100"
+          aria-label="Close popup"
+          @click="closeStorePopup"
+        >
+          <i class="pi pi-times"></i>
+        </button>
+        <img
+          :src="storePopupImage"
+          alt="Store popup"
+          class="max-h-[90vh] max-w-full rounded-xl object-contain shadow-2xl"
+        >
+      </div>
+    </div>
   </div>
 </template>
 
@@ -306,6 +330,9 @@
   const hasMarket = ref(null)
   const isAuthenticated = ref(false)
   const webUser = ref({})
+  const isStorePopupVisible = ref(false)
+  const storePopupImage = ref(null)
+  let popupRequestId = 0
 
   const storesDropdown = ref(null)
   const userDropdownDesktop = ref(null)
@@ -342,13 +369,43 @@
 
   const linkToStore = (store) => (store.has_market ? { name: 'stores-hasmarket' } : { name: 'home' })
 
+  const closeStorePopup = () => {
+    isStorePopupVisible.value = false
+    storePopupImage.value = null
+  }
+
+  const fetchStorePopupImage = async (storeId) => {
+    const requestId = ++popupRequestId
+    closeStorePopup()
+
+    try {
+      const response = await axios.get(`/api/home/store-popup-image/${storeId}`)
+      const imageUrl = response.data?.data?.popup_store_image
+
+      if (requestId !== popupRequestId || !imageUrl) return
+
+      storePopupImage.value = imageUrl
+      isStorePopupVisible.value = true
+    } catch (error) {
+      if (requestId === popupRequestId) {
+        console.error('Error fetching store popup image:', error)
+      }
+    }
+  }
+
   const selectStoreSideEffects = (store) => {
+    const isChangingStore = Number(defaultStoreId.value) !== Number(store.id)
+
     defaultStoreId.value = store.id
     defaultStore.value = store
     hasMarket.value = store.has_market
     localStorage.setItem('defaultStoreId', store.id)
     localStorage.setItem('hasMarket', store.has_market)
     isDropdownOpen.value = false
+
+    if (isChangingStore) {
+      fetchStorePopupImage(store.id)
+    }
   }
 
   const selectStore = (store) => {

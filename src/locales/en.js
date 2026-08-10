@@ -1194,6 +1194,7 @@ export default {
     logoutError: 'Failed to log out',
   },
   store: {
+    updateStore: 'Update Store',
     closeError: 'Error closing store',
     closeStore: 'Close Store',
     sliderThree: 'sliderThree',

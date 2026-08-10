@@ -20,6 +20,7 @@ const storeData = ref({
   has_market: false,
   min_amount_order: '',
   store_image: null,
+  popup_store_image: null,
   main_banner_image: null,
   sub_banner_image: null,
   slider_images_one: [],
@@ -28,6 +29,7 @@ const storeData = ref({
   // existing_images now stores the URL AND the media ID for deletion tracking
   existing_images: {
     store_image: { url: null, id: null },
+    popup_store_image: { url: null, id: null },
     main_banner_image: { url: null, id: null },
     sub_banner_image: { url: null, id: null },
     slider_images_one: [], // Array of { url, id }
@@ -38,6 +40,7 @@ const storeData = ref({
 
 // Image previews
 const storeImagePreview = ref(null);
+const popupStoreImagePreview = ref(null);
 const mainBannerPreview = ref(null);
 const subBannerPreview = ref(null);
 const sliderOnePreviews = ref([]);
@@ -46,6 +49,7 @@ const sliderThreePreviews = ref([]);
 
 // Drag states
 const isDraggingStoreImage = ref(false);
+const isDraggingPopupStoreImage = ref(false);
 const isDraggingMainBanner = ref(false);
 const isDraggingSubBanner = ref(false);
 const isDraggingSliderOne = ref(false);
@@ -121,6 +125,12 @@ const handleImageUpload = (file, type) => {
         isDraggingStoreImage.value = false;
         // Reset existing data if a new file is uploaded
         storeData.value.existing_images.store_image = { url: null, id: null };
+        break;
+      case 'popup_store':
+        storeData.value.popup_store_image = file;
+        popupStoreImagePreview.value = e.target.result;
+        isDraggingPopupStoreImage.value = false;
+        storeData.value.existing_images.popup_store_image = { url: null, id: null };
         break;
       case 'main_banner':
         storeData.value.main_banner_image = file;
@@ -227,6 +237,15 @@ const removeImage = async (type) => {
       storeImagePreview.value = null;
       storeData.value.existing_images.store_image = { url: null, id: null };
       break;
+    case 'popup_store':
+      existingMedia = storeData.value.existing_images.popup_store_image;
+      mediaId = existingMedia.id;
+      if (mediaId && await deleteMedia(mediaId) === false) return;
+
+      storeData.value.popup_store_image = null;
+      popupStoreImagePreview.value = null;
+      storeData.value.existing_images.popup_store_image = { url: null, id: null };
+      break;
     case 'main_banner':
       existingMedia = storeData.value.existing_images.main_banner_image;
       mediaId = existingMedia.id;
@@ -312,6 +331,10 @@ const fetchStore = async () => {
           storeData.value.existing_images.store_image = mediaItem;
           storeImagePreview.value = media.url;
           break;
+        case 'popup_store_image':
+          storeData.value.existing_images.popup_store_image = mediaItem;
+          popupStoreImagePreview.value = media.url;
+          break;
         case 'main_banner_image':
           storeData.value.existing_images.main_banner_image = mediaItem;
           mainBannerPreview.value = media.url;
@@ -372,6 +395,9 @@ const submitForm = async () => {
   // New image files are appended
   if (storeData.value.store_image) {
     formData.append('store_image', storeData.value.store_image);
+  }
+  if (storeData.value.popup_store_image) {
+    formData.append('popup_store_image', storeData.value.popup_store_image);
   }
   if (storeData.value.main_banner_image) {
     formData.append('main_banner_image', storeData.value.main_banner_image);
@@ -448,6 +474,52 @@ onMounted(() => {
 
     <form ref="form" @submit.prevent="submitForm" class="space-y-6">
       <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700">
+            Popup Store Image
+          </label>
+          <div class="flex justify-center">
+            <label
+              @dragover.prevent="isDraggingPopupStoreImage = true"
+              @dragleave="isDraggingPopupStoreImage = false"
+              @drop.prevent="onImageUpload($event, 'popup_store')"
+              :class="{'border-blue-500 bg-blue-50': isDraggingPopupStoreImage, 'border-gray-300': !isDraggingPopupStoreImage}"
+              class="flex items-center justify-center w-full h-48 transition-colors duration-300 border-2 border-dashed cursor-pointer rounded-xl"
+            >
+              <input type="file" @change="onImageUpload($event, 'popup_store')" accept="image/*" class="hidden">
+
+              <div v-if="popupStoreImagePreview" class="w-full h-full p-4">
+                <div class="relative w-full h-full group">
+                  <img
+                    :src="popupStoreImagePreview"
+                    alt="Popup Store Image"
+                    class="object-contain w-full h-full transition-transform duration-300 rounded-lg shadow-md group-hover:scale-105"
+                  >
+                  <div class="absolute inset-0 flex items-center justify-center transition-all duration-300 bg-black bg-opacity-0 rounded-lg group-hover:bg-opacity-30">
+                    <button
+                      type="button"
+                      @click.stop="removeImage('popup_store')"
+                      class="p-2 text-white transition bg-red-500 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-600"
+                    >
+                      <i class="text-sm pi pi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="flex flex-col items-center justify-center p-4">
+                <div class="p-3 mb-2 bg-blue-100 rounded-full">
+                  <i class="text-xl text-blue-500 pi pi-image"></i>
+                </div>
+                <p class="text-sm text-center text-gray-600">
+                  <span class="font-medium text-blue-500">{{ t('store.clickToUpload') }}</span> {{ t('store.orDragDrop') }}
+                </p>
+                <p class="text-xs text-gray-400">{{ t('store.imageFormat') }}</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
         <div class="space-y-2">
           <label for="name_en" class="block text-sm font-medium text-gray-700">
             {{ t('store.nameEn') }} <span class="text-red-500">*</span>

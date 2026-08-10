@@ -1360,6 +1360,7 @@ export default {
   yes: 'نعم',
   no: 'لا',
   store: {
+    updateStore: 'تحديث المتجر',
     closeError: 'فشل في اغلاق السوق',
     closeStore: 'اغلاق السوق',
     default: 'المتجر',

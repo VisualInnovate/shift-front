@@ -24,7 +24,7 @@ jobs:
       - name: Build Vue App
         run: npm run build
 
-      - name: Delete old dist folder on server
+      - name: Delete old staging files on server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -32,13 +32,13 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || '22' }}
           script: |
-            rm -rf /home/${{ secrets.SSH_USER }}/public_html/stagingfront.shift7store/dist
-            echo "✅ Old staging dist deleted"
+            rm -rf /home/${{ secrets.SSH_USER }}/public_html/stagingfront.shift7store/*
+            echo "✅ Old staging files deleted"
 
       - name: Install rsync
         run: sudo apt-get update && sudo apt-get install -y rsync
 
-      - name: Upload new dist folder
+      - name: Upload new dist contents
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
@@ -47,4 +47,4 @@ jobs:
           rsync -avz \
           -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -p ${{ secrets.SSH_PORT || '22' }}" \
           dist/ \
-          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/public_html/stagingfront.shift7store/dist/
+          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/public_html/stagingfront.shift7store/

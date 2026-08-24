@@ -835,8 +835,8 @@
               <i class="pi pi-search"></i>
             </div>
             <div>
-              <p class="product-search-title">{{ t('order.search') }}</p>
-              <p class="product-search-subtitle">{{ t('order.switchItems') }}</p>
+              <p class="product-search-title">{{ t('order.switchItems') }}</p>
+              <p class="product-search-subtitle">{{ t('order.search') }}</p>
             </div>
           </div>
 
@@ -845,7 +845,7 @@
             <InputText
               v-model="searchQuery"
               class="product-search-input"
-              :placeholder="t('order.search')"
+              :placeholder="t('order.selectProduct')"
               @input="fetchProductsForSwitch"
             />
           </span>
@@ -863,7 +863,7 @@
             />
           </div>
           <div class="switch-item-info">
-            <span class="switch-item-label">Current item</span>
+            <span class="switch-item-label">{{ t('order.currenTitem') }}</span>
             <p class="switch-item-name">
               {{ lang === 'ar' ? itemToSwitch.product?.name_ar : itemToSwitch.product?.name_en }}
             </p>
@@ -913,7 +913,7 @@
               </template>
             </Column>
 
-            <Column :field="'name_' + locale" header="Name" class="product-name-col">
+            <Column :field="'name_' + locale" :header="t('common.name')" class="product-name-col">
               <template #body="{ data }">
                 <div class="product-cell product-row-clickable" @click="toggleProductSelection(data)">
                   <div class="product-meta">
@@ -923,7 +923,7 @@
                 </div>
               </template>
             </Column>
-            <Column field="base_price" header="Price" headerClass="text-right" class="product-price-col">
+            <Column field="base_price" :header="t('common.price')" headerClass="text-right" class="product-price-col">
               <template #body="{ data }">
                 <span class="product-price product-row-clickable" @click="toggleProductSelection(data)">
                   {{ formatCurrency(data.base_price) }}

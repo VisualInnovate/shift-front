@@ -230,6 +230,8 @@ export default {
   error: 'Error',
   success: 'Success',
   order: {
+    currenTitem: 'Current item',
+    selectProduct: 'Enter product name or barcode to search for alternatives',
     switchItems: 'Switch Items',
     switchError: 'Failed to switch orders',
     switch: 'Switch',
@@ -366,6 +368,7 @@ export default {
   },
   common: {
     id: 'ID',
+    price: 'Price',
     name: 'Name',
     description: 'Description',
     actions: 'Actions',

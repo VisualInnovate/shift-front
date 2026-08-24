@@ -213,7 +213,9 @@ export default {
   to: 'إلى',
   from: 'من',
   order: {
-    switchItems: 'تبديل المنتجات',
+    currenTitem: 'المنتج الحالي',
+    selectProduct: 'ادخل اسم المنتج او الباركود للبحث عن بدائل',
+    switchItems: 'استبدال المنتج',
     switchError: 'فشل في تبديل الطلبات',
     switch: 'تبديل',
     exportError: 'فشل في تصدير الطلبات',
@@ -424,6 +426,7 @@ export default {
   common: {
     loading: 'جارٍ التحميل...',
     id: 'المعرف',
+    price: 'السعر',
     name: 'الاسم',
     description: 'الوصف',
     actions: 'الإجراءات',
@@ -1674,7 +1677,7 @@ export default {
     atLeastOneVariant: 'مطلوب متغير واحد على الأقل',
     fileRequired: 'يرجى تحديد ملف للاستيراد',
   },
-  
+
   attribute: {
     isColor: 'لون',
     managementTitle: 'إدارة الخصائص',

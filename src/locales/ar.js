@@ -1674,6 +1674,7 @@ export default {
     atLeastOneVariant: 'مطلوب متغير واحد على الأقل',
     fileRequired: 'يرجى تحديد ملف للاستيراد',
   },
+  
   attribute: {
     isColor: 'لون',
     managementTitle: 'إدارة الخصائص',

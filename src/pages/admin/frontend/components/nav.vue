@@ -178,6 +178,7 @@
             </svg>
           </router-link>
 
+
           <router-link
             :to="{ name: 'cart' }"
             class="icon-container bg-[#E6AC31] cursor-pointer hover:bg-[#d89b2a] transition-colors relative group"

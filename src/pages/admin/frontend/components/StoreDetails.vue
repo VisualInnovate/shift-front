@@ -111,7 +111,7 @@
           <div @click="goCategory(category)" class="flex flex-col items-center justify-center rounded-xl h-full w-full cursor-pointer">
             <img
               v-if="category?.media"
-              :src="category?.media[0]?.url"
+              :src="category?.media?.name == 'category_image' ? category?.media?.url : category?.media[0]?.url"
               :alt="category.name_en || 'Category Image'"
               class="w-full  object-contain  rounded-xl"
               loading="lazy"

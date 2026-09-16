@@ -5,6 +5,7 @@ export interface INavigationRoute {
   children?: INavigationRoute[]
   show?: string | string[]
   disabled?: boolean
+  requireAll?: boolean
 }
 
 export default {
@@ -27,7 +28,13 @@ export default {
     {
       name: 'statistics',
       displayName: 'navigation.users_management',
-      show: ['list users', 'list permissions', 'list roles', 'list address'],
+      show: [
+        'list users',
+        'show users',
+        'edit users',
+        'create users',
+      ],
+      requireAll: true,
       meta: {
         icon: 'people_alt', // أيقونة أفضل لإدارة المستخدمين
       },
@@ -36,7 +43,13 @@ export default {
         {
           name: 'users',
           displayName: 'navigation.users',
-          show: 'list users',
+          show: [
+            'list users',
+            'show users',
+            'edit users',
+            'create users',
+          ],
+          requireAll: true,
           meta: { icon: 'person' }
         },
         {
@@ -154,7 +167,7 @@ export default {
       displayName: 'navigation.direct_orders',
       show: ['list orders'],
       meta: {
-          icon: 'local_shipping',
+        icon: 'local_shipping',
       },
     },
     {

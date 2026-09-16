@@ -75,7 +75,6 @@ export default {
     {
       name: 'products',
       displayName: 'navigation.products',
-      show: ['list brands', 'list model', 'list attributes'],
       meta: {
         icon: 'inventory_2',
       },
@@ -84,7 +83,7 @@ export default {
         {
           name: 'product',
           displayName: 'navigation.product',
-          show: 'list product',
+          show: 'list products',
           meta: { icon: 'inventory' }
         },
         {

@@ -101,7 +101,7 @@ export default {
         {
           name: 'discount',
           displayName: 'navigation.discount',
-          show: 'list discount',
+          show: 'list discounts',
           meta: { icon: 'percent' } // أيقونة أوضح للخصومات
         },
         {
